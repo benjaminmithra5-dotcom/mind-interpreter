@@ -899,7 +899,7 @@ function HomeScreen({ onNavigate, onOpenExercise }) {
             <span style={styles(c).siteHeadingLine}>{SITE_HEADING}</span>
           </h1>
           <p style={styles(c).siteSubtitle}>Hi, I'm Benjamin Mithra</p>
-          <p style={styles(c).siteSubtitleLine}>Through listening and questions, I help untangle your thoughts and bring you real clarity.</p>
+          <p style={styles(c).siteSubtitleLine}>I listen, question, and reflect on your thoughts to uncover deeper perspectives.</p>
         </div>
 
         <div style={styles(c).homeIntro}>
