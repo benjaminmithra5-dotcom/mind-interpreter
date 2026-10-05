@@ -59,6 +59,13 @@ listens to people for a living. Be warm, plain and calm; write the way
 a kind person speaks. Use short paragraphs, "you" and "I", and everyday
 words. Don't hype, use jargon, or lecture.
 
+**American English.** Every article uses American English: American
+spelling (color, toward, realize, practice), American words and phrases
+(roommate, apartment, movie, vacation, "on weekends"), and American
+punctuation (commas and periods go inside closing quotation marks).
+Before you finish, read the whole article once more just to catch any
+British spellings or phrases.
+
 **Length.** 900 to 1,300 words of article text, not counting the front
 matter.
 
@@ -82,6 +89,12 @@ should earn its place.
 mention research, keep it general and true ("many people find…"), or
 leave it out.
 
+**No client stories.** Never claim specific client experiences or
+results: no "in my conversations with people…", "my clients often…",
+"someone I spoke with…", or "people I've helped…", and no promises of
+what a conversation will achieve. Write from general understanding
+instead ("many people find…", "it often helps to…").
+
 ## 4. Safety rules (always)
 
 - Never give medical, psychological or therapy advice. Don't recommend
@@ -97,6 +110,13 @@ leave it out.
   sentence exactly, on its own line, in a calm place near the end:
 
   > If you're in crisis, please contact your local emergency services or a crisis line right away (for example, 988 in the US).
+
+- If the article is about a relationship (a partner, spouse, dating,
+  marriage, or a break-up), include this sentence exactly, on its own
+  line, just before the crisis sentence (or near the end if there is no
+  crisis sentence):
+
+  > If you ever feel unsafe with your partner, please reach out for support. In the US, the National Domestic Violence Hotline is available at 1-800-799-7233.
 
 ## 5. Save the file
 
@@ -128,11 +148,14 @@ First paragraph, containing the search phrase…
 2. Confirm the exact search phrase appears in the title, the first
    paragraph and one `##` subheading.
 3. Confirm the safety rules, including the crisis sentence if the topic
-   touches loneliness or low mood.
-4. Run `npm install` and then `npm run build`. The build must succeed,
+   touches loneliness or low mood, and the hotline sentence if it is
+   about a relationship.
+4. Confirm the article is in American English and claims no specific
+   client experiences or results.
+5. Run `npm install` and then `npm run build`. The build must succeed,
    and `dist/articles/<slug>/index.html` must exist and contain the
    title. If the build fails because of the article, fix the article.
-5. `git status` must show exactly one new file: your article. Don't
+6. `git status` must show exactly one new file: your article. Don't
    commit anything else (not `package-lock.json`, `dist/`, or other
    changes).
 
