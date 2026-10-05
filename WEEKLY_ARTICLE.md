@@ -20,7 +20,7 @@ article file.**
 2. `git checkout main` and `git pull origin main`.
 3. Today's date in India (IST, UTC+5:30) is the article date. Write it
    as `YYYY-MM-DD`.
-4. Create the branch: `git checkout -b article/YYYY-MM-DD`. If that
+4. Create the branch: `git checkout -b claude/article-YYYY-MM-DD`. If that
    branch already exists locally or on `origin`, an article was already
    started today: stop and say so.
 
@@ -163,7 +163,7 @@ First paragraph, containing the search phrase…
 
 1. `git add content/articles/<slug>.md`
 2. `git commit -m "New article: <title>"`
-3. `git push -u origin article/YYYY-MM-DD`
+3. `git push -u origin claude/article-YYYY-MM-DD`
 4. Open a pull request into `main`, titled exactly
    `New article: <title>`. In the body, write:
    - the search phrase you targeted and where you found people asking
@@ -173,6 +173,6 @@ First paragraph, containing the search phrase…
      included);
    - "Merge this pull request to publish the article."
 
-   With the GitHub CLI: `gh pr create --base main --head article/YYYY-MM-DD --title "New article: <title>" --body "<body>"`.
+   With the GitHub CLI: `gh pr create --base main --head claude/article-YYYY-MM-DD --title "New article: <title>" --body "<body>"`.
 5. **Do not merge it.** Benjamin reviews and merges it. Finish by
    printing the pull request link.
