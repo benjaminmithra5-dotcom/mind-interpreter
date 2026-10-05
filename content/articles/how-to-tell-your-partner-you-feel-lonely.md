@@ -5,20 +5,20 @@ summary: "Feeling alone next to someone you love is hard to say out loud. Here's
 description: "How to tell your partner you feel lonely in the relationship: how to find the words, choose the moment, and start a calm, honest conversation without blame."
 ---
 
-There is a particular kind of loneliness that is hard to explain to anyone, because on paper you are not alone. You share a home, a bed, maybe children and a calendar full of plans. And still, something feels far away. If you have been wondering how to tell your partner you feel lonely in the relationship, you are not being dramatic, and you are not the only one. In the conversations I have with people, this is one of the feelings they find hardest to say out loud, mostly because they are afraid of how it will land.
+There is a particular kind of loneliness that is hard to explain to anyone, because on paper you are not alone. You share a home, a bed, maybe children and a calendar full of plans. And still, something feels far away. If you have been wondering how to tell your partner you feel lonely in the relationship, you are not being dramatic, and you are not the only one. Many people find this one of the hardest feelings to say out loud, mostly because they are afraid of how it will land.
 
-I listen to people for a living, and what I have learned is that loneliness inside a relationship is rarely about one big thing. It is usually a slow drift: fewer real conversations, more talk about logistics, a sense that the other person no longer quite sees you. Saying it out loud is not an attack on the relationship. Very often it is the most caring thing you can do for it.
+Loneliness inside a relationship is rarely about one big thing. It is usually a slow drift: fewer real conversations, more talk about logistics, a sense that the other person no longer quite sees you. Saying it out loud is not an attack on the relationship. Very often it is the most caring thing you can do for it.
 
 ## First, get clear on what you are actually feeling
 
 Before you talk to your partner, it helps to talk to yourself. "I'm lonely" is true, but it is also wide. Try to make it smaller and more specific. A few questions you can sit with, or write down:
 
-- When do I feel it most? At dinner, in bed, at weekends, when we are with other people?
+- When do I feel it most? At dinner, in bed, on weekends, when we are with other people?
 - When was the last time I felt close to them? What were we doing?
 - What do I miss? Being asked about my day? Being touched? Laughing together? Making plans?
 - Is there something I have stopped saying because I assume they won't be interested?
 
-You might notice that the loneliness has a shape. Perhaps it is "I feel like a flatmate", or "I feel like I'm the only one who notices when we're drifting", or "I miss being curious about each other". The clearer you are, the easier it is for your partner to understand, and the less it will sound like a vague complaint.
+You might notice that the loneliness has a shape. Perhaps it is "I feel like a roommate," or "I feel like I'm the only one who notices when we're drifting," or "I miss being curious about each other." The clearer you are, the easier it is for your partner to understand, and the less it will sound like a vague complaint.
 
 ## Choose the moment, not the mood
 
@@ -42,7 +42,7 @@ Try to talk about one recent, concrete example rather than a long list of everyt
 
 ## Expect a reaction, and give it room
 
-Even if you say it beautifully, your partner may not respond perfectly. Some people hear "I feel lonely" as "you've failed me", and their first response is defensive: "But we were together all weekend!" Others go quiet, or feel hurt, or are relieved because they have been feeling it too.
+Even if you say it beautifully, your partner may not respond perfectly. Some people hear "I feel lonely" as "you've failed me," and their first response is defensive: "But we were together all weekend!" Others go quiet, or feel hurt, or are relieved because they have been feeling it too.
 
 Whatever comes first, try not to treat it as the final answer. You might say: "I'm not blaming you. I'm telling you because I care about us." Then ask, and really listen: "Have you felt any of this too?" or "What's it been like for you lately?" Loneliness in a couple is very often shared, with each person quietly assuming the other is fine.
 
@@ -53,17 +53,19 @@ You don't have to solve everything in one evening. A good first conversation end
 Once it has been said, connection usually grows back through small, regular moments rather than grand gestures. You might agree to try a few things together:
 
 - Ten minutes a day of talking with phones away, about something other than chores and schedules.
-- A real question at the end of the day, such as "What was the best and hardest part of today?", followed by actually listening to the answer.
-- One shared thing each week that is just for the two of you: a walk, cooking together, an old film you both love.
+- A real question at the end of the day, such as "What was the best and hardest part of today?" followed by actually listening to the answer.
+- One shared thing each week that is just for the two of you: a walk, cooking together, an old movie you both love.
 - Checking in again in a couple of weeks: "How are we doing? Has anything felt different?"
 
-Notice the small moments of reaching out, too. When one of you shares something, even something minor, and the other turns towards it rather than away, closeness rebuilds a little.
+Notice the small moments of reaching out, too. When one of you shares something, even something minor, and the other turns toward it rather than away, closeness rebuilds a little.
 
 ## If you can't find the words yet
 
 Sometimes the feeling is too tangled to say to your partner straight away. You may not know whether you are lonely, or hurt, or grieving something that has changed. In that case it can help to talk it through with someone outside the relationship first, someone who will simply listen without taking sides. Saying it out loud to a calm, neutral person often shows you what you really want to say. If that would help, you are welcome to have a [private conversation with me](/consultation), and we can untangle it together before you take it home.
 
-And if the loneliness has started to feel heavier than this, more like a constant low mood that doesn't lift, please be gentle with yourself and reach out to someone you trust.
+And if the loneliness has started to feel heavier than this, more like a constant low mood that doesn't lift, please be gentle with yourself and reach out to someone you trust, or consider speaking with a doctor or mental health professional.
+
+If you ever feel unsafe with your partner, please reach out for support. In the US, the National Domestic Violence Hotline is available at 1-800-799-7233.
 
 If you're in crisis, please contact your local emergency services or a crisis line right away (for example, 988 in the US).
 
