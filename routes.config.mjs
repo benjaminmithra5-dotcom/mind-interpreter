@@ -9,7 +9,24 @@
 // EXERCISE_SLUG inside src/App.jsx. If you ever rename a route in
 // App.jsx, update it here too.
 
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseArticle, sortArticles } from "./src/articleFormat.js";
+
 export const SITE_URL = "https://benjaminmithra.com";
+
+// Every Markdown file in content/articles becomes /articles/<slug>, so a
+// new article only needs its file: it is prerendered and added to the
+// sitemap (with its own date as lastmod) on the next build.
+const ARTICLES_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "content", "articles");
+const ARTICLES = fs.existsSync(ARTICLES_DIR)
+  ? sortArticles(
+      fs.readdirSync(ARTICLES_DIR)
+        .filter((f) => f.endsWith(".md"))
+        .map((f) => parseArticle(fs.readFileSync(path.join(ARTICLES_DIR, f), "utf8"), f))
+    )
+  : [];
 
 export const ROUTES = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
@@ -31,6 +48,8 @@ export const ROUTES = [
   { path: "/rv-lab", changefreq: "monthly", priority: "0.8" },
   { path: "/consultation", changefreq: "monthly", priority: "1.0" },
   { path: "/faq", changefreq: "monthly", priority: "0.7" },
+  { path: "/articles", changefreq: "weekly", priority: "0.7", lastmod: ARTICLES[0]?.date },
+  ...ARTICLES.map((a) => ({ path: `/articles/${a.slug}`, changefreq: "monthly", priority: "0.6", lastmod: a.date })),
   { path: "/privacy", changefreq: "yearly", priority: "0.3" },
   { path: "/terms", changefreq: "yearly", priority: "0.3" },
   { path: "/disclaimer", changefreq: "yearly", priority: "0.3" },

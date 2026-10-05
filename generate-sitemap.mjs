@@ -10,9 +10,9 @@ const today = new Date().toISOString().split("T")[0];
 
 const SITEMAP_ROUTES = ROUTES.filter((r) => r.sitemap !== false);
 
-const urlEntries = SITEMAP_ROUTES.map(({ path: p, changefreq, priority }) => `  <url>
+const urlEntries = SITEMAP_ROUTES.map(({ path: p, changefreq, priority, lastmod }) => `  <url>
     <loc>${SITE_URL}${p}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${lastmod || today}</lastmod>
     <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>
   </url>`).join("\n");

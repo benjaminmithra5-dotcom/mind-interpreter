@@ -1,6 +1,8 @@
 import { Fragment, useState, useEffect, useRef, useMemo, createContext, useContext } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import * as Tone from "tone";
+import { marked } from "marked";
+import { parseArticle, sortArticles, formatArticleDate } from "./articleFormat.js";
 
 // =================================================================
 // Theme, dark and warm on purpose. Nothing in this game should sit
@@ -964,6 +966,8 @@ function HomeScreen({ onNavigate, onOpenExercise }) {
 
         <p style={{ ...styles(c).homeFooterLine, margin: 0 }}>
           <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
+          <span style={styles(c).homeFooterDot}>·</span>{" "}
+          <Link to={VIEW_PATH.articles} className="home-footer-link" style={styles(c).homeFooterLink}>Articles</Link>{" "}
           <span style={styles(c).homeFooterDot}>·</span>{" "}
           <Link to={VIEW_PATH.privacy} className="home-footer-link" style={styles(c).homeFooterLink}>Privacy</Link>{" "}
           <span style={styles(c).homeFooterDot}>·</span>{" "}
@@ -2832,6 +2836,8 @@ function PlaceholderScreen({ title, note, points, sections, onNavigate }) {
         <p style={styles(c).homeFooterLine}>
           <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
           <span style={styles(c).homeFooterDot}>·</span>{" "}
+          <Link to={VIEW_PATH.articles} className="home-footer-link" style={styles(c).homeFooterLink}>Articles</Link>{" "}
+          <span style={styles(c).homeFooterDot}>·</span>{" "}
           <Link to={VIEW_PATH.privacy} className="home-footer-link" style={styles(c).homeFooterLink}>Privacy</Link>{" "}
           <span style={styles(c).homeFooterDot}>·</span>{" "}
           <Link to={VIEW_PATH.terms} className="home-footer-link" style={styles(c).homeFooterLink}>Terms</Link>{" "}
@@ -3338,6 +3344,8 @@ function ContactScreen({ onNavigate }) {
 
       <p style={styles(c).homeFooterLine}>
         <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
+        <span style={styles(c).homeFooterDot}>·</span>{" "}
+        <Link to={VIEW_PATH.articles} className="home-footer-link" style={styles(c).homeFooterLink}>Articles</Link>{" "}
         <span style={styles(c).homeFooterDot}>·</span>{" "}
         <Link to={VIEW_PATH.privacy} className="home-footer-link" style={styles(c).homeFooterLink}>Privacy</Link>{" "}
         <span style={styles(c).homeFooterDot}>·</span>{" "}
@@ -4052,6 +4060,8 @@ function SiteFooterLine() {
     <p style={styles(c).homeFooterLine}>
       <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
       <span style={styles(c).homeFooterDot}>·</span>{" "}
+      <Link to={VIEW_PATH.articles} className="home-footer-link" style={styles(c).homeFooterLink}>Articles</Link>{" "}
+      <span style={styles(c).homeFooterDot}>·</span>{" "}
       <Link to={VIEW_PATH.privacy} className="home-footer-link" style={styles(c).homeFooterLink}>Privacy</Link>{" "}
       <span style={styles(c).homeFooterDot}>·</span>{" "}
       <Link to={VIEW_PATH.terms} className="home-footer-link" style={styles(c).homeFooterLink}>Terms</Link>{" "}
@@ -4099,6 +4109,147 @@ function FaqScreen() {
 }
 
 // =================================================================
+// Articles. Every Markdown file in content/articles is one article at
+// /articles/<file name>; the file format is described in
+// src/articleFormat.js and WEEKLY_ARTICLE.md. routes.config.mjs reads the
+// same files, so each one is prerendered and listed in the sitemap.
+// =================================================================
+const ARTICLE_FILES = import.meta.glob("../content/articles/*.md", { query: "?raw", import: "default", eager: true });
+const ARTICLES = sortArticles(Object.entries(ARTICLE_FILES).map(([file, raw]) => parseArticle(raw, file)));
+const ARTICLE_BY_SLUG = Object.fromEntries(ARTICLES.map((a) => [a.slug, a]));
+const AUTHOR_BIO = "I listen, question, and reflect on your thoughts to uncover deeper perspectives.";
+
+function articleMeta(a) {
+  return { title: `${a.title} | Benjamin Mithra, Mind Interpreter`, description: a.description, type: "article" };
+}
+
+function articleJsonLd(a) {
+  const url = `${SITE_URL}/articles/${a.slug}`;
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: a.title,
+    description: a.description,
+    datePublished: a.date,
+    dateModified: a.date,
+    inLanguage: "en",
+    url,
+    mainEntityOfPage: url,
+    image: `${SITE_URL}/benjamin-mithra.jpg`,
+    wordCount: a.words,
+    author: { "@type": "Person", "@id": `${SITE_URL}/#person`, name: "Benjamin Mithra", url: `${SITE_URL}/` },
+    publisher: { "@id": `${SITE_URL}/#person` },
+  }).replace(/</g, "\\u003c");
+}
+
+const ARTICLE_CSS = `
+  .article-card { transition: border-color 0.15s ease; }
+  .article-card:hover, .article-card:focus-visible { border-color: ${COLORS.gold} !important; outline: none; }
+  .article-body { font-family: ${font.body}; font-size: 17px; line-height: 1.75; color: ${COLORS.ink}; }
+  .article-body > :first-child { margin-top: 0; }
+  .article-body p { margin: 0 0 1.1em; }
+  .article-body h2 { font-family: ${font.display}; font-weight: 500; font-size: 21px; letter-spacing: 0.02em; line-height: 1.35; color: ${COLORS.gold}; margin: 1.8em 0 0.6em; }
+  .article-body h3 { font-family: ${font.display}; font-weight: 500; font-size: 18px; letter-spacing: 0.02em; line-height: 1.35; color: ${COLORS.ink}; margin: 1.5em 0 0.5em; }
+  .article-body ul, .article-body ol { margin: 0 0 1.1em; padding-left: 1.3em; }
+  .article-body li { margin-bottom: 0.45em; }
+  .article-body li::marker { color: ${COLORS.gold}; }
+  .article-body a { color: ${COLORS.gold}; text-decoration: none; }
+  .article-body a:hover { color: ${COLORS.goldHover}; }
+  .article-body strong { font-weight: 600; }
+  .article-body blockquote { margin: 1.3em 0; padding: 0.2em 0 0.2em 1em; border-left: 3px solid ${COLORS.gold}; color: ${COLORS.muted}; font-style: italic; }
+  .article-body blockquote p:last-child { margin-bottom: 0; }
+  .article-body hr { border: none; border-top: 1px solid ${COLORS.line}; margin: 2em 0; }
+`;
+
+function ArticlesListScreen() {
+  const c = useColors();
+  return (
+    <div style={styles(c).articleWrap} className="fade-in">
+      <style>{ARTICLE_CSS}</style>
+      <h1 style={styles(c).faqHeading}>Articles</h1>
+      {ARTICLES.length === 0 ? (
+        <p style={styles(c).articleEmpty}>New articles are on their way.</p>
+      ) : (
+        <ul style={styles(c).articleList}>
+          {ARTICLES.map((a) => (
+            <li key={a.slug}>
+              <Link to={`/articles/${a.slug}`} className="article-card" style={styles(c).articleCard}>
+                <time dateTime={a.date} style={styles(c).articleCardDate}>{formatArticleDate(a.date)}</time>{" "}
+                <h2 style={styles(c).articleCardTitle}>{a.title}</h2>{" "}
+                <p style={styles(c).articleCardSummary}>{a.summary}</p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      <SiteFooterLine />
+    </div>
+  );
+}
+
+function ArticleScreen({ article }) {
+  const c = useColors();
+  const routerNavigate = useNavigate();
+  const html = useMemo(() => (article ? marked.parse(article.body) : ""), [article]);
+
+  useEffect(() => { window.scrollTo(0, 0); }, [article?.slug]);
+
+  if (!article) {
+    return (
+      <div style={styles(c).articleWrap} className="fade-in">
+        <h1 style={styles(c).faqHeading}>Article not found</h1>
+        <p style={styles(c).articleEmpty}>This article may have moved. <Link to={VIEW_PATH.articles} style={styles(c).faqLink}>See all articles</Link>.</p>
+        <SiteFooterLine />
+      </div>
+    );
+  }
+
+  // Links to other pages of the site open without a full page reload.
+  const onBodyClick = (e) => {
+    const link = e.target.closest && e.target.closest("a");
+    const href = link && link.getAttribute("href");
+    if (!href || !href.startsWith("/") || href.startsWith("//")) return;
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    routerNavigate(href);
+  };
+
+  return (
+    <div style={styles(c).articleWrap} className="fade-in">
+      <style>{ARTICLE_CSS}</style>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: articleJsonLd(article) }} />
+      <article style={styles(c).articleMain}>
+        <header style={styles(c).articleHeader}>
+          <Link to={VIEW_PATH.articles} style={styles(c).articleBack}>Articles</Link>
+          <h1 style={styles(c).faqHeading}>{article.title}</h1>
+          <p style={styles(c).articleMetaLine}>
+            <time dateTime={article.date}>{formatArticleDate(article.date)}</time>{" "}
+            <span aria-hidden="true" style={styles(c).homeFooterDot}>·</span>{" "}
+            <span>{article.readingMinutes} min read</span>
+          </p>
+        </header>
+
+        <div className="article-body" onClick={onBodyClick} dangerouslySetInnerHTML={{ __html: html }} />
+
+        <aside style={styles(c).articleAuthor} aria-label="About the author">
+          <img src="/benjamin-mithra.jpg" alt="Benjamin Mithra" width="64" height="64" style={styles(c).articleAuthorPhoto} />{" "}
+          <div>
+            <p style={styles(c).articleAuthorName}>Benjamin Mithra, Mind Interpreter</p>{" "}
+            <p style={styles(c).articleAuthorBio}>{AUTHOR_BIO}</p>
+          </div>
+        </aside>
+
+        <div style={styles(c).faqCta}>
+          <p style={styles(c).articleCtaText}>If you'd like to talk it through with someone, I'm here.</p>
+          <Link to={VIEW_PATH.contact} style={styles(c).btnGold}>Private Consultation</Link>
+        </div>
+      </article>
+      <SiteFooterLine />
+    </div>
+  );
+}
+
+// =================================================================
 // App
 // =================================================================
 function pickRandomGame(excludeSet) { const remaining = GAMES.filter((g) => !excludeSet.has(g.key)); return remaining[randInt(0, remaining.length - 1)].key; }
@@ -4113,6 +4264,7 @@ const TOP_TABS = [
 ];
 const HAMBURGER_MENU_ITEMS = [
   ...TOP_TABS,
+  { key: "articles", label: "Articles" },
   { key: "privacy", label: "Privacy" },
   { key: "terms", label: "Terms" },
   { key: "disclaimer", label: "Disclaimer" },
@@ -4137,7 +4289,7 @@ const GAME_TABS = [
 // =================================================================
 const VIEW_PATH = {
   home: "/", journals: "/journals", exercises: "/exercises", games: "/games",
-  rvlab: "/rv-lab", contact: "/consultation", faq: "/faq", privacy: "/privacy", terms: "/terms", disclaimer: "/disclaimer",
+  rvlab: "/rv-lab", contact: "/consultation", faq: "/faq", articles: "/articles", privacy: "/privacy", terms: "/terms", disclaimer: "/disclaimer",
 };
 const GAME_SLUG = { chess: "chess", everyday: "recall", nback: "n-back", cards: "card-memory", words: "word-memory", numbers: "number-memory" };
 const GAME_KEY_FROM_SLUG = Object.fromEntries(Object.entries(GAME_SLUG).map(([k, v]) => [v, k]));
@@ -4167,6 +4319,8 @@ const PAGE_META = {
   privacy: { title: "Privacy Policy | Mind Interpreter", description: "How conversations and this site handle your information: conversations stay private, and the site uses no accounts, cookies, or tracking." },
   terms: { title: "Terms | Mind Interpreter", description: "Terms for using this site's games, exercises, and remote viewing content." },
   faq: { title: "FAQ | Benjamin Mithra, Mind Interpreter", description: "Answers about private conversations with Benjamin Mithra, a Mind Interpreter: what you can talk about, how sessions work, privacy, and the site's Brain Games and Mind Exercises." },
+  articles: { title: "Articles | Benjamin Mithra, Mind Interpreter", description: "Articles by Benjamin Mithra, a Mind Interpreter, on loneliness, difficult conversations, hard decisions, overthinking, and the moments in life when you need to be heard." },
+  "article-missing": { title: "Article not found | Mind Interpreter", description: "This article could not be found. Browse all articles by Benjamin Mithra, a Mind Interpreter." },
   disclaimer: { title: "Disclaimer | Mind Interpreter", description: "Conversations here are not therapy or medical care, and the site's exercises and remote viewing content are educational and experimental." },
 };
 
@@ -4184,9 +4338,11 @@ function setHeadTag(tagName, matchAttr, matchValue, valueAttr, value) {
   tag.setAttribute(valueAttr, value);
 }
 
-function useDocumentMeta(key, pathname) {
+// An article passes its own meta (with type "article"); every other page
+// uses PAGE_META and is a "website" for link previews.
+function useDocumentMeta(key, pathname, override) {
   useEffect(() => {
-    const meta = PAGE_META[key] || PAGE_META.home;
+    const meta = override || PAGE_META[key] || PAGE_META.home;
     // Canonical form: no www, no trailing slash except the home page.
     const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : "/";
     const url = `${SITE_URL}${path}`;
@@ -4196,7 +4352,8 @@ function useDocumentMeta(key, pathname) {
     setHeadTag("meta", "property", "og:title", "content", meta.title);
     setHeadTag("meta", "property", "og:description", "content", meta.description);
     setHeadTag("meta", "property", "og:url", "content", url);
-  }, [key, pathname]);
+    setHeadTag("meta", "property", "og:type", "content", meta.type || "website");
+  }, [key, pathname, override?.title]);
 }
 
 export default function App() {
@@ -4209,7 +4366,7 @@ export default function App() {
     const first = pathParts[0];
     if (first === "consultation") return "contact";
     if (first === "rv-lab") return "rvlab";
-    if (["journals", "exercises", "games", "faq", "privacy", "terms", "disclaimer"].includes(first)) return first;
+    if (["journals", "exercises", "games", "faq", "articles", "privacy", "terms", "disclaimer"].includes(first)) return first;
     return "home";
   }, [location.pathname]);
 
@@ -4223,8 +4380,11 @@ export default function App() {
     return EXERCISE_KEY_FROM_SLUG[pathParts[1]] || null;
   }, [location.pathname]);
 
-  const metaKey = view === "games" && gameTab ? `game-${gameTab}` : view === "exercises" && exerciseTab ? `exercise-${exerciseTab}` : view;
-  useDocumentMeta(metaKey, location.pathname);
+  const articleSlug = view === "articles" ? pathParts[1] || null : null;
+  const article = articleSlug ? ARTICLE_BY_SLUG[articleSlug] || null : null;
+
+  const metaKey = view === "games" && gameTab ? `game-${gameTab}` : view === "exercises" && exerciseTab ? `exercise-${exerciseTab}` : articleSlug && !article ? "article-missing" : view;
+  useDocumentMeta(metaKey, location.pathname, article ? articleMeta(article) : null);
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -4281,6 +4441,7 @@ export default function App() {
   const handleBackArrow = () => {
     if (view === "games" && gameTab !== null) routerNavigate("/games");
     else if (view === "exercises" && exerciseTab !== null) routerNavigate("/exercises");
+    else if (view === "articles" && articleSlug) routerNavigate("/articles");
     else navigate("home");
   };
 
@@ -4384,6 +4545,8 @@ export default function App() {
           {view === "rvlab" && <RVLabScreen />}
           {view === "contact" && <ContactScreen onNavigate={navigate} />}
           {view === "faq" && <FaqScreen />}
+          {view === "articles" && !articleSlug && <ArticlesListScreen />}
+          {view === "articles" && articleSlug && <ArticleScreen article={article} />}
           {view === "privacy" && (
             <PlaceholderScreen
               title="Privacy"
@@ -4770,6 +4933,28 @@ function styles(c) {
     faqLink: { color: c.gold, textDecoration: "none" },
     faqCta: { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: 4 },
     faqCtaText: { fontFamily: font.display, fontWeight: 500, fontSize: 18, letterSpacing: "0.02em", color: c.ink, margin: 0 },
+    articleWrap: { width: "100%", maxWidth: 640, display: "flex", flexDirection: "column", alignItems: "center", gap: 28, padding: "8px 0 20px" },
+    articleEmpty: { fontFamily: font.body, fontSize: 17, lineHeight: 1.6, color: c.muted, margin: 0, textAlign: "center" },
+    articleList: { listStyle: "none", margin: 0, padding: 0, width: "100%", display: "flex", flexDirection: "column", gap: 14 },
+    articleCard: {
+      display: "flex", flexDirection: "column", gap: 6, textDecoration: "none", textAlign: "left",
+      background: c.surface, border: `1px solid ${c.line}`, borderRadius: 12, padding: "18px 20px",
+    },
+    articleCardDate: { fontFamily: font.mono, fontSize: 12, letterSpacing: "0.02em", color: c.muted },
+    articleCardTitle: { fontFamily: font.display, fontWeight: 500, fontSize: 20, letterSpacing: "0.02em", lineHeight: 1.35, color: c.gold, margin: 0 },
+    articleCardSummary: { fontFamily: font.body, fontSize: 15.5, lineHeight: 1.6, color: c.muted, margin: 0 },
+    articleMain: { width: "100%", display: "flex", flexDirection: "column", gap: 28 },
+    articleHeader: { display: "flex", flexDirection: "column", alignItems: "center", gap: 10, textAlign: "center" },
+    articleBack: { fontFamily: font.display, fontWeight: 500, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: c.gold, textDecoration: "none" },
+    articleMetaLine: { fontFamily: font.mono, fontSize: 12.5, color: c.muted, margin: 0, display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" },
+    articleAuthor: {
+      display: "flex", alignItems: "center", gap: 16, textAlign: "left",
+      background: c.surface, border: `1px solid ${c.line}`, borderRadius: 12, padding: "16px 18px",
+    },
+    articleAuthorPhoto: { width: 64, height: 64, borderRadius: "50%", objectFit: "cover", objectPosition: "50% 22%", flexShrink: 0, border: `1px solid ${c.gold}` },
+    articleAuthorName: { fontFamily: font.display, fontWeight: 500, fontSize: 16, letterSpacing: "0.02em", color: c.gold, margin: "0 0 4px" },
+    articleAuthorBio: { fontFamily: font.body, fontSize: 15, lineHeight: 1.55, color: c.muted, margin: 0 },
+    articleCtaText: { fontFamily: font.body, fontStyle: "italic", fontSize: 17, lineHeight: 1.6, color: c.ink, margin: 0, textAlign: "center" },
     placeholderSection: { width: "100%", maxWidth: 480, textAlign: "left" },
     placeholderSubhead: { fontFamily: font.display, fontWeight: 500, fontSize: 14, letterSpacing: "0.08em", textTransform: "uppercase", color: c.gold, margin: "0 0 4px" },
     placeholderListItem: { fontFamily: font.body, fontSize: 15, lineHeight: 1.75, color: c.ink, marginBottom: 8 },
