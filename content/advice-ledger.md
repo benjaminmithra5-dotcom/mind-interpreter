@@ -28,3 +28,17 @@ private conversation at /consultation.
 - Check in again after a couple of weeks: "How are we doing? Has anything felt different?"
 - Notice and turn toward small bids for connection.
 - If the feeling is too tangled, talk it through first with a neutral person outside the relationship.
+
+## 2026-10-07 · cant-stop-replaying-what-you-said
+
+- Treat the replay as a stuck rehearsal: the mind wants an ending, and each run gets harsher.
+- Split replay from repair: ask "if they said 'that hurt,' would I want to respond?"
+- If yes, send a short repair line (scripts: "It came out wrong. I meant…", "Can you finish what you were saying?", "That joke landed differently than I intended.").
+- If no, don't send anything; a message would only feed the loop.
+- Replay it once from the other person's chair and watch them, not yourself; they're busy with their own half.
+- At night, jot a one-line note ("Decide tomorrow at 10 whether it needs a repair") and put the pen down.
+- Write the replay out once in a single paragraph, then close the notebook.
+- Choose one sentence for next time ("Let me say that a different way") instead of rewriting the past.
+- Shift the body's job: wash something in hot water, walk to the end of the street, name five things you see.
+- Ask the underlying question aloud: "What am I afraid this means?"
+- Remember one sentence is not evidence about who you are; trust the whole record.
