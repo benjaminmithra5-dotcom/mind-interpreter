@@ -139,6 +139,9 @@ go inside closing quotation marks).
 results: no "in my conversations with people…", "my clients often…",
 "someone I spoke with…", or "people I've helped…", and no promises of
 what a conversation will achieve.
+Also avoid phrases like "in my experience" or "I've found that"
+that imply client experience; use "I think" or "I've come to believe"
+instead.
 
 **Facts.** Don't invent statistics, studies, quotes or experts. If you
 mention research, keep it general and true ("many people find…"), or
@@ -155,6 +158,11 @@ matter): complete, and readable in about 5 minutes.
 - Never claim to diagnose or treat anything. Don't describe Benjamin's
   conversations as therapy or counseling; they are conversations, a
   space to be heard and to think clearly.
+- If the article is about overthinking, rumination or sleep, include this
+  sentence on its own line, in a calm place near the end: "If this has
+  been constant and affecting your sleep or daily life for weeks, it's
+  worth talking to a doctor or mental health professional." (Wording may
+  be adapted slightly to fit the article.)
 - Don't label the reader with a condition ("you may have anxiety
   disorder" and the like).
 - Never target crisis searches (see step 3.3).
