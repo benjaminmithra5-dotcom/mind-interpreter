@@ -98,9 +98,15 @@
   </url>
   <url>
     <loc>https://benjaminmithra.com/articles</loc>
-    <lastmod>2026-10-05</lastmod>
+    <lastmod>2026-10-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://benjaminmithra.com/articles/cant-stop-replaying-what-you-said</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://benjaminmithra.com/articles/how-to-tell-your-partner-you-feel-lonely</loc>
