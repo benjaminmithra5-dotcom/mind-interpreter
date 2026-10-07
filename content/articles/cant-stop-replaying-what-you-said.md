@@ -31,7 +31,7 @@ If the answer is no, and you can't point to anything a reasonable person would n
 
 Sometimes they did. A person may have winced, or gone quiet, or changed the subject. Hold on to that without inflating it. One awkward second in a long conversation is an awkward second, not a verdict on you.
 
-Here's a trick I like. Replay it once more, but from the other person's chair. Don't watch yourself. Watch them. What are they doing with their face and hands? What are they probably thinking about? In my experience, most people are busy tracking their own half of the conversation: what they'll say next, whether they sounded fine, whether the coffee is getting cold. Your sentence is a small stone in a very full pocket. You are the only one carrying it like a boulder.
+Here's a trick I like. Replay it once more, but from the other person's chair. Don't watch yourself. Watch them. What are they doing with their face and hands? What are they probably thinking about? Most people are busy tracking their own half of the conversation: what they'll say next, whether they sounded fine, whether the coffee is getting cold. Your sentence is a small stone in a very full pocket. You are the only one carrying it like a boulder.
 
 ## Why is it so much worse at night?
 
@@ -45,15 +45,17 @@ Replaying is a loop, and a loop needs a place to end. Here are three small ways 
 
 First, write the replay out once, all the way through, in a single paragraph: what you said, what you fear it sounded like, what you wish you'd said. Then close the notebook. The point is to let the mind see that it has been fully heard, so it doesn't have to keep running it as a reminder.
 
-Second, trade the edits for one sentence you'll actually use. Instead of rewriting the past ten times, choose a single line for next time: "Let me say that a different way." Mind you, it's a plan, not a punishment, and a plan is something a loop can finally settle on.
+Second, trade the edits for one sentence you'll actually use. Instead of rewriting the past ten times, choose a single line for next time: "Let me say that a different way." It's a plan, not a punishment, and a plan is something a loop can finally settle on.
 
-Third, change your body's job. Wash something with hot water. Walk to the end of the street and back. Say out loud the name of five things you can see. None of this is magic. It simply moves your attention to a place where the replay has nothing to say.
+Third, change your body's job. Wash something with hot water. Walk to the end of the street and back. Say out loud the names of five things you can see. None of this is magic. It simply moves your attention to a place where the replay has nothing to say.
 
 ## What is the replay really asking?
 
 Underneath the specific sentence, there's usually a bigger, quieter question: *What if this proves something about me?* That I'm too much, too awkward, not likable, not careful enough. The sentence is only the doorway. The fear is the room behind it.
 
 When you catch that, try asking it directly, in plain words: "What am I afraid this means?" Often, once it's out of the dark and written down, it looks smaller and a lot less sure of itself. One clumsy sentence has never been enough evidence to decide who you are. You've said thousands of sentences, and most of them were fine, and a few were lovely. That's the record I'd trust.
+
+If the replaying is constant and has been affecting your sleep or daily life for weeks, it's worth talking to a doctor or mental health professional.
 
 If you want help sorting through what's underneath, you're welcome to [talk it through with me privately](/consultation). Sometimes saying the thing to someone who will simply listen takes away more weight than another night of silent rehearsal.
 
