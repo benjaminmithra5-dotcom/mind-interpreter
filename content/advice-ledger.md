@@ -42,3 +42,16 @@ private conversation at /consultation.
 - Shift the body's job: wash something in hot water, walk to the end of the street, name five things you see.
 - Ask the underlying question aloud: "What am I afraid this means?"
 - Remember one sentence is not evidence about who you are; trust the whole record.
+
+## 2026-10-09 · adult-child-stops-calling
+
+- First message should show you've been thinking of them, ask for nothing, and say no reply is needed; avoid "is everything okay?" which reads like a bill.
+- Scripts: a true shared memory (the family dog) with "No need to reply"; "I'm not looking for anything, I just wanted you to know I'm here"; "Whenever you feel like a call, any day, any hour, I'll pick up."
+- If you suspect your part, apologize once, name it plainly, promise to just listen, then stop; no "but I was only trying to help."
+- If you have no idea what you did: "I don't want to guess. If there's anything you want me to know, I'm listening."
+- Match the size of a short reply with an equally short one; don't ask "are you angry with me?"
+- If they ask for space: "I hear you. I love you, and the door is open." Don't ask for how long.
+- Test before sending: "If they never answer this, can I still send the next one without resentment?"
+- Keep a year-long rhythm: one small note every two or three weeks (garden photo, song line, game score).
+- Give the waiting a scheduled slot (Sunday at four) to think about them freely; let the rest of the week hold other things.
+- Tell one person aloud what's happening, not for advice but to stop carrying it silently.
