@@ -94,8 +94,11 @@ Then note:
    common questions (each sub-question answered in its own section).
 2. **List the ideas** you plan to offer. Check each one against the
    advice ledger, and replace any that repeats an earlier suggestion,
-   technique, script or solution, even in different words. Every
-   article must offer genuinely new ideas. The only exceptions are the
+   technique, script or solution, even in different words. Check for
+   repeated *techniques*, not just repeated wording: "set a specific time
+   to worry" and "schedule a slot for thinking about it" are the same
+   technique however they're phrased. Every article must offer
+   genuinely new ideas. The only exceptions are the
    safety sentences and the consultation link (see the note at the top
    of the ledger).
 3. **Outline the subheadings** so they answer the secondary keywords and
@@ -114,6 +117,10 @@ are not.
   again."), not a general statement about life.
 - **Use concrete, everyday details** (the kitchen at 11 p.m., the
   unanswered text, the drive home) instead of abstract advice.
+- **Don't reuse signature phrases or closing images.** Check the previous
+  article (and the one before it): don't repeat its signature phrases
+  (for example, "I've come to believe") or its closing image (for
+  example, a doorway or a light left on) in consecutive articles.
 - **Vary sentence length.** Some short sentences. Plain words.
 - **Write mostly in flowing paragraphs.** Use a list only where it truly
   helps, such as a few scripts to choose from. Never more than two lists

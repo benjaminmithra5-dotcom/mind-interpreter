@@ -53,5 +53,6 @@ private conversation at /consultation.
 - If they ask for space: "I hear you. I love you, and the door is open." Don't ask for how long.
 - Test before sending: "If they never answer this, can I still send the next one without resentment?"
 - Keep a year-long rhythm: one small note every two or three weeks (garden photo, song line, game score).
-- Give the waiting a scheduled slot (Sunday at four) to think about them freely; let the rest of the week hold other things.
+- Give the waiting company: one fixed, non-negotiable thing in the week unrelated to them (a Thursday walking group, a class, a standing coffee with a friend), because waiting swells to fill empty space.
 - Tell one person aloud what's happening, not for advice but to stop carrying it silently.
+- If you have a real reason to think your child may be unsafe, don't wait for a reply; contact local authorities and ask for a welfare check.

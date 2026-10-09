@@ -49,10 +49,14 @@ One approach is to choose a rhythm you could keep up for a year, such as one sma
 
 ## What do I do with my own days in the meantime?
 
-This is the part nobody writes the script for. Waiting is not a task, and the days are long. I'd suggest giving the waiting a place to go. Pick a time, say Sunday at four, when you're allowed to think about them as much as you like, and let the rest of the week be allowed to hold other things. It sounds mechanical, but it gives the ache a seat so it stops wandering through every room.
+I'd suggest giving the waiting some company. Put one thing in your week that has nothing to do with them and isn't up for negotiation: a Thursday morning walking group, a class, a standing coffee with a friend. It sounds small, but waiting swells to fill empty space, and a few fixed points in the week stop it from taking over every afternoon.
 
 And tell one person, out loud, what's happening. Not to get advice. Just so you aren't carrying it silently into every dinner. If you'd like a space to say it all and hear yourself think, you're welcome to [set up a private conversation with me](/consultation).
 
+If the waiting has started to affect your sleep, appetite or mood for weeks, it's worth talking to a doctor or mental health professional.
+
+And if you have a real reason to think your child may be unsafe, don't wait for a reply. Contact your local authorities and ask for a welfare check.
+
 If you're in crisis, please contact your local emergency services or a crisis line right away (for example, 988 in the US).
 
-Maybe you've been the one who didn't write back, not because you stopped caring, but because the longer you waited, the heavier the apology got. Your son or daughter may be standing in that same doorway right now, wanting to come in and not knowing what to say. The kindest thing you can do is leave a light on that asks nothing of them.
+Think of a time you were the one who didn't write back, not because you stopped caring, but because the longer you waited, the heavier the apology got. Your son or daughter may be standing in that same doorway right now, wanting to come in and not knowing what to say. The kindest thing you can do is leave a light on that asks nothing of them.
