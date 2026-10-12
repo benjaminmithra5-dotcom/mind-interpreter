@@ -56,3 +56,16 @@ private conversation at /consultation.
 - Give the waiting company: one fixed, non-negotiable thing in the week unrelated to them (a Thursday walking group, a class, a standing coffee with a friend), because waiting swells to fill empty space.
 - Tell one person aloud what's happening, not for advice but to stop carrying it silently.
 - If you have a real reason to think your child may be unsafe, don't wait for a reply; contact local authorities and ask for a welfare check.
+
+## 2026-10-12 · move-back-to-your-hometown
+
+- Say your reason in one sentence and check whether it points toward something or away from something.
+- Delete the thing you're leaving (bad job, breakup) and see if you still want the hometown.
+- Notice which old role (quiet one, responsible one) waits for you, and decide ahead what you won't take back on.
+- Picture an ordinary Tuesday in March six months in, and name two or three actual people you'd see in the first month.
+- Join one standing weekly activity the week you arrive.
+- Trial-live there for ten days to two weeks as regular life (work, groceries, errands); judge by day nine, not day two.
+- Alternatively rent short-term for a month, or consider a nearby town or city an hour away.
+- Question the rule that a life only counts if it ends farther from where it started.
+- Imagine telling the people you admire most and notice whether you're wincing at the audience, not the town.
+- Drive your old school or first-job route slowly with the radio off and notice whether you feel like a visitor, a prisoner, or someone who lives there.
