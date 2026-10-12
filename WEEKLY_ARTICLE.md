@@ -154,7 +154,7 @@ instead.
 mention research, keep it general and true ("many people find…"), or
 leave it out.
 
-**Length.** 1,000 to 1,200 words of article text (not counting the front
+**Length.** 900 to 1,080 words of article text (not counting the front
 matter): complete, and readable in about 5 minutes.
 
 ## 6. Safety rules (always)
@@ -236,7 +236,7 @@ today's IST date from step 1.3.
    have been written by anyone.
 2. Then check every item below, and keep the results for the pull
    request:
-   - [ ] Word count is 1,000 to 1,200 (for example,
+   - [ ] Word count is 900 to 1,080 (for example,
      `awk 'BEGIN{n=0} /^---$/{n++; next} n>=2' content/articles/<slug>.md | wc -w`).
    - [ ] Title under 60 characters, main keyword near the start.
    - [ ] Meta description is 140 to 155 characters.
@@ -257,12 +257,45 @@ today's IST date from step 1.3.
      sentence if it touches loneliness or low mood, and the hotline
      sentence if it's about a relationship.
    - [ ] Topic map and advice ledger updated.
+   - [ ] No-repeats section below completed (word, phrase and idea
+     repeats; earlier-article signatures; trim pass).
+   - [ ] SEO: main keyword in the title (near the start), the first 100
+     words, at least one `##` heading and the description. Title under 60
+     characters; description 140 to 155 characters, counted. Every `##`
+     answers a real search sub-question, and no `##` wording repeats a
+     heading in any other article on the site. 1 or 2 internal links to
+     existing articles, each slug checked against a real file in
+     `content/articles/`, plus exactly one `/consultation` link.
 3. Run `npm install` and then `npm run build`. The build must succeed,
    and `dist/articles/<slug>/index.html` must exist and contain the
    title. If the build fails because of the article, fix the article.
 4. `git status` must show exactly three changed files: the new article,
    `content/topic-map.md` and `content/advice-ledger.md`. Don't commit
    anything else (not `package-lock.json`, `dist/`, or other changes).
+
+## No repeats (required before the pull request is opened)
+
+Do this after step 9 and before step 10. It applies to every article.
+
+1. **Inside the article.** No word, phrase, sentence shape or idea may be
+   used twice, apart from the main keyword and its natural variants. If
+   the same point appears in two sections, keep the stronger one and
+   delete the other. After writing, search the draft for any non-trivial
+   word used three or more times, and for repeated opening words in
+   neighboring sentences, and fix them.
+2. **Across articles.** Don't reuse a signature phrase, metaphor, closing
+   exercise or opening structure from any earlier article (for example
+   "I've come to believe", "the doorway", "a small stone in a very full
+   pocket"). Check the advice ledger and read the earlier articles before
+   writing.
+3. **Trim pass.** After the first draft, cut filler sentences, duplicate
+   advice and soft openers until the article is at or under 1,080 words.
+   Don't pad it back up to reach 900. Shorter does not mean thinner: each
+   section must still add something the top-ranking pages miss (step 3.5).
+4. Report the final word count and the repeated-word check result in the
+   pull request.
+
+---
 
 ## 10. Commit, push and open the pull request
 
@@ -278,7 +311,8 @@ today's IST date from step 1.3.
    - **Competition and gap**: the top pages you studied, what they all
      say, and what this article adds that they don't.
    - **Topic group and format**, and those of the previous article.
-   - **Word count.**
+   - **Word count** (final), the **repeated-word check** result, and the
+     **SEO checklist** results.
    - **Quality check**: the full checklist from step 9 with each result.
    - **Safety**: which safety sentences are included and why.
    - "Merge this pull request to publish the article."
