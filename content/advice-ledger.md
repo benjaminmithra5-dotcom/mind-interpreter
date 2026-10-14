@@ -69,3 +69,15 @@ private conversation at /consultation.
 - Question the rule that a life only counts if it ends farther from where it started.
 - Imagine telling the people you admire most and notice whether you're wincing at the audience, not the town.
 - Drive your old school or first-job route slowly with the radio off and notice whether you feel like a visitor, a prisoner, or someone who lives there.
+
+## 2026-10-14 · boss-gave-vague-feedback
+
+- Pause one beat, thank them, then ask for a scene rather than a definition ("a time in the last month when you wished I'd done it differently").
+- Ask "If I were doing this well, what would you see me doing?" and "Is there a meeting coming up where I could try it?"
+- Say the feedback back with two guesses ("offering an opinion before the group decides, or being visible with executives?") and let them correct you.
+- Ask "What would make you notice the change?" when they can't define the problem.
+- In public, say "Appreciate that. Can I grab ten minutes later this week?" and book it that day; or a plain "Noted, thank you."
+- Send a short next-day note naming one behavior and one date, ending "Tell me if I've misread it."
+- If they dodge, narrow to a choice: "Which one thing on my plate would you most like to see handled differently?"
+- After two tries: "I'm worried I'm guessing. Could we pick one thing together for the next month?"
+- Treat vague criticism as small information (they want something), not a verdict on who you are.
