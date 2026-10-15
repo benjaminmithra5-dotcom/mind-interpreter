@@ -29,7 +29,8 @@ const COLORS = {
   onAccent: "#FFFFFF",      // text on teal
   line: withAlpha("#0E5A5F", 0.28),       // borders and dividers
   strongLine: withAlpha("#0E5A5F", 0.5),  // button outlines
-  fieldBorder: withAlpha("#0E5A5F", 0.6), // form fields: 3:1 against white
+  fieldBorder: withAlpha("#0E5A5F", 0.6), // form fields and game tiles: 3:1 against white
+  edge: withAlpha("#0E5A5F", 0.35),       // edges of white cards and emotion chips
   shadow: withAlpha("#0E5A5F", 0.18),     // soft shadows (replaces glows)
   overlay: withAlpha("#F6F0E4", 0.82),
   cardBg: "#FFFFFF",
@@ -4779,7 +4780,7 @@ function styles(c) {
     emotionMarqueeCopy: { display: "flex", flexShrink: 0, alignItems: "center", gap: 8, paddingRight: 40 },
     emotionBox: {
       fontFamily: font.mono, fontWeight: 700, fontSize: 12.5, letterSpacing: "0.03em", textTransform: "uppercase",
-      padding: "8px 13px", borderRadius: 8, display: "inline-block", lineHeight: 1.2, whiteSpace: "nowrap", flexShrink: 0,
+      padding: "7px 12px", border: `1px solid ${c.edge}`, borderRadius: 8, display: "inline-block", lineHeight: 1.2, whiteSpace: "nowrap", flexShrink: 0,
     },
 
     homeInlineLink: { color: c.accent, textDecoration: "none", fontStyle: "normal" },
@@ -4840,7 +4841,7 @@ function styles(c) {
     },
     exerciseMenuCardTitle: { fontFamily: font.display, fontWeight: 600, fontSize: 17, letterSpacing: "0.03em", textTransform: "uppercase", color: c.accent },
     exerciseMenuCardDesc: { fontFamily: font.body, fontWeight: 400, fontSize: 14, lineHeight: 1.6, color: c.muted },
-    leetReadBox: { width: "100%", maxWidth: 560, background: "#FFFFFF", border: `1px solid ${c.line}`, borderRadius: 12, padding: "22px 24px", maxHeight: 420, overflowY: "auto", boxSizing: "border-box" },
+    leetReadBox: { width: "100%", maxWidth: 560, background: "#FFFFFF", border: `1px solid ${c.edge}`, borderRadius: 12, padding: "22px 24px", maxHeight: 420, overflowY: "auto", boxSizing: "border-box" },
     leetReadText: { fontFamily: font.mono, fontSize: 15.5, lineHeight: 1.85, letterSpacing: "0.02em", color: "#111111", whiteSpace: "pre-wrap", margin: 0, textAlign: "left" },
 
     breathFrame: {
@@ -4932,12 +4933,12 @@ function styles(c) {
     emojiRow: { display: "flex", justifyContent: "center", gap: 10 },
     scatterWrap: { position: "relative", width: "100%", maxWidth: 480, height: 240 },
     scatterTile: { position: "absolute", transform: "translate(-50%, -50%)" },
-    sqTile: { background: "#F5F0E3", border: "1px solid #DCD0B4", borderRadius: 8, cursor: "pointer", width: "100%", height: "100%", outline: "none", WebkitAppearance: "none", appearance: "none" },
+    sqTile: { background: "#FFFFFF", border: `1px solid ${c.fieldBorder}`, borderRadius: 8, cursor: "pointer", width: "100%", height: "100%", outline: "none", WebkitAppearance: "none", appearance: "none" },
     sqTileActive: { background: c.accent, borderColor: c.accent },
     bounceAnim: { animation: "bouncePop 0.15s ease" },
     shakeAnim: { animation: "shakeIt 0.32s ease" },
     visualGrid: { display: "grid", gap: 8, width: "100%", maxWidth: 360 },
-    numTile: { background: c.panel, border: `1px solid ${c.line}`, borderRadius: 8, height: 52, fontFamily: font.mono, fontSize: 18, color: c.ink, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
+    numTile: { background: "#FFFFFF", border: `1px solid ${c.fieldBorder}`, borderRadius: 8, height: 52, fontFamily: font.mono, fontSize: 18, color: c.ink, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
     numTileUsed: { background: c.bg, opacity: 0.3 },
     btnPrimary: { fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.accent, color: c.onAccent, border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer", WebkitTextStroke: "var(--text-outline-on-accent)" },
     btnGold: { textDecoration: "none", fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.accent, color: c.onAccent, border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer", WebkitTextStroke: "var(--text-outline-on-accent)" },
@@ -4998,17 +4999,17 @@ function styles(c) {
     stopwatchBadge: { position: "absolute", top: -2, right: 0, fontFamily: font.mono, fontWeight: 700, fontSize: 14, letterSpacing: "0.06em", color: c.ink, background: c.panel, border: `1px solid ${c.line}`, borderRadius: 6, padding: "6px 10px", zIndex: 3 },
     splitTimesRow: { display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" },
     splitTimeChip: { fontFamily: font.mono, fontSize: 12.5, color: c.muted, border: `1px solid ${c.line}`, borderRadius: 6, padding: "5px 10px" },
-    bigCard: { width: 160, height: 220, background: "#FFFFFF", border: "1px solid #E2DAC8", borderRadius: 16, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
+    bigCard: { width: 160, height: 220, background: "#FFFFFF", border: `1px solid ${c.edge}`, borderRadius: 16, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
     cardRank: { fontFamily: font.display, fontSize: 56, lineHeight: 1 },
     cardSuit: { fontSize: 40, lineHeight: 1 },
     cardGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, width: "100%", maxWidth: 360, margin: "0 auto" },
-    smallCard: { width: "100%", aspectRatio: "3 / 4", background: "#FFFFFF", border: "1px solid #E2DAC8", borderRadius: 8, fontFamily: font.mono, fontSize: 17, fontWeight: 600, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
+    smallCard: { width: "100%", aspectRatio: "3 / 4", background: "#FFFFFF", border: `1px solid ${c.edge}`, borderRadius: 8, fontFamily: font.mono, fontSize: 17, fontWeight: 600, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
     smallCardMatched: { opacity: 0.28 },
     compareHeaderRow: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, width: "100%", maxWidth: 320 },
     compareHeaderCell: { fontFamily: font.mono, fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.06em", color: c.muted, textAlign: "center" },
     compareWrap: { display: "flex", flexDirection: "column", gap: 6, width: "100%", maxWidth: 320, maxHeight: 380, overflowY: "auto", paddingRight: 4 },
     compareRow: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 },
-    compareCell: { display: "flex", alignItems: "center", justifyContent: "center", background: "#FFFFFF", border: "1px solid #E2DAC8", borderRadius: 6, height: 34, fontFamily: font.mono, fontSize: 13, fontWeight: 600 },
+    compareCell: { display: "flex", alignItems: "center", justifyContent: "center", background: "#FFFFFF", border: `1px solid ${c.edge}`, borderRadius: 6, height: 34, fontFamily: font.mono, fontSize: 13, fontWeight: 600 },
     compareCellGood: { background: c.good, border: `1px solid ${c.good}` },
     compareCellBad: { boxShadow: `inset 0 0 0 2px ${c.bad}` },
 
