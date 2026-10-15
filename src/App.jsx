@@ -12,28 +12,28 @@ import { parseArticle, sortArticles, formatArticleDate } from "./articleFormat.j
 // color change is a one-line edit. (Game boards and pieces, the
 // breathing colors and the emotion chips keep their own colors.)
 const COLORS = {
-  bg: "#1F2A30",            // page background (slate)
-  secondary: "#182126",     // deep sections: tip bubble, bands, inset boxes
-  surface: "#26343B",       // cards and panels
-  panel: "#26343B",
-  panelHover: "#2D3D45",    // slightly lighter panel or hover
-  playfield: "#182126",     // inset areas: inputs, canvases, game fields
-  ink: "#EEF3F1",           // body text
-  muted: "#B8C6C2",         // captions, secondary text
-  faint: "#97A8A3",
-  good: "#58B49F",
+  bg: "#121A1F",            // page background (dark slate)
+  secondary: "#0C1317",     // deep sections: tip bubble, bands, inset boxes
+  surface: "#1A252B",       // cards and panels
+  panel: "#1A252B",
+  panelHover: "#202E35",    // slightly lighter panel or hover
+  playfield: "#0C1317",     // inset areas: inputs, canvases, game fields
+  ink: "#F2FAF7",           // body text
+  muted: "#A9BDB7",         // captions, secondary text
+  faint: "#8FA39D",
+  good: "#58B49F",          // "correct answer" feedback
   bad: "#E3907F",
-  accent: "#8FC9AE",        // soft mint: buttons, links, headings, icons
-  accentHover: "#A6D8C1",
-  accentPressed: "#6FAE90",
-  onAccent: "#1F2A30",      // text on mint (never white)
-  line: withAlpha("#8FC9AE", 0.22),       // borders and dividers
-  strongLine: withAlpha("#8FC9AE", 0.4),  // button outlines
-  overlay: withAlpha("#1F2A30", 0.82),
-  cardBg: "#26343B",
-  cardBorder: withAlpha("#8FC9AE", 0.22),
+  accent: "#3EE6A8",        // bright mint: buttons, links, headings, icons
+  accentHover: "#6FF0C0",
+  accentPressed: "#28C48D",
+  onAccent: "#0C1317",      // text on mint (never white)
+  line: withAlpha("#3EE6A8", 0.3),        // borders and dividers
+  strongLine: withAlpha("#3EE6A8", 0.5),  // button outlines
+  overlay: withAlpha("#121A1F", 0.82),
+  cardBg: "#1A252B",
+  cardBorder: withAlpha("#3EE6A8", 0.3),
 };
-// "#8FC9AE", 0.22 -> "rgba(143,201,174,0.22)"
+// "#3EE6A8", 0.3 -> "rgba(62,230,168,0.3)"
 function withAlpha(hex, a) {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
@@ -3249,14 +3249,14 @@ function CoffeeTableIllustration() {
       style={styles(c).coffeeTable}
     >
       <style>{`
-        @keyframes coffeeSteam { 0% { opacity: 0; transform: translateY(4px); } 30% { opacity: 0.9; } 100% { opacity: 0; transform: translateY(-10px); } }
+        @keyframes coffeeSteam { 0% { opacity: 0; transform: translateY(4px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10px); } }
         .coffee-steam { animation: coffeeSteam 3.4s ease-in-out infinite; }
         .coffee-steam-2 { animation-delay: -1.1s; }
         .coffee-steam-3 { animation-delay: -2.2s; }
-        @media (prefers-reduced-motion: reduce) { .coffee-steam { animation: none; opacity: 0.8; } }
+        @media (prefers-reduced-motion: reduce) { .coffee-steam { animation: none; opacity: 1; } }
       `}</style>
       <g fill="none" stroke={c.accent} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18 141 H262" stroke={c.accentPressed} strokeOpacity="0.55" strokeWidth="1.6" />
+        <path d="M18 141 H262" stroke={c.accentPressed} strokeWidth="1.6" />
         {/* Left chair, facing right */}
         <path d="M45 100 L39 54 Q38.5 50 42.5 50 H45.5 Q49 50 49.5 54 L54 100" fill={c.surface} />
         <path d="M44 100 H92 Q95 100 95 103 V105 Q95 108 92 108 H47 Q44 108 44 105 Z" fill={c.surface} />
@@ -3645,7 +3645,7 @@ function GuideDogScene({ nodes, scale }) {
       {/* The house's front wall, with the doorway cut out, over the dog. */}
       <g stroke={accent} strokeWidth="1.6" strokeLinejoin="round">
         <path d={`M6 44 L50 6 L94 44 V100 H6 Z ${GD_DOOR}`} fillRule="evenodd" fill={COLORS.surface} />
-        <path fill="none" stroke={earFill} strokeWidth="0.9" strokeOpacity="0.7" d="M8 58 H22 M78 58 H92 M8 72 H22 M78 72 H92 M8 86 H22 M78 86 H92" />
+        <path fill="none" stroke={earFill} strokeWidth="0.9" d="M8 58 H22 M78 58 H92 M8 72 H22 M78 72 H92 M8 86 H22 M78 86 H92" />
         <path d="M50 0 L104 46 L98 51 L50 9 L2 51 L-4 46 Z" fill={COLORS.surface} />
         <path fill="none" strokeLinecap="round" d="M2 100 H98" />
       </g>
@@ -3691,9 +3691,8 @@ const GUIDE_DOG_CSS = `
   .gd-paw {
     position: fixed; left: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 30; width: 34px; height: 34px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer;
-    background: ${COLORS.secondary}; border: 1px solid ${COLORS.strongLine}; opacity: 0.8;
+    background: ${COLORS.secondary}; border: 1px solid ${COLORS.strongLine};
   }
-  .gd-paw:hover { opacity: 1; }
   .gd-part { transform-box: fill-box; }
   .gd-wings { transform-origin: 50% 50%; animation: gdFlap 0.28s ease-in-out infinite alternate; }
   .gd-z { animation: gdZ 3s ease-in-out infinite; opacity: 0; }
@@ -4915,7 +4914,7 @@ function styles(c) {
     visualGrid: { display: "grid", gap: 8, width: "100%", maxWidth: 360 },
     numTile: { background: c.panel, border: `1px solid ${c.line}`, borderRadius: 8, height: 52, fontFamily: font.mono, fontSize: 18, color: c.ink, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
     numTileUsed: { background: c.bg, opacity: 0.3 },
-    btnPrimary: { fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.good, color: "#0E1410", border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer" },
+    btnPrimary: { fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.accent, color: c.onAccent, border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer" },
     btnGold: { textDecoration: "none", fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.accent, color: c.onAccent, border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer" },
     btnGhost: { fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: "transparent", color: c.ink, border: `1px solid ${c.line}`, borderRadius: 6, padding: "13px 20px", cursor: "pointer" },
     caseList: { textAlign: "left", fontSize: 14.5, lineHeight: 1.9, color: c.ink, maxWidth: 480, margin: 0, paddingLeft: 20 },
