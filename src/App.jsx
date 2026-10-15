@@ -12,28 +12,31 @@ import { parseArticle, sortArticles, formatArticleDate } from "./articleFormat.j
 // color change is a one-line edit. (Game boards and pieces, the
 // breathing colors and the emotion chips keep their own colors.)
 const COLORS = {
-  bg: "#121A1F",            // page background (dark slate)
-  secondary: "#0C1317",     // deep sections: tip bubble, bands, inset boxes
-  surface: "#1A252B",       // cards and panels
-  panel: "#1A252B",
-  panelHover: "#202E35",    // slightly lighter panel or hover
-  playfield: "#0C1317",     // inset areas: inputs, canvases, game fields
-  ink: "#F2FAF7",           // body text
-  muted: "#A9BDB7",         // captions, secondary text
-  faint: "#8FA39D",
-  good: "#58B49F",          // "correct answer" feedback
-  bad: "#E3907F",
-  accent: "#3EE6A8",        // bright mint: buttons, links, headings, icons
-  accentHover: "#6FF0C0",
-  accentPressed: "#28C48D",
-  onAccent: "#0C1317",      // text on mint (never white)
-  line: withAlpha("#3EE6A8", 0.3),        // borders and dividers
-  strongLine: withAlpha("#3EE6A8", 0.5),  // button outlines
-  overlay: withAlpha("#121A1F", 0.82),
-  cardBg: "#1A252B",
-  cardBorder: withAlpha("#3EE6A8", 0.3),
+  bg: "#F6F0E4",            // page background (warm cream)
+  secondary: "#EDE4D2",     // deep sections: tip bubble, bands, inset boxes
+  surface: "#FFFFFF",       // cards and panels
+  panel: "#FFFFFF",
+  panelHover: "#FBF7EE",    // lighter panel or hover
+  playfield: "#FBF7EE",     // inset areas: inputs, canvases, game fields
+  ink: "#1E2B2C",           // body text
+  muted: "#44585A",         // captions, secondary text
+  faint: "#566A6C",
+  good: "#16734B",          // "correct answer" feedback in games
+  bad: "#B4412F",           // errors
+  accent: "#0E5A5F",        // deep teal: buttons, links, headings, icons
+  accentHover: "#0B484C",
+  accentPressed: "#083A3D",
+  onAccent: "#FFFFFF",      // text on teal
+  line: withAlpha("#0E5A5F", 0.28),       // borders and dividers
+  strongLine: withAlpha("#0E5A5F", 0.5),  // button outlines
+  fieldBorder: withAlpha("#0E5A5F", 0.6), // form fields and game tiles: 3:1 against white
+  edge: withAlpha("#0E5A5F", 0.35),       // edges of white cards and emotion chips
+  shadow: withAlpha("#0E5A5F", 0.18),     // soft shadows (replaces glows)
+  overlay: withAlpha("#F6F0E4", 0.82),
+  cardBg: "#FFFFFF",
+  cardBorder: withAlpha("#0E5A5F", 0.28),
 };
-// "#3EE6A8", 0.3 -> "rgba(62,230,168,0.3)"
+// "#0E5A5F", 0.28 -> "rgba(14,90,95,0.28)"
 function withAlpha(hex, a) {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
@@ -958,7 +961,7 @@ function HomeScreen({ onNavigate, onOpenExercise }) {
           <Link to={VIEW_PATH.contact} style={styles(c).btnGold}>View My Consultation</Link>
         </div>
 
-        <div style={styles(c).emotionMarqueeWrap}>
+        <div className="no-text-outline" style={styles(c).emotionMarqueeWrap}>
           <div className="emotion-marquee-track" style={styles(c).emotionMarqueeTrack}>
             {[0, 1].map((copy) => (
               <div key={copy} style={styles(c).emotionMarqueeCopy}>
@@ -2139,7 +2142,7 @@ function ChessGame() {
       </div>
       {status !== "checkmate" && <p style={styles(c).chessStatus}>{statusLine}</p>}
 
-      <div ref={boardRef} style={styles(c).chessBoard} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
+      <div ref={boardRef} className="no-text-outline" style={styles(c).chessBoard} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
         {rows.map((r, ri) => (
           <div key={r} style={styles(c).chessRow}>
             {cols.map((cIdx, ci) => {
@@ -2343,7 +2346,7 @@ function HomeAmbientBreathing({ onOpenExercise }) {
   const ballTransition = `left ${phaseMs}ms ease-in-out, top ${phaseMs}ms ease-in-out, ${(isIn || isOut) ? "transform 1000ms linear" : "transform 0.6s ease"}, background 0.6s ease`;
 
   return (
-    <button type="button" style={styles(c).homeBreathFrame} onClick={() => onOpenExercise("breathing")} aria-label="Open Mindfulness Breathing exercise">
+    <button type="button" className="no-text-outline" style={styles(c).homeBreathFrame} onClick={() => onOpenExercise("breathing")} aria-label="Open Mindfulness Breathing exercise">
       <div style={{ ...styles(c).homeBreathBall, left: `${pos.x}%`, top: `${pos.y}%`, background: phase.color, transform: `translate(-50%, -50%) scale(${ballScale})`, transition: ballTransition }}>
         <span style={styles(c).homeBreathBallLabel}>{HOME_BREATH_LABELS[phase.key]}</span>
       </div>
@@ -2427,7 +2430,7 @@ function MindfulnessBreathingExercise() {
     return (
       <div style={styles(c).nbackWrap} className="fade-in">
         <p style={styles(c).rvHeading}>Mindfulness Breathing</p>
-        <div style={styles(c).breathFrame}>
+        <div className="no-text-outline" style={styles(c).breathFrame}>
           <div style={{ ...styles(c).breathBall, background: "#4FA3D1" }}>
             <span style={styles(c).breathBallLabel}>Get Ready</span>
             <span style={styles(c).breathCount}>{countdownValue}</span>
@@ -2441,7 +2444,7 @@ function MindfulnessBreathingExercise() {
   return (
     <div style={styles(c).nbackWrap} className="fade-in">
       <p style={styles(c).rvHeading}>Mindfulness Breathing</p>
-      <div style={styles(c).breathFrame}>
+      <div className="no-text-outline" style={styles(c).breathFrame}>
         {isOut && (
           <div key={burstKey} style={styles(c).breathParticleWrap}>
             {particles.map((p, i) => (
@@ -2931,7 +2934,7 @@ function DrawingCanvas({ strokes, onChange, height = 200 }) {
     const paint = (stroke) => {
       if (!stroke || stroke.points.length < 2) return;
       ctx.beginPath();
-      ctx.strokeStyle = stroke.tool === "eraser" ? COLORS.playfield : "#EDEAE0";
+      ctx.strokeStyle = stroke.tool === "eraser" ? COLORS.playfield : COLORS.ink;
       ctx.lineWidth = stroke.tool === "eraser" ? 20 : 2.4;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
@@ -3057,7 +3060,7 @@ function StaticSketch({ strokes, height = 220 }) {
     strokes.forEach((stroke) => {
       if (!stroke || stroke.points.length < 2) return;
       ctx.beginPath();
-      ctx.strokeStyle = stroke.tool === "eraser" ? COLORS.playfield : "#EDEAE0";
+      ctx.strokeStyle = stroke.tool === "eraser" ? COLORS.playfield : COLORS.ink;
       ctx.lineWidth = stroke.tool === "eraser" ? 20 : 2.4;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
@@ -3602,7 +3605,7 @@ function GdLeg({ x }) {
 function GuideDogScene({ nodes, scale }) {
   const r = (key) => (el) => { nodes[key] = el; };
   const accent = COLORS.accent;
-  const dark = COLORS.bg;
+  const detail = COLORS.bg; // eyes, nose and lines, drawn on the accent body
   const earFill = COLORS.accentPressed;
   return (
     <svg
@@ -3621,28 +3624,28 @@ function GuideDogScene({ nodes, scale }) {
       <g clipPath="url(#gd-door-clip)" fill={accent}>
         <path ref={r("chest")} d="M34 100 C34 86 40 77 50 77 C60 77 66 86 66 100 Z" />
         <path d="M41 82 C41 72 42 64 44 58 L56 58 C58 64 59 72 59 82 Z" />
-        <path fill="none" stroke={dark} strokeWidth="1.8" strokeLinecap="round" d="M42.5 70 Q50 72.5 57.5 70" />
+        <path fill="none" stroke={detail} strokeWidth="1.8" strokeLinecap="round" d="M42.5 70 Q50 72.5 57.5 70" />
         <g ref={r("paw")}><GdLeg x={35} /></g>
         <GdLeg x={65} />
         <g ref={r("head")}>
           <path d="M37 37 C37 32 42 30 50 30 C58 30 63 32 63 37 L62.2 51 C62 54 61.6 56 61.4 58 L61 62 C60.6 65 57 66.5 50 66.5 C43 66.5 39.4 65 39 62 L38.6 58 C38.4 56 38 54 37.8 51 Z" />
           <g ref={r("face")}>
-            <path fill="none" stroke={dark} strokeWidth="0.9" strokeLinecap="round" d="M50 32.5 V38.5 M42.6 48 C42 52 42 56.5 43.2 61 M57.4 48 C58 52 58 56.5 56.8 61" />
-            <path fill="none" stroke={dark} strokeWidth="1.1" strokeLinecap="round" d="M41.8 39.2 Q44.5 38 47 39.4 M53 39.4 Q55.5 38 58.2 39.2" />
-            <g ref={r("eyes")} fill={dark}>
+            <path fill="none" stroke={detail} strokeWidth="0.9" strokeLinecap="round" d="M50 32.5 V38.5 M42.6 48 C42 52 42 56.5 43.2 61 M57.4 48 C58 52 58 56.5 56.8 61" />
+            <path fill="none" stroke={detail} strokeWidth="1.1" strokeLinecap="round" d="M41.8 39.2 Q44.5 38 47 39.4 M53 39.4 Q55.5 38 58.2 39.2" />
+            <g ref={r("eyes")} fill={detail}>
               <ellipse cx="44.6" cy="42" rx="1.7" ry="1.5" />
               <ellipse cx="55.4" cy="42" rx="1.7" ry="1.5" />
             </g>
-            <path ref={r("eyesShut")} opacity="0" fill="none" stroke={dark} strokeWidth="1.1" strokeLinecap="round" d="M42.8 42 Q44.6 43.6 46.4 42 M53.6 42 Q55.4 43.6 57.2 42" />
-            <ellipse ref={r("mouth")} opacity="0" cx="50" cy="62" rx="5.2" ry="4.6" fill={dark} />
-            <path fill="none" stroke={dark} strokeWidth="1.1" strokeLinecap="round" d="M50 56.6 V59.6 M44.2 60.4 C46.8 62.2 49 61.8 50 59.6 C51 61.8 53.2 62.2 55.8 60.4" />
-            <path ref={r("nose")} fill={dark} d="M45.2 52.2 C45.2 50.3 54.8 50.3 54.8 52.2 C54.8 55 52.3 56.6 50 56.6 C47.7 56.6 45.2 55 45.2 52.2 Z" />
+            <path ref={r("eyesShut")} opacity="0" fill="none" stroke={detail} strokeWidth="1.1" strokeLinecap="round" d="M42.8 42 Q44.6 43.6 46.4 42 M53.6 42 Q55.4 43.6 57.2 42" />
+            <ellipse ref={r("mouth")} opacity="0" cx="50" cy="62" rx="5.2" ry="4.6" fill={detail} />
+            <path fill="none" stroke={detail} strokeWidth="1.1" strokeLinecap="round" d="M50 56.6 V59.6 M44.2 60.4 C46.8 62.2 49 61.8 50 59.6 C51 61.8 53.2 62.2 55.8 60.4" />
+            <path ref={r("nose")} fill={detail} d="M45.2 52.2 C45.2 50.3 54.8 50.3 54.8 52.2 C54.8 55 52.3 56.6 50 56.6 C47.7 56.6 45.2 55 45.2 52.2 Z" />
           </g>
           <g ref={r("earL")}>
-            <path fill={earFill} stroke={dark} strokeWidth="0.8" strokeLinejoin="round" d="M39.6 31.4 C36 30.6 32 32 30.2 35.2 L35 47.2 C36.8 44.4 38.4 40 39.8 35.6 Z" />
+            <path fill={earFill} stroke={detail} strokeWidth="0.8" strokeLinejoin="round" d="M39.6 31.4 C36 30.6 32 32 30.2 35.2 L35 47.2 C36.8 44.4 38.4 40 39.8 35.6 Z" />
           </g>
           <g ref={r("earR")}>
-            <path fill={earFill} stroke={dark} strokeWidth="0.8" strokeLinejoin="round" d="M60.4 31.4 C64 30.6 68 32 69.8 35.2 L65 47.2 C63.2 44.4 61.6 40 60.2 35.6 Z" />
+            <path fill={earFill} stroke={detail} strokeWidth="0.8" strokeLinejoin="round" d="M60.4 31.4 C64 30.6 68 32 69.8 35.2 L65 47.2 C63.2 44.4 61.6 40 60.2 35.6 Z" />
           </g>
         </g>
       </g>
@@ -3681,7 +3684,7 @@ const GUIDE_DOG_CSS = `
     position: fixed; left: 10px; z-index: 32;
     width: max-content; max-width: min(250px, calc(100vw - 40px)); box-sizing: border-box;
     background: ${COLORS.secondary}; border: 1px solid ${COLORS.strongLine}; border-radius: 12px;
-    padding: 12px 14px 10px; box-shadow: 0 12px 30px rgba(0,0,0,0.5); text-align: left;
+    padding: 12px 14px 10px; box-shadow: 0 12px 30px ${COLORS.shadow}; text-align: left;
     display: flex; flex-direction: column; gap: 8px; animation: fadeIn 0.25s ease both;
   }
   .gd-bubble::after {
@@ -4468,6 +4471,24 @@ export default function App() {
         <style>{`
           ${FONT_IMPORT}
           * { box-sizing: border-box; }
+          :root {
+            color-scheme: light;
+            /* Thin outline on all text. One line removes it everywhere:
+               set --text-outline-color to transparent. */
+            --text-outline-color: rgba(20,20,20,0.55);
+            --text-outline: 0.25px;        /* text 16px and larger */
+            --text-outline-small: 0.15px;  /* text under 16px */
+            --text-outline-on-accent: 0.2px ${c.accent}; /* white text on teal */
+          }
+          body * {
+            -webkit-text-stroke: clamp(var(--text-outline-small), calc((1em - 15.99px) * 1000), var(--text-outline)) var(--text-outline-color);
+            paint-order: stroke fill;
+          }
+          .no-text-outline, .no-text-outline *, .tile-btn, .tile-btn * { -webkit-text-stroke: 0 transparent !important; }
+          ::selection { background: ${withAlpha(c.accent, 0.2)}; color: ${c.ink}; }
+          html { scrollbar-color: ${c.accent} ${c.secondary}; }
+          input::placeholder, textarea::placeholder { color: ${c.faint}; opacity: 1; }
+          input:focus-visible, textarea:focus-visible, a:focus-visible, button:focus-visible, summary:focus-visible { outline-color: ${c.accent}; }
           html, body { overflow-x: hidden; max-width: 100%; }
           button:disabled { opacity: 0.35; cursor: default; }
           input, textarea { font-family: inherit; }
@@ -4491,10 +4512,10 @@ export default function App() {
             .emotion-marquee-track { animation-duration: 400s !important; }
           }
           .fade-in { animation: fadeIn 0.35s ease both; }
-          .nav-btn:hover { background: ${c.accentPressed} !important; border-color: ${c.accentPressed} !important; color: ${c.onAccent} !important; }
-          .hero-btn:hover { background: ${c.accentHover} !important; border-color: ${c.accentHover} !important; color: ${c.onAccent} !important; }
+          .nav-btn:hover { background: ${c.accentPressed} !important; border-color: ${c.accentPressed} !important; color: ${c.onAccent} !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
+          .hero-btn:hover { background: ${c.accentHover} !important; border-color: ${c.accentHover} !important; color: ${c.onAccent} !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
           .home-footer-link:hover { color: ${c.accent} !important; }
-          .nav-btn:hover .exercise-card-title, .nav-btn:hover .exercise-card-desc { color: ${c.onAccent} !important; }
+          .nav-btn:hover .exercise-card-title, .nav-btn:hover .exercise-card-desc { color: ${c.onAccent} !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
           @media (max-width: 600px) {
             .top-tabs { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 6px !important; }
             .top-tabs .nav-btn {
@@ -4707,7 +4728,7 @@ function styles(c) {
 
     // ---- Background ----
     eliteWrap: { position: "fixed", inset: 0, overflow: "hidden", zIndex: 0, pointerEvents: "none", background: c.bg },
-    eliteVignette: { position: "absolute", inset: 0, background: `radial-gradient(ellipse at 50% 15%, ${c.surface} 0%, ${c.bg} 60%, ${c.playfield} 100%)`, opacity: 0.7 },
+    eliteVignette: { position: "absolute", inset: 0 },
 
     mainHome: { padding: 0, maxWidth: "none", width: "100%" },
     mainChess: { paddingLeft: 4, paddingRight: 4 },
@@ -4736,6 +4757,7 @@ function styles(c) {
       textDecoration: "none", textAlign: "center", fontFamily: font.display, fontWeight: 500, fontSize: 14, letterSpacing: "0.05em", textTransform: "uppercase",
       background: c.accent, color: c.onAccent, border: `1px solid ${c.accent}`, borderRadius: 6, padding: "9px 20px", cursor: "pointer",
       width: "100%", transition: "background 0.15s ease, border-color 0.15s ease",
+      WebkitTextStroke: "var(--text-outline-on-accent)",
     },
     leetWrap: {
       position: "relative", width: "100%", maxWidth: 480, display: "flex", alignItems: "center", justifyContent: "center",
@@ -4744,13 +4766,13 @@ function styles(c) {
     },
     leetSweep: {
       position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
-      background: `linear-gradient(100deg, transparent 35%, ${withAlpha(c.accentPressed, 0.2)} 50%, transparent 65%)`,
+      background: `linear-gradient(100deg, transparent 35%, ${c.shadow} 50%, transparent 65%)`,
       backgroundSize: "260% 100%",
       animation: "leetSweep 7s linear infinite",
     },
     leetText: {
       position: "relative", zIndex: 2, fontFamily: font.mono, fontWeight: 400, fontSize: 16, lineHeight: 1.85,
-      letterSpacing: "0.02em", color: "#C8D0D0", margin: 0, textAlign: "center",
+      letterSpacing: "0.02em", color: c.ink, margin: 0, textAlign: "center",
     },
 
     emotionMarqueeWrap: { width: "100%", maxWidth: 480, overflow: "hidden", margin: 0 },
@@ -4758,7 +4780,7 @@ function styles(c) {
     emotionMarqueeCopy: { display: "flex", flexShrink: 0, alignItems: "center", gap: 8, paddingRight: 40 },
     emotionBox: {
       fontFamily: font.mono, fontWeight: 700, fontSize: 12.5, letterSpacing: "0.03em", textTransform: "uppercase",
-      padding: "8px 13px", borderRadius: 8, display: "inline-block", lineHeight: 1.2, whiteSpace: "nowrap", flexShrink: 0,
+      padding: "7px 12px", border: `1px solid ${c.edge}`, borderRadius: 8, display: "inline-block", lineHeight: 1.2, whiteSpace: "nowrap", flexShrink: 0,
     },
 
     homeInlineLink: { color: c.accent, textDecoration: "none", fontStyle: "normal" },
@@ -4787,7 +4809,7 @@ function styles(c) {
     },
     topBar: { position: "relative", zIndex: 100, width: "100%", maxWidth: 680, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px" },
     cornerBtn: { textDecoration: "none", fontFamily: font.display, fontWeight: 500, fontSize: 14, letterSpacing: "0.06em", textTransform: "uppercase", background: "transparent", border: `1px solid ${c.strongLine}`, borderRadius: 6, padding: "7px 15px", color: c.ink, cursor: "pointer", transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease" },
-    cornerBtnActive: { background: c.accent, borderColor: c.accent, color: c.onAccent },
+    cornerBtnActive: { background: c.accent, borderColor: c.accent, color: c.onAccent, WebkitTextStroke: "var(--text-outline-on-accent)" },
 
     subTabBar: { display: "flex", gap: 8, width: "100%", maxWidth: 680, position: "relative", zIndex: 5, flexWrap: "nowrap", overflowX: "auto", paddingBottom: 6, WebkitOverflowScrolling: "touch" },
     subTabBack: { flexShrink: 0, fontFamily: font.display, fontWeight: 600, fontSize: 16, background: "transparent", border: `1px solid ${c.strongLine}`, borderRadius: 6, padding: "8px 12px", color: c.ink, cursor: "pointer", outline: "none" },
@@ -4797,7 +4819,7 @@ function styles(c) {
     hamburgerMenu: {
       position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 41, minWidth: 160,
       background: c.surface, border: `1px solid ${c.line}`, borderRadius: 10, padding: 8,
-      display: "flex", flexDirection: "column", gap: 6, boxShadow: "0 12px 30px rgba(0,0,0,0.5)",
+      display: "flex", flexDirection: "column", gap: 6, boxShadow: `0 12px 30px ${c.shadow}`,
     },
     hamburgerMenuItem: {
       textDecoration: "none", fontFamily: font.display, fontWeight: 500, fontSize: 13.5, letterSpacing: "0.04em", textTransform: "uppercase",
@@ -4805,7 +4827,7 @@ function styles(c) {
       cursor: "pointer", outline: "none", textAlign: "left", width: "100%",
     },
     subTab: { flexShrink: 0, whiteSpace: "nowrap", fontFamily: font.display, fontWeight: 500, fontSize: 13, letterSpacing: "0.04em", textTransform: "uppercase", background: c.surface, border: `1px solid ${c.line}`, borderRadius: 6, padding: "8px 13px", color: c.ink, cursor: "pointer", outline: "none", transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease" },
-    subTabActive: { color: c.onAccent, background: c.accent, borderColor: c.accent },
+    subTabActive: { color: c.onAccent, background: c.accent, borderColor: c.accent, WebkitTextStroke: "var(--text-outline-on-accent)" },
     gamesMenuWrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: 8, width: "100%", maxWidth: 560, margin: "0 auto", textAlign: "center" },
     gamesMenuGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16, width: "100%", marginTop: 14 },
     gamesMenuCard: {
@@ -4819,7 +4841,7 @@ function styles(c) {
     },
     exerciseMenuCardTitle: { fontFamily: font.display, fontWeight: 600, fontSize: 17, letterSpacing: "0.03em", textTransform: "uppercase", color: c.accent },
     exerciseMenuCardDesc: { fontFamily: font.body, fontWeight: 400, fontSize: 14, lineHeight: 1.6, color: c.muted },
-    leetReadBox: { width: "100%", maxWidth: 560, background: "#FFFFFF", border: `1px solid ${c.line}`, borderRadius: 12, padding: "22px 24px", maxHeight: 420, overflowY: "auto", boxSizing: "border-box" },
+    leetReadBox: { width: "100%", maxWidth: 560, background: "#FFFFFF", border: `1px solid ${c.edge}`, borderRadius: 12, padding: "22px 24px", maxHeight: 420, overflowY: "auto", boxSizing: "border-box" },
     leetReadText: { fontFamily: font.mono, fontSize: 15.5, lineHeight: 1.85, letterSpacing: "0.02em", color: "#111111", whiteSpace: "pre-wrap", margin: 0, textAlign: "left" },
 
     breathFrame: {
@@ -4856,7 +4878,7 @@ function styles(c) {
     },
 
     flowTypeTextarea: {
-      width: "100%", maxWidth: 560, minHeight: 260, background: c.playfield, border: `1px solid ${c.line}`, borderRadius: 12,
+      width: "100%", maxWidth: 560, minHeight: 260, background: c.playfield, border: `1px solid ${c.fieldBorder}`, borderRadius: 12,
       padding: "16px 18px", fontFamily: font.body, fontSize: 15.5, lineHeight: 1.7, color: c.ink, outline: "none", resize: "vertical", boxSizing: "border-box",
     },
     flowTypeFailBanner: {
@@ -4889,7 +4911,7 @@ function styles(c) {
     everydayTopRow: { width: "100%", display: "flex", justifyContent: "flex-end", marginBottom: 4 },
 
     celebrateOverlay: { position: "fixed", top: "18%", left: "50%", transform: "translateX(-50%)", zIndex: 5, pointerEvents: "none", animation: "celebrateFade 0.9s ease both" },
-    celebrateText: { fontFamily: font.display, fontSize: 26, letterSpacing: "0.06em", textTransform: "uppercase", color: c.accent, textShadow: `0 0 20px ${c.accent}55` },
+    celebrateText: { fontFamily: font.display, fontSize: 26, letterSpacing: "0.06em", textTransform: "uppercase", color: c.accent, textShadow: `0 2px 12px ${c.shadow}` },
 
     gameBox: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 20, width: "100%", minHeight: 420, justifyContent: "center" },
     levelLabel: { fontFamily: font.display, fontSize: 18, letterSpacing: "0.06em", textTransform: "uppercase", color: c.accent, margin: 0 },
@@ -4911,15 +4933,15 @@ function styles(c) {
     emojiRow: { display: "flex", justifyContent: "center", gap: 10 },
     scatterWrap: { position: "relative", width: "100%", maxWidth: 480, height: 240 },
     scatterTile: { position: "absolute", transform: "translate(-50%, -50%)" },
-    sqTile: { background: "#F5F0E3", border: "1px solid #DCD0B4", borderRadius: 8, cursor: "pointer", width: "100%", height: "100%", outline: "none", WebkitAppearance: "none", appearance: "none" },
+    sqTile: { background: "#FFFFFF", border: `1px solid ${c.fieldBorder}`, borderRadius: 8, cursor: "pointer", width: "100%", height: "100%", outline: "none", WebkitAppearance: "none", appearance: "none" },
     sqTileActive: { background: c.accent, borderColor: c.accent },
     bounceAnim: { animation: "bouncePop 0.15s ease" },
     shakeAnim: { animation: "shakeIt 0.32s ease" },
     visualGrid: { display: "grid", gap: 8, width: "100%", maxWidth: 360 },
-    numTile: { background: c.panel, border: `1px solid ${c.line}`, borderRadius: 8, height: 52, fontFamily: font.mono, fontSize: 18, color: c.ink, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
+    numTile: { background: "#FFFFFF", border: `1px solid ${c.fieldBorder}`, borderRadius: 8, height: 52, fontFamily: font.mono, fontSize: 18, color: c.ink, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
     numTileUsed: { background: c.bg, opacity: 0.3 },
-    btnPrimary: { fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.accent, color: c.onAccent, border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer" },
-    btnGold: { textDecoration: "none", fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.accent, color: c.onAccent, border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer" },
+    btnPrimary: { fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.accent, color: c.onAccent, border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer", WebkitTextStroke: "var(--text-outline-on-accent)" },
+    btnGold: { textDecoration: "none", fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.accent, color: c.onAccent, border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer", WebkitTextStroke: "var(--text-outline-on-accent)" },
     btnGhost: { fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: "transparent", color: c.ink, border: `1px solid ${c.line}`, borderRadius: 6, padding: "13px 20px", cursor: "pointer" },
     caseList: { textAlign: "left", fontSize: 14.5, lineHeight: 1.9, color: c.ink, maxWidth: 480, margin: 0, paddingLeft: 20 },
     caseItem: {},
@@ -4977,17 +4999,17 @@ function styles(c) {
     stopwatchBadge: { position: "absolute", top: -2, right: 0, fontFamily: font.mono, fontWeight: 700, fontSize: 14, letterSpacing: "0.06em", color: c.ink, background: c.panel, border: `1px solid ${c.line}`, borderRadius: 6, padding: "6px 10px", zIndex: 3 },
     splitTimesRow: { display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" },
     splitTimeChip: { fontFamily: font.mono, fontSize: 12.5, color: c.muted, border: `1px solid ${c.line}`, borderRadius: 6, padding: "5px 10px" },
-    bigCard: { width: 160, height: 220, background: "#FFFFFF", border: "1px solid #E2DAC8", borderRadius: 16, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
+    bigCard: { width: 160, height: 220, background: "#FFFFFF", border: `1px solid ${c.edge}`, borderRadius: 16, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
     cardRank: { fontFamily: font.display, fontSize: 56, lineHeight: 1 },
     cardSuit: { fontSize: 40, lineHeight: 1 },
     cardGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, width: "100%", maxWidth: 360, margin: "0 auto" },
-    smallCard: { width: "100%", aspectRatio: "3 / 4", background: "#FFFFFF", border: "1px solid #E2DAC8", borderRadius: 8, fontFamily: font.mono, fontSize: 17, fontWeight: 600, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
+    smallCard: { width: "100%", aspectRatio: "3 / 4", background: "#FFFFFF", border: `1px solid ${c.edge}`, borderRadius: 8, fontFamily: font.mono, fontSize: 17, fontWeight: 600, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
     smallCardMatched: { opacity: 0.28 },
     compareHeaderRow: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, width: "100%", maxWidth: 320 },
     compareHeaderCell: { fontFamily: font.mono, fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.06em", color: c.muted, textAlign: "center" },
     compareWrap: { display: "flex", flexDirection: "column", gap: 6, width: "100%", maxWidth: 320, maxHeight: 380, overflowY: "auto", paddingRight: 4 },
     compareRow: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 },
-    compareCell: { display: "flex", alignItems: "center", justifyContent: "center", background: "#FFFFFF", border: "1px solid #E2DAC8", borderRadius: 6, height: 34, fontFamily: font.mono, fontSize: 13, fontWeight: 600 },
+    compareCell: { display: "flex", alignItems: "center", justifyContent: "center", background: "#FFFFFF", border: `1px solid ${c.edge}`, borderRadius: 6, height: 34, fontFamily: font.mono, fontSize: 13, fontWeight: 600 },
     compareCellGood: { background: c.good, border: `1px solid ${c.good}` },
     compareCellBad: { boxShadow: `inset 0 0 0 2px ${c.bad}` },
 
@@ -5001,7 +5023,7 @@ function styles(c) {
       width: "100%", maxWidth: 540, display: "flex", flexDirection: "column", gap: 14, textAlign: "left",
       background: c.secondary,
       border: `1px solid ${c.line}`, borderRadius: 20, padding: "34px 32px",
-      boxShadow: "0 18px 46px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.03)",
+      boxShadow: `0 18px 46px ${c.shadow}`,
     },
     contactEyebrow: { fontFamily: font.mono, fontSize: 13.5, letterSpacing: "0.16em", textTransform: "uppercase", color: c.good, margin: "0 0 4px" },
     contactTitle: { fontFamily: font.display, fontSize: 27, letterSpacing: "0.02em", lineHeight: 1.4, color: c.accent, margin: "2px 0 8px" },
@@ -5027,11 +5049,11 @@ function styles(c) {
     writeToMeLabel: { fontFamily: font.display, fontWeight: 500, fontSize: 13, letterSpacing: "0.04em", textTransform: "uppercase", color: c.muted },
     writeToMeRequired: { color: c.bad },
     writeToMeInput: {
-      fontFamily: font.body, fontSize: 15, color: c.ink, background: c.playfield, border: `1px solid ${c.line}`,
+      fontFamily: font.body, fontSize: 15, color: c.ink, background: c.playfield, border: `1px solid ${c.fieldBorder}`,
       borderRadius: 8, padding: "10px 12px", outline: "none", width: "100%", boxSizing: "border-box",
     },
     writeToMeTextarea: {
-      fontFamily: font.body, fontSize: 15, color: c.ink, background: c.playfield, border: `1px solid ${c.line}`,
+      fontFamily: font.body, fontSize: 15, color: c.ink, background: c.playfield, border: `1px solid ${c.fieldBorder}`,
       borderRadius: 8, padding: "10px 12px", outline: "none", width: "100%", minHeight: 120, resize: "vertical", boxSizing: "border-box",
     },
     writeToMeError: { fontFamily: font.display, fontWeight: 500, fontSize: 13.5, color: c.bad, margin: 0 },
@@ -5048,7 +5070,7 @@ function styles(c) {
     coffeeTable: { width: "clamp(220px, 58vw, 280px)", height: "auto", display: "block", overflow: "visible" },
     contactBubbleStack: { display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10 },
     contactBubble: {
-      fontFamily: font.body, fontSize: 16, lineHeight: 1.45, color: c.ink, background: "rgba(255,255,255,0.05)",
+      fontFamily: font.body, fontSize: 16, lineHeight: 1.45, color: c.ink, background: c.playfield,
       border: `1px solid ${c.strongLine}`, borderRadius: "18px 18px 18px 4px", padding: "10px 18px", display: "inline-block",
       animation: "bubbleFloat 5.5s ease-in-out infinite",
     },
@@ -5056,14 +5078,14 @@ function styles(c) {
     contactIconLink: {
       display: "flex", flexDirection: "column", alignItems: "center", gap: 6, color: c.ink, textDecoration: "none",
       fontFamily: font.body, fontSize: 12.5, border: `1px solid ${c.line}`, borderRadius: 12, padding: "14px 26px",
-      background: "rgba(255,255,255,0.03)", transition: "border-color 0.15s ease",
+      background: c.playfield, transition: "border-color 0.15s ease",
     },
 
     rvOuter: { width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 24, padding: "24px 16px 60px", background: c.secondary, borderRadius: 20 },
     rvCard: {
       width: "100%", maxWidth: 520, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, textAlign: "center",
       background: c.surface, border: `1px solid ${c.line}`, borderRadius: 20, padding: "34px 32px",
-      boxShadow: "0 18px 46px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.03)",
+      boxShadow: `0 18px 46px ${c.shadow}`,
     },
     rvHeading: { fontFamily: font.display, fontWeight: 600, fontSize: 27, letterSpacing: "0.03em", color: c.accent, margin: "2px 0 4px" },
     rvInstruction: { fontFamily: font.body, fontWeight: 400, fontSize: 15.5, lineHeight: 1.7, color: c.ink, margin: 0, maxWidth: 420 },
@@ -5097,7 +5119,7 @@ function styles(c) {
     rvFieldLabel: { fontFamily: font.display, fontWeight: 500, fontSize: 11.5, letterSpacing: "0.06em", textTransform: "uppercase", color: c.muted, margin: 0 },
     rvTextarea: {
       fontFamily: font.mono, fontSize: 13.5, lineHeight: 1.6, color: c.ink, background: c.playfield,
-      border: `1px solid ${c.line}`, borderRadius: 8, padding: "9px 12px", outline: "none", width: "100%", resize: "vertical",
+      border: `1px solid ${c.fieldBorder}`, borderRadius: 8, padding: "9px 12px", outline: "none", width: "100%", resize: "vertical",
     },
 
     // ---- Freehand drawing canvas ----
@@ -5107,7 +5129,7 @@ function styles(c) {
       fontFamily: font.mono, fontSize: 12, letterSpacing: "0.03em", textTransform: "uppercase",
       background: "transparent", border: `1px solid ${c.line}`, color: c.muted, borderRadius: 6, padding: "6px 12px", cursor: "pointer",
     },
-    canvasToolBtnActive: { background: c.accent, borderColor: c.accent, color: c.onAccent },
+    canvasToolBtnActive: { background: c.accent, borderColor: c.accent, color: c.onAccent, WebkitTextStroke: "var(--text-outline-on-accent)" },
     canvasSurfaceWrap: { width: "100%", borderRadius: 10, border: `1px dashed ${c.line}`, background: c.playfield, overflow: "hidden" },
     canvasSurface: { width: "100%", height: "100%", display: "block", cursor: "crosshair", touchAction: "none" },
 
