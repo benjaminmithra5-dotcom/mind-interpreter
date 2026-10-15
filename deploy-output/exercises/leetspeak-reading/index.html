@@ -8,7 +8,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <meta name="theme-color" content="#121A1F">
+    <meta name="theme-color" content="#F6F0E4">
     <meta name="description" content="Decode short stories written in leetspeak to train visual attention, pattern recognition, and reading fluency.">
     <link rel="canonical" href="https://benjaminmithra.com/exercises/leetspeak-reading">
     <meta property="og:type" content="website">
@@ -48,12 +48,30 @@
         "author": { "@id": "https://benjaminmithra.com/#person" }
       }
     </script>
-    <script type="module" crossorigin="" src="/assets/index-CikbFaKN.js"></script>
+    <script type="module" crossorigin="" src="/assets/index-jw-rW4nN.js"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&amp;family=Space+Mono:wght@400;700&amp;display=swap"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&amp;family=Space+Mono:wght@400;700&amp;display=swap"></head>
   <body>
-    <div id="root"><div style="position: relative; min-height: 100vh; background: rgb(18, 26, 31); color: rgb(242, 250, 247); font-family: &quot;Source Serif 4&quot;, Georgia, serif; display: flex; flex-direction: column; align-items: center;"><style>
+    <div id="root"><div style="position: relative; min-height: 100vh; background: rgb(246, 240, 228); color: rgb(30, 43, 44); font-family: &quot;Source Serif 4&quot;, Georgia, serif; display: flex; flex-direction: column; align-items: center;"><style>
           @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Space+Mono:wght@400;700&display=swap');
           * { box-sizing: border-box; }
+          :root {
+            color-scheme: light;
+            /* Thin outline on all text. One line removes it everywhere:
+               set --text-outline-color to transparent. */
+            --text-outline-color: rgba(20,20,20,0.55);
+            --text-outline: 0.25px;        /* text 16px and larger */
+            --text-outline-small: 0.15px;  /* text under 16px */
+            --text-outline-on-accent: 0.2px #0E5A5F; /* white text on teal */
+          }
+          body * {
+            -webkit-text-stroke: clamp(var(--text-outline-small), calc((1em - 15.99px) * 1000), var(--text-outline)) var(--text-outline-color);
+            paint-order: stroke fill;
+          }
+          .no-text-outline, .no-text-outline *, .tile-btn, .tile-btn * { -webkit-text-stroke: 0 transparent !important; }
+          ::selection { background: rgba(14,90,95,0.2); color: #1E2B2C; }
+          html { scrollbar-color: #0E5A5F #EDE4D2; }
+          input::placeholder, textarea::placeholder { color: #566A6C; opacity: 1; }
+          input:focus-visible, textarea:focus-visible, a:focus-visible, button:focus-visible, summary:focus-visible { outline-color: #0E5A5F; }
           html, body { overflow-x: hidden; max-width: 100%; }
           button:disabled { opacity: 0.35; cursor: default; }
           input, textarea { font-family: inherit; }
@@ -72,15 +90,15 @@
           @keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           @keyframes bubbleFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
           @keyframes breathBurst { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0.2); opacity: 0; } }
-          @keyframes flowFailPulse { 0%, 100% { background: rgba(227,144,127,0.14); } 50% { background: rgba(227,144,127,0.3); } }
+          @keyframes flowFailPulse { 0%, 100% { background: rgba(180,65,47,0.14); } 50% { background: rgba(180,65,47,0.3); } }
           @media (prefers-reduced-motion: reduce) {
             .emotion-marquee-track { animation-duration: 400s !important; }
           }
           .fade-in { animation: fadeIn 0.35s ease both; }
-          .nav-btn:hover { background: #28C48D !important; border-color: #28C48D !important; color: #0C1317 !important; }
-          .hero-btn:hover { background: #6FF0C0 !important; border-color: #6FF0C0 !important; color: #0C1317 !important; }
-          .home-footer-link:hover { color: #3EE6A8 !important; }
-          .nav-btn:hover .exercise-card-title, .nav-btn:hover .exercise-card-desc { color: #0C1317 !important; }
+          .nav-btn:hover { background: #083A3D !important; border-color: #083A3D !important; color: #FFFFFF !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
+          .hero-btn:hover { background: #0B484C !important; border-color: #0B484C !important; color: #FFFFFF !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
+          .home-footer-link:hover { color: #0E5A5F !important; }
+          .nav-btn:hover .exercise-card-title, .nav-btn:hover .exercise-card-desc { color: #FFFFFF !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
           @media (max-width: 600px) {
             .top-tabs { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 6px !important; }
             .top-tabs .nav-btn {
@@ -91,7 +109,7 @@
           @media (max-width: 360px) {
             .top-tabs .nav-btn { font-size: 11px !important; letter-spacing: 0.02em !important; padding: 8px 2px !important; }
           }
-        </style><div aria-hidden="true" style="position: fixed; inset: 0px; overflow: hidden; z-index: 0; pointer-events: none; background: rgb(18, 26, 31);"><div style="position: absolute; inset: 0px; background: radial-gradient(at 50% 15%, rgb(26, 37, 43) 0%, rgb(18, 26, 31) 60%, rgb(12, 19, 23) 100%); opacity: 0.7;"></div></div><div style="position: relative; z-index: 100; width: 100%; max-width: 680px; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px;"><button class="nav-btn" aria-label="Back" style="flex-shrink: 0; font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 16px; background: transparent; border: 1px solid rgba(62, 230, 168, 0.5); border-radius: 6px; padding: 8px 12px; color: rgb(242, 250, 247); cursor: pointer; outline: none;">←</button><div style="position: relative;"><button class="nav-btn" aria-label="Menu" style="flex-shrink: 0; font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 16px; background: transparent; border: 1px solid rgba(62, 230, 168, 0.5); border-radius: 6px; padding: 8px 12px; color: rgb(242, 250, 247); cursor: pointer; outline: none;">☰</button></div></div><main style="position: relative; z-index: 2; width: 100%; max-width: 680px; padding: 10px 20px 80px; min-height: 460px; display: flex; align-items: center; justify-content: center; box-sizing: border-box;"><div class="fade-in" style="display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; max-width: 400px; margin: 0px auto; text-align: center;"><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 27px; letter-spacing: 0.03em; color: rgb(62, 230, 168); margin: 2px 0px 4px;">Leetspeak Reading</p><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(169, 189, 183); margin: 6px 0px 0px;">Reading Fluency</p><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 500; font-size: 15.5px; line-height: 1.7; color: rgb(242, 250, 247); max-width: 480px; margin: 0px;">Every story here is written in leetspeak (letters swapped for numbers). Decoding it as you read trains focus, pattern recognition, and reading speed. A fresh story loads each time, never the same one twice in a row.</p><button style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; background: rgb(62, 230, 168); color: rgb(12, 19, 23); border: none; border-radius: 6px; padding: 13px 24px; cursor: pointer;">Start Reading</button></div></main></div></div>
+        </style><div aria-hidden="true" style="position: fixed; inset: 0px; overflow: hidden; z-index: 0; pointer-events: none; background: rgb(246, 240, 228);"><div style="position: absolute; inset: 0px;"></div></div><div style="position: relative; z-index: 100; width: 100%; max-width: 680px; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px;"><button class="nav-btn" aria-label="Back" style="flex-shrink: 0; font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 16px; background: transparent; border: 1px solid rgba(14, 90, 95, 0.5); border-radius: 6px; padding: 8px 12px; color: rgb(30, 43, 44); cursor: pointer; outline: none;">←</button><div style="position: relative;"><button class="nav-btn" aria-label="Menu" style="flex-shrink: 0; font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 16px; background: transparent; border: 1px solid rgba(14, 90, 95, 0.5); border-radius: 6px; padding: 8px 12px; color: rgb(30, 43, 44); cursor: pointer; outline: none;">☰</button></div></div><main style="position: relative; z-index: 2; width: 100%; max-width: 680px; padding: 10px 20px 80px; min-height: 460px; display: flex; align-items: center; justify-content: center; box-sizing: border-box;"><div class="fade-in" style="display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; max-width: 400px; margin: 0px auto; text-align: center;"><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 27px; letter-spacing: 0.03em; color: rgb(14, 90, 95); margin: 2px 0px 4px;">Leetspeak Reading</p><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(68, 88, 90); margin: 6px 0px 0px;">Reading Fluency</p><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 500; font-size: 15.5px; line-height: 1.7; color: rgb(30, 43, 44); max-width: 480px; margin: 0px;">Every story here is written in leetspeak (letters swapped for numbers). Decoding it as you read trains focus, pattern recognition, and reading speed. A fresh story loads each time, never the same one twice in a row.</p><button style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; background: rgb(14, 90, 95); color: rgb(255, 255, 255); border: none; border-radius: 6px; padding: 13px 24px; cursor: pointer; -webkit-text-stroke: var(--text-outline-on-accent);">Start Reading</button></div></main></div></div>
   
 
 </body></html>
