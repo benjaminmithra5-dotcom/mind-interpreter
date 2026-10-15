@@ -5155,8 +5155,8 @@ function styles(c) {
     chessCheckTint: { position: "absolute", inset: 0, background: "rgba(220, 60, 50, 0.55)", pointerEvents: "none" },
     chessPieceIconWrap: { width: "94%", height: "94%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,0.4))", zIndex: 1, position: "relative" },
     chessLegalDot: { position: "absolute", width: "22%", height: "22%", borderRadius: "50%", background: "rgba(20,20,20,0.35)", pointerEvents: "none" },
-    chessCoordRank: { position: "absolute", top: 2, left: 3, fontFamily: font.mono, fontSize: 10, fontWeight: 700, opacity: 0.8, pointerEvents: "none" },
-    chessCoordFile: { position: "absolute", bottom: 1, right: 3, fontFamily: font.mono, fontSize: 10, fontWeight: 700, opacity: 0.8, pointerEvents: "none" },
+    chessCoordRank: { position: "absolute", top: 2, left: 3, fontFamily: font.mono, fontSize: 10, fontWeight: 700, pointerEvents: "none" },
+    chessCoordFile: { position: "absolute", bottom: 1, right: 3, fontFamily: font.mono, fontSize: 10, fontWeight: 700, pointerEvents: "none" },
     chessDragGhost: { position: "absolute", width: "14%", height: "14%", transform: "translate(-50%, -50%)", pointerEvents: "none", zIndex: 60, filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.5))" },
   };
 }
