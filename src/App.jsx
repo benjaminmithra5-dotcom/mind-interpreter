@@ -1978,6 +1978,10 @@ function ChessPieceIcon({ type, color }) {
   return null;
 }
 
+// Coordinate labels on the dark squares: dark brown at full strength,
+// so they stay readable (5.4:1) against #B58863.
+const CHESS_COORD_ON_DARK = { color: "#2A190C", opacity: 1 };
+
 function ChessGame() {
   const c = useColors();
   const clock = useRunningClock();
@@ -2164,8 +2168,8 @@ function ChessGame() {
                 >
                   {isLastMove && <span style={styles(c).chessLastMoveTint} />}
                   {isCheckSquare && <span style={styles(c).chessCheckTint} />}
-                  {showRank && <span style={{ ...styles(c).chessCoordRank, color: isLight ? "#6B4A2E" : "#E8DCC6" }}>{8 - r}</span>}
-                  {showFile && <span style={{ ...styles(c).chessCoordFile, color: isLight ? "#6B4A2E" : "#E8DCC6" }}>{String.fromCharCode(97 + cIdx)}</span>}
+                  {showRank && <span style={{ ...styles(c).chessCoordRank, ...(isLight ? { color: "#6B4A2E" } : CHESS_COORD_ON_DARK) }}>{8 - r}</span>}
+                  {showFile && <span style={{ ...styles(c).chessCoordFile, ...(isLight ? { color: "#6B4A2E" } : CHESS_COORD_ON_DARK) }}>{String.fromCharCode(97 + cIdx)}</span>}
                   {piece && (
                     <span style={{ ...styles(c).chessPieceIconWrap, opacity: isDragSource ? 0.25 : 1 }}>
                       <ChessPieceIcon type={pieceType(piece)} color={pieceColor(piece)} />
