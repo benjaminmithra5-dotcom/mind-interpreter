@@ -8,25 +8,36 @@ import { parseArticle, sortArticles, formatArticleDate } from "./articleFormat.j
 // Theme, dark and warm on purpose. Nothing in this game should sit
 // at the same visual weight as anything else, tiles need to pop.
 // =================================================================
+// The site's one theme: every interface color comes from here, so a
+// color change is a one-line edit. (Game boards and pieces, the
+// breathing colors and the emotion chips keep their own colors.)
 const COLORS = {
-  bg: "#06131B",
-  secondary: "#091B24",
-  surface: "#0C202A",
-  playfield: "#040D13",
-  panel: "#0C202A",
-  ink: "#E9E5DA",
-  muted: "#A8B5BA",
-  faint: "#71838B",
+  bg: "#1F2A30",            // page background (slate)
+  secondary: "#182126",     // deep sections: tip bubble, bands, inset boxes
+  surface: "#26343B",       // cards and panels
+  panel: "#26343B",
+  panelHover: "#2D3D45",    // slightly lighter panel or hover
+  playfield: "#182126",     // inset areas: inputs, canvases, game fields
+  ink: "#EEF3F1",           // body text
+  muted: "#B8C6C2",         // captions, secondary text
+  faint: "#97A8A3",
   good: "#58B49F",
-  bad: "#C96B5B",
-  gold: "#E2AA3B",
-  goldHover: "#F0BD4D",
-  goldDark: "#B98220",
-  line: "#29414B",
-  strongLine: "#3A5661",
-  cardBg: "#121526",
-  cardBorder: "#302F4D",
+  bad: "#E3907F",
+  accent: "#8FC9AE",        // soft mint: buttons, links, headings, icons
+  accentHover: "#A6D8C1",
+  accentPressed: "#6FAE90",
+  onAccent: "#1F2A30",      // text on mint (never white)
+  line: withAlpha("#8FC9AE", 0.22),       // borders and dividers
+  strongLine: withAlpha("#8FC9AE", 0.4),  // button outlines
+  overlay: withAlpha("#1F2A30", 0.82),
+  cardBg: "#26343B",
+  cardBorder: withAlpha("#8FC9AE", 0.22),
 };
+// "#8FC9AE", 0.22 -> "rgba(143,201,174,0.22)"
+function withAlpha(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
+}
 const ThemeContext = createContext(COLORS);
 function useColors() {
   return useContext(ThemeContext);
@@ -2916,7 +2927,7 @@ function DrawingCanvas({ strokes, onChange, height = 200 }) {
     const paint = (stroke) => {
       if (!stroke || stroke.points.length < 2) return;
       ctx.beginPath();
-      ctx.strokeStyle = stroke.tool === "eraser" ? "#08131B" : "#EDEAE0";
+      ctx.strokeStyle = stroke.tool === "eraser" ? COLORS.playfield : "#EDEAE0";
       ctx.lineWidth = stroke.tool === "eraser" ? 20 : 2.4;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
@@ -3042,7 +3053,7 @@ function StaticSketch({ strokes, height = 220 }) {
     strokes.forEach((stroke) => {
       if (!stroke || stroke.points.length < 2) return;
       ctx.beginPath();
-      ctx.strokeStyle = stroke.tool === "eraser" ? "#08131B" : "#EDEAE0";
+      ctx.strokeStyle = stroke.tool === "eraser" ? COLORS.playfield : "#EDEAE0";
       ctx.lineWidth = stroke.tool === "eraser" ? 20 : 2.4;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
@@ -3208,7 +3219,7 @@ function EmailIcon() {
 }
 
 // The portrait, framed as a little house: the photo fills the square
-// body, and an SVG drawn over it adds the roof and gold outline. The
+// body, and an SVG drawn over it adds the roof and accent outline. The
 // roof's base is the body's top edge, so they share one clean line.
 function HousePortrait() {
   const c = useColors();
@@ -3216,7 +3227,7 @@ function HousePortrait() {
     <div style={styles(c).housePortrait}>
       <img src="/benjamin-mithra.jpg" alt="Benjamin Mithra" width="360" height="360" style={styles(c).housePortraitPhoto} />
       <svg viewBox="0 0 100 128" aria-hidden="true" focusable="false" style={styles(c).housePortraitFrame}>
-        <g stroke={c.gold} strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round">
+        <g stroke={c.accent} strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round">
           <path d="M2 42 L50 5 L98 42 Z" fill={c.surface} />
           <rect x="8" y="42" width="84" height="84" fill="none" />
         </g>
@@ -3244,8 +3255,8 @@ function CoffeeTableIllustration() {
         .coffee-steam-3 { animation-delay: -2.2s; }
         @media (prefers-reduced-motion: reduce) { .coffee-steam { animation: none; opacity: 0.8; } }
       `}</style>
-      <g fill="none" stroke={c.gold} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18 141 H262" stroke={c.goldDark} strokeOpacity="0.55" strokeWidth="1.6" />
+      <g fill="none" stroke={c.accent} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 141 H262" stroke={c.accentPressed} strokeOpacity="0.55" strokeWidth="1.6" />
         {/* Left chair, facing right */}
         <path d="M45 100 L39 54 Q38.5 50 42.5 50 H45.5 Q49 50 49.5 54 L54 100" fill={c.surface} />
         <path d="M44 100 H92 Q95 100 95 103 V105 Q95 108 92 108 H47 Q44 108 44 105 Z" fill={c.surface} />
@@ -3259,10 +3270,10 @@ function CoffeeTableIllustration() {
         <path d="M120 140 Q140 132 160 140" />
         <ellipse cx="140" cy="91" rx="46" ry="6" fill={c.surface} />
         {/* Two coffees */}
-        <path d="M106 71 H122 V81 Q122 85 118 85 H110 Q106 85 106 81 Z" fill={c.gold} />
+        <path d="M106 71 H122 V81 Q122 85 118 85 H110 Q106 85 106 81 Z" fill={c.accent} />
         <path d="M106 74 Q100 74 100 78 Q100 82 106 82" />
         <path d="M101 86 H127" />
-        <path d="M158 71 H174 V81 Q174 85 170 85 H162 Q158 85 158 81 Z" fill={c.gold} />
+        <path d="M158 71 H174 V81 Q174 85 170 85 H162 Q158 85 158 81 Z" fill={c.accent} />
         <path d="M174 74 Q180 74 180 78 Q180 82 174 82" />
         <path d="M153 86 H179" />
         {/* Steam */}
@@ -3586,9 +3597,9 @@ function GdLeg({ x }) {
 
 function GuideDogScene({ nodes, scale }) {
   const r = (key) => (el) => { nodes[key] = el; };
-  const gold = COLORS.gold;
+  const accent = COLORS.accent;
   const dark = COLORS.bg;
-  const earFill = COLORS.goldDark;
+  const earFill = COLORS.accentPressed;
   return (
     <svg
       ref={r("svg")}
@@ -3603,7 +3614,7 @@ function GuideDogScene({ nodes, scale }) {
       </defs>
       <path d={GD_DOOR} fill={COLORS.playfield} />
       {/* The dog, clipped to the doorway. */}
-      <g clipPath="url(#gd-door-clip)" fill={gold}>
+      <g clipPath="url(#gd-door-clip)" fill={accent}>
         <path ref={r("chest")} d="M34 100 C34 86 40 77 50 77 C60 77 66 86 66 100 Z" />
         <path d="M41 82 C41 72 42 64 44 58 L56 58 C58 64 59 72 59 82 Z" />
         <path fill="none" stroke={dark} strokeWidth="1.8" strokeLinecap="round" d="M42.5 70 Q50 72.5 57.5 70" />
@@ -3632,20 +3643,20 @@ function GuideDogScene({ nodes, scale }) {
         </g>
       </g>
       {/* The house's front wall, with the doorway cut out, over the dog. */}
-      <g stroke={gold} strokeWidth="1.6" strokeLinejoin="round">
+      <g stroke={accent} strokeWidth="1.6" strokeLinejoin="round">
         <path d={`M6 44 L50 6 L94 44 V100 H6 Z ${GD_DOOR}`} fillRule="evenodd" fill={COLORS.surface} />
         <path fill="none" stroke={earFill} strokeWidth="0.9" strokeOpacity="0.7" d="M8 58 H22 M78 58 H92 M8 72 H22 M78 72 H92 M8 86 H22 M78 86 H92" />
         <path d="M50 0 L104 46 L98 51 L50 9 L2 51 L-4 46 Z" fill={COLORS.surface} />
         <path fill="none" strokeLinecap="round" d="M2 100 H98" />
       </g>
-      <g ref={r("zzz")} opacity="0" fill={gold} fontFamily="'Space Mono', monospace" fontWeight="700">
+      <g ref={r("zzz")} opacity="0" fill={accent} fontFamily="'Space Mono', monospace" fontWeight="700">
         <text className="gd-z" x="66" y="24" fontSize="8">z</text>
         <text className="gd-z gd-z2" x="73" y="14" fontSize="10">z</text>
         <text className="gd-z gd-z3" x="81" y="3" fontSize="12">z</text>
       </g>
       <g ref={r("bfly")} opacity="0">
         <g className="gd-part gd-wings">
-          <path fill={gold} d="M0 0 C-3 -8 -11 -10 -11 -4 C-11 0 -5 1 0 0 Z M0 0 C3 -8 11 -10 11 -4 C11 0 5 1 0 0 Z" />
+          <path fill={accent} d="M0 0 C-3 -8 -11 -10 -11 -4 C-11 0 -5 1 0 0 Z M0 0 C3 -8 11 -10 11 -4 C11 0 5 1 0 0 Z" />
           <path fill={earFill} d="M0 0 C-2 3 -7 8 -8 4 C-8 2 -4 0.5 0 0 Z M0 0 C2 3 7 8 8 4 C8 2 4 0.5 0 0 Z" />
         </g>
         <ellipse cx="0" cy="0" rx="0.9" ry="3.4" fill={earFill} />
@@ -3661,7 +3672,7 @@ const GUIDE_DOG_CSS = `
     background: transparent; border: 0; padding: 0; margin: 0; cursor: pointer; border-radius: 10px; -webkit-tap-highlight-color: transparent;
   }
   .gd-home:focus { outline: none; }
-  .gd-home:focus-visible, .gd-paw:focus-visible, .gd-hide:focus-visible, .gd-link:focus-visible { outline: 2px solid ${COLORS.gold}; outline-offset: 2px; }
+  .gd-home:focus-visible, .gd-paw:focus-visible, .gd-hide:focus-visible, .gd-link:focus-visible { outline: 2px solid ${COLORS.accent}; outline-offset: 2px; }
   .gd-bubble {
     position: fixed; left: 10px; z-index: 32;
     width: max-content; max-width: min(250px, calc(100vw - 40px)); box-sizing: border-box;
@@ -3675,7 +3686,7 @@ const GUIDE_DOG_CSS = `
     transform: rotate(45deg);
   }
   .gd-tip { font-family: 'Source Serif 4', Georgia, serif; font-size: 14.5px; line-height: 1.5; color: ${COLORS.ink}; margin: 0; }
-  .gd-link { font-family: 'Source Serif 4', Georgia, serif; font-size: 14px; color: ${COLORS.gold}; text-decoration: underline; text-underline-offset: 3px; }
+  .gd-link { font-family: 'Source Serif 4', Georgia, serif; font-size: 14px; color: ${COLORS.accent}; text-decoration: underline; text-underline-offset: 3px; }
   .gd-hide { align-self: flex-start; font-family: 'Space Mono', monospace; font-size: 11px; color: ${COLORS.muted}; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
   .gd-paw {
     position: fixed; left: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 30; width: 34px; height: 34px; border-radius: 50%;
@@ -3697,7 +3708,7 @@ const GUIDE_DOG_CSS = `
 
 function PawIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill={COLORS.gold}>
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill={COLORS.accent}>
       <ellipse cx="12" cy="16" rx="5" ry="4.2" />
       <ellipse cx="5.2" cy="10.5" rx="2.1" ry="2.7" />
       <ellipse cx="9.4" cy="6.2" rx="2.1" ry="2.8" />
@@ -3727,7 +3738,7 @@ const WHATSAPP_FLOAT_CSS = `
   .wa-float svg { width: 30px; height: 30px; }
   .wa-float:hover, .wa-float:active { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.4); }
   .wa-float:focus { outline: none; }
-  .wa-float:focus-visible { outline: 2px solid ${COLORS.gold}; outline-offset: 3px; }
+  .wa-float:focus-visible { outline: 2px solid ${COLORS.accent}; outline-offset: 3px; }
   @media (max-width: 600px) {
     .wa-float { width: 52px; height: 52px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
     .wa-float svg { width: 28px; height: 28px; }
@@ -4022,7 +4033,7 @@ const FAQ_CSS = `
   .faq-q::-webkit-details-marker { display: none; }
   .faq-q::marker { content: ""; }
   .faq-q:focus { outline: none; }
-  .faq-q:focus-visible { outline: 2px solid ${COLORS.gold}; outline-offset: 3px; border-radius: 4px; }
+  .faq-q:focus-visible { outline: 2px solid ${COLORS.accent}; outline-offset: 3px; border-radius: 4px; }
   .faq-icon::before { content: "+"; }
   .faq-item[open] .faq-icon::before { content: "\\2212"; }
   .faq-item[open] .faq-answer { animation: fadeIn 0.25s ease both; }
@@ -4144,19 +4155,19 @@ function articleJsonLd(a) {
 
 const ARTICLE_CSS = `
   .article-card { transition: border-color 0.15s ease; }
-  .article-card:hover, .article-card:focus-visible { border-color: ${COLORS.gold} !important; outline: none; }
+  .article-card:hover, .article-card:focus-visible { border-color: ${COLORS.accent} !important; outline: none; }
   .article-body { font-family: ${font.body}; font-size: 17px; line-height: 1.75; color: ${COLORS.ink}; }
   .article-body > :first-child { margin-top: 0; }
   .article-body p { margin: 0 0 1.1em; }
-  .article-body h2 { font-family: ${font.display}; font-weight: 500; font-size: 21px; letter-spacing: 0.02em; line-height: 1.35; color: ${COLORS.gold}; margin: 1.8em 0 0.6em; }
+  .article-body h2 { font-family: ${font.display}; font-weight: 500; font-size: 21px; letter-spacing: 0.02em; line-height: 1.35; color: ${COLORS.accent}; margin: 1.8em 0 0.6em; }
   .article-body h3 { font-family: ${font.display}; font-weight: 500; font-size: 18px; letter-spacing: 0.02em; line-height: 1.35; color: ${COLORS.ink}; margin: 1.5em 0 0.5em; }
   .article-body ul, .article-body ol { margin: 0 0 1.1em; padding-left: 1.3em; }
   .article-body li { margin-bottom: 0.45em; }
-  .article-body li::marker { color: ${COLORS.gold}; }
-  .article-body a { color: ${COLORS.gold}; text-decoration: none; }
-  .article-body a:hover { color: ${COLORS.goldHover}; }
+  .article-body li::marker { color: ${COLORS.accent}; }
+  .article-body a { color: ${COLORS.accent}; text-decoration: none; }
+  .article-body a:hover { color: ${COLORS.accentHover}; }
   .article-body strong { font-weight: 600; }
-  .article-body blockquote { margin: 1.3em 0; padding: 0.2em 0 0.2em 1em; border-left: 3px solid ${COLORS.gold}; color: ${COLORS.muted}; font-style: italic; }
+  .article-body blockquote { margin: 1.3em 0; padding: 0.2em 0 0.2em 1em; border-left: 3px solid ${COLORS.accent}; color: ${COLORS.muted}; font-style: italic; }
   .article-body blockquote p:last-child { margin-bottom: 0; }
   .article-body hr { border: none; border-top: 1px solid ${COLORS.line}; margin: 2em 0; }
 `;
@@ -4472,15 +4483,15 @@ export default function App() {
           @keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           @keyframes bubbleFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
           @keyframes breathBurst { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0.2); opacity: 0; } }
-          @keyframes flowFailPulse { 0%, 100% { background: rgba(201,107,91,0.14); } 50% { background: rgba(201,107,91,0.30); } }
+          @keyframes flowFailPulse { 0%, 100% { background: ${withAlpha(c.bad, 0.14)}; } 50% { background: ${withAlpha(c.bad, 0.3)}; } }
           @media (prefers-reduced-motion: reduce) {
             .emotion-marquee-track { animation-duration: 400s !important; }
           }
           .fade-in { animation: fadeIn 0.35s ease both; }
-          .nav-btn:hover { background: #B98220 !important; border-color: #B98220 !important; color: #FFFFFF !important; }
-          .hero-btn:hover { background: #F0BD4D !important; border-color: #F0BD4D !important; color: #111820 !important; }
-          .home-footer-link:hover { color: #E2AA3B !important; }
-          .nav-btn:hover .exercise-card-title, .nav-btn:hover .exercise-card-desc { color: #FFFFFF !important; }
+          .nav-btn:hover { background: ${c.accentPressed} !important; border-color: ${c.accentPressed} !important; color: ${c.onAccent} !important; }
+          .hero-btn:hover { background: ${c.accentHover} !important; border-color: ${c.accentHover} !important; color: ${c.onAccent} !important; }
+          .home-footer-link:hover { color: ${c.accent} !important; }
+          .nav-btn:hover .exercise-card-title, .nav-btn:hover .exercise-card-desc { color: ${c.onAccent} !important; }
           @media (max-width: 600px) {
             .top-tabs { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 6px !important; }
             .top-tabs .nav-btn {
@@ -4705,7 +4716,7 @@ function styles(c) {
     siteHeading: {
       fontFamily: font.display, fontWeight: 700, fontStyle: "normal",
       fontSize: "clamp(24px, 6vw, 32px)", letterSpacing: "0.09em", lineHeight: 1.45, textTransform: "uppercase",
-      color: c.gold, margin: 0, textAlign: "center",
+      color: c.accent, margin: 0, textAlign: "center",
       display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: "clamp(10px, 3vw, 16px)",
       width: "100%", maxWidth: 720, padding: "0 16px", boxSizing: "border-box",
     },
@@ -4720,17 +4731,17 @@ function styles(c) {
     heroGridBtn: { display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1.3, padding: "9px 12px", boxSizing: "border-box", minWidth: 0 },
     heroBtn: {
       textDecoration: "none", textAlign: "center", fontFamily: font.display, fontWeight: 500, fontSize: 14, letterSpacing: "0.05em", textTransform: "uppercase",
-      background: c.gold, color: "#111820", border: `1px solid ${c.gold}`, borderRadius: 6, padding: "9px 20px", cursor: "pointer",
+      background: c.accent, color: c.onAccent, border: `1px solid ${c.accent}`, borderRadius: 6, padding: "9px 20px", cursor: "pointer",
       width: "100%", transition: "background 0.15s ease, border-color 0.15s ease",
     },
     leetWrap: {
       position: "relative", width: "100%", maxWidth: 480, display: "flex", alignItems: "center", justifyContent: "center",
-      overflow: "hidden", borderRadius: 12, padding: "24px 22px", border: "1px solid #29414B", background: "#081820",
+      overflow: "hidden", borderRadius: 12, padding: "24px 22px", border: `1px solid ${c.line}`, background: c.secondary,
       cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none", textAlign: "center",
     },
     leetSweep: {
       position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
-      background: "linear-gradient(100deg, transparent 35%, rgba(185,130,32,0.20) 50%, transparent 65%)",
+      background: `linear-gradient(100deg, transparent 35%, ${withAlpha(c.accentPressed, 0.2)} 50%, transparent 65%)`,
       backgroundSize: "260% 100%",
       animation: "leetSweep 7s linear infinite",
     },
@@ -4747,7 +4758,7 @@ function styles(c) {
       padding: "8px 13px", borderRadius: 8, display: "inline-block", lineHeight: 1.2, whiteSpace: "nowrap", flexShrink: 0,
     },
 
-    homeInlineLink: { color: c.gold, textDecoration: "none", fontStyle: "normal" },
+    homeInlineLink: { color: c.accent, textDecoration: "none", fontStyle: "normal" },
     homePhilosophy: {
       fontFamily: font.body, fontStyle: "italic", fontWeight: 400, fontSize: 16.5, lineHeight: 1.9,
       color: c.muted, width: "100%", maxWidth: 480, margin: 0,
@@ -4757,60 +4768,60 @@ function styles(c) {
       borderTop: `1px solid ${c.line}`, width: "100%", maxWidth: 480, textAlign: "center",
       display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: "6px 8px",
     },
-    homeFooterDot: { color: c.line },
+    homeFooterDot: { color: c.faint },
     homeFooterLink: {
       textDecoration: "none", fontFamily: font.mono, fontSize: 12, color: c.muted, background: "none", border: "none", cursor: "pointer", padding: 0,
       transition: "color 0.15s ease",
     },
     homeQuestionBox: {
-      background: c.surface, border: `1px solid ${c.gold}`, borderRadius: 14, padding: "18px 26px",
+      background: c.surface, border: `1px solid ${c.accent}`, borderRadius: 14, padding: "18px 26px",
       width: "100%", maxWidth: 480, minHeight: 124, display: "flex", alignItems: "center", justifyContent: "center",
       margin: 0, overflow: "hidden",
     },
     homeQuestion: {
       fontFamily: font.body, fontStyle: "italic", fontWeight: 700, fontSize: 18.5, lineHeight: 1.5,
-      letterSpacing: "0.01em", color: c.gold, margin: 0, textAlign: "center",
+      letterSpacing: "0.01em", color: c.accent, margin: 0, textAlign: "center",
     },
     topBar: { position: "relative", zIndex: 100, width: "100%", maxWidth: 680, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px" },
-    cornerBtn: { textDecoration: "none", fontFamily: font.display, fontWeight: 500, fontSize: 14, letterSpacing: "0.06em", textTransform: "uppercase", background: "transparent", border: "1px solid #3A5661", borderRadius: 6, padding: "7px 15px", color: "#D6DDE0", cursor: "pointer", transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease" },
-    cornerBtnActive: { background: c.gold, borderColor: c.gold, color: "#111820" },
+    cornerBtn: { textDecoration: "none", fontFamily: font.display, fontWeight: 500, fontSize: 14, letterSpacing: "0.06em", textTransform: "uppercase", background: "transparent", border: `1px solid ${c.strongLine}`, borderRadius: 6, padding: "7px 15px", color: c.ink, cursor: "pointer", transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease" },
+    cornerBtnActive: { background: c.accent, borderColor: c.accent, color: c.onAccent },
 
     subTabBar: { display: "flex", gap: 8, width: "100%", maxWidth: 680, position: "relative", zIndex: 5, flexWrap: "nowrap", overflowX: "auto", paddingBottom: 6, WebkitOverflowScrolling: "touch" },
-    subTabBack: { flexShrink: 0, fontFamily: font.display, fontWeight: 600, fontSize: 16, background: "transparent", border: "1px solid #3A5661", borderRadius: 6, padding: "8px 12px", color: "#D6DDE0", cursor: "pointer", outline: "none" },
+    subTabBack: { flexShrink: 0, fontFamily: font.display, fontWeight: 600, fontSize: 16, background: "transparent", border: `1px solid ${c.strongLine}`, borderRadius: 6, padding: "8px 12px", color: c.ink, cursor: "pointer", outline: "none" },
     hamburgerWrap: { position: "relative" },
-    hamburgerBtn: { flexShrink: 0, fontFamily: font.display, fontWeight: 600, fontSize: 16, background: "transparent", border: "1px solid #3A5661", borderRadius: 6, padding: "8px 12px", color: "#D6DDE0", cursor: "pointer", outline: "none" },
+    hamburgerBtn: { flexShrink: 0, fontFamily: font.display, fontWeight: 600, fontSize: 16, background: "transparent", border: `1px solid ${c.strongLine}`, borderRadius: 6, padding: "8px 12px", color: c.ink, cursor: "pointer", outline: "none" },
     hamburgerBackdrop: { position: "fixed", inset: 0, zIndex: 40, background: "transparent" },
     hamburgerMenu: {
       position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 41, minWidth: 160,
-      background: c.surface, border: "1px solid #29414B", borderRadius: 10, padding: 8,
+      background: c.surface, border: `1px solid ${c.line}`, borderRadius: 10, padding: 8,
       display: "flex", flexDirection: "column", gap: 6, boxShadow: "0 12px 30px rgba(0,0,0,0.5)",
     },
     hamburgerMenuItem: {
       textDecoration: "none", fontFamily: font.display, fontWeight: 500, fontSize: 13.5, letterSpacing: "0.04em", textTransform: "uppercase",
-      background: "transparent", border: "1px solid #29414B", borderRadius: 6, padding: "9px 14px", color: "#D6DDE0",
+      background: "transparent", border: `1px solid ${c.line}`, borderRadius: 6, padding: "9px 14px", color: c.ink,
       cursor: "pointer", outline: "none", textAlign: "left", width: "100%",
     },
-    subTab: { flexShrink: 0, whiteSpace: "nowrap", fontFamily: font.display, fontWeight: 500, fontSize: 13, letterSpacing: "0.04em", textTransform: "uppercase", background: c.surface, border: "1px solid #29414B", borderRadius: 6, padding: "8px 13px", color: "#D6DDE0", cursor: "pointer", outline: "none", transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease" },
-    subTabActive: { color: "#111820", background: c.gold, borderColor: c.gold },
+    subTab: { flexShrink: 0, whiteSpace: "nowrap", fontFamily: font.display, fontWeight: 500, fontSize: 13, letterSpacing: "0.04em", textTransform: "uppercase", background: c.surface, border: `1px solid ${c.line}`, borderRadius: 6, padding: "8px 13px", color: c.ink, cursor: "pointer", outline: "none", transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease" },
+    subTabActive: { color: c.onAccent, background: c.accent, borderColor: c.accent },
     gamesMenuWrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: 8, width: "100%", maxWidth: 560, margin: "0 auto", textAlign: "center" },
     gamesMenuGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16, width: "100%", marginTop: 14 },
     gamesMenuCard: {
       textDecoration: "none", textAlign: "center", fontFamily: font.display, fontWeight: 600, fontSize: 17, letterSpacing: "0.03em", textTransform: "uppercase",
-      background: c.surface, border: "1px solid #29414B", borderRadius: 12, padding: "30px 16px", color: c.gold, cursor: "pointer", outline: "none",
+      background: c.surface, border: `1px solid ${c.line}`, borderRadius: 12, padding: "30px 16px", color: c.accent, cursor: "pointer", outline: "none",
     },
     exercisesMenuGrid: { display: "flex", flexDirection: "column", gap: 14, width: "100%", marginTop: 14 },
     exerciseMenuCard: {
       textDecoration: "none", color: c.ink, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 8, textAlign: "left",
-      background: c.surface, border: "1px solid #29414B", borderRadius: 12, padding: "20px 22px", cursor: "pointer", outline: "none", width: "100%", boxSizing: "border-box",
+      background: c.surface, border: `1px solid ${c.line}`, borderRadius: 12, padding: "20px 22px", cursor: "pointer", outline: "none", width: "100%", boxSizing: "border-box",
     },
-    exerciseMenuCardTitle: { fontFamily: font.display, fontWeight: 600, fontSize: 17, letterSpacing: "0.03em", textTransform: "uppercase", color: c.gold },
+    exerciseMenuCardTitle: { fontFamily: font.display, fontWeight: 600, fontSize: 17, letterSpacing: "0.03em", textTransform: "uppercase", color: c.accent },
     exerciseMenuCardDesc: { fontFamily: font.body, fontWeight: 400, fontSize: 14, lineHeight: 1.6, color: c.muted },
-    leetReadBox: { width: "100%", maxWidth: 560, background: "#FFFFFF", border: "1px solid #29414B", borderRadius: 12, padding: "22px 24px", maxHeight: 420, overflowY: "auto", boxSizing: "border-box" },
+    leetReadBox: { width: "100%", maxWidth: 560, background: "#FFFFFF", border: `1px solid ${c.line}`, borderRadius: 12, padding: "22px 24px", maxHeight: 420, overflowY: "auto", boxSizing: "border-box" },
     leetReadText: { fontFamily: font.mono, fontSize: 15.5, lineHeight: 1.85, letterSpacing: "0.02em", color: "#111111", whiteSpace: "pre-wrap", margin: 0, textAlign: "left" },
 
     breathFrame: {
       position: "relative", width: "100%", maxWidth: 400, aspectRatio: "1 / 1.15", background: "#000000",
-      borderRadius: 24, border: "1px solid #29414B", display: "flex", flexDirection: "column",
+      borderRadius: 24, border: `1px solid ${c.line}`, display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center", gap: 14, boxSizing: "border-box",
     },
     breathBall: {
@@ -4828,7 +4839,7 @@ function styles(c) {
 
     homeBreathFrame: {
       position: "relative", width: "100%", maxWidth: 480, height: 220, background: "#000000",
-      borderRadius: 12, border: "1px solid #29414B", overflow: "hidden",
+      borderRadius: 12, border: `1px solid ${c.line}`, overflow: "hidden",
       cursor: "pointer", outline: "none", padding: 0, WebkitAppearance: "none", appearance: "none",
     },
     homeBreathBall: {
@@ -4847,12 +4858,12 @@ function styles(c) {
     },
     flowTypeFailBanner: {
       display: "flex", flexDirection: "column", alignItems: "center", gap: 8, width: "100%", maxWidth: 420,
-      padding: "26px 20px", borderRadius: 14, border: `2px solid ${c.bad}`, background: "rgba(201,107,91,0.14)",
+      padding: "26px 20px", borderRadius: 14, border: `2px solid ${c.bad}`, background: withAlpha(c.bad, 0.14),
       animation: "flowFailPulse 1.4s ease-in-out infinite",
     },
     flowTypeSuccessBanner: {
       display: "flex", flexDirection: "column", alignItems: "center", gap: 8, width: "100%", maxWidth: 420,
-      padding: "26px 20px", borderRadius: 14, border: `2px solid ${c.good}`, background: "rgba(88,180,159,0.14)",
+      padding: "26px 20px", borderRadius: 14, border: `2px solid ${c.good}`, background: withAlpha(c.good, 0.14),
     },
     flowTypeFailEmoji: { fontSize: 34, margin: 0 },
     flowTypeFailText: { fontFamily: font.display, fontWeight: 700, fontSize: 20, letterSpacing: "0.04em", textTransform: "uppercase", color: c.bad, margin: 0 },
@@ -4863,7 +4874,7 @@ function styles(c) {
       background: c.playfield, border: `1px solid ${c.line}`, borderRadius: 14, padding: "22px 16px",
     },
     guilfordObjectEmoji: { fontSize: 48, lineHeight: 1 },
-    guilfordObjectName: { fontFamily: font.display, fontWeight: 600, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", color: c.gold },
+    guilfordObjectName: { fontFamily: font.display, fontWeight: 600, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", color: c.accent },
     guilfordInputList: { display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 420 },
     guilfordInput: {
       fontFamily: font.body, fontSize: 14.5, color: c.ink, background: c.playfield, border: `1px solid ${c.line}`,
@@ -4875,16 +4886,16 @@ function styles(c) {
     everydayTopRow: { width: "100%", display: "flex", justifyContent: "flex-end", marginBottom: 4 },
 
     celebrateOverlay: { position: "fixed", top: "18%", left: "50%", transform: "translateX(-50%)", zIndex: 5, pointerEvents: "none", animation: "celebrateFade 0.9s ease both" },
-    celebrateText: { fontFamily: font.display, fontSize: 26, letterSpacing: "0.06em", textTransform: "uppercase", color: c.gold, textShadow: `0 0 20px ${c.gold}55` },
+    celebrateText: { fontFamily: font.display, fontSize: 26, letterSpacing: "0.06em", textTransform: "uppercase", color: c.accent, textShadow: `0 0 20px ${c.accent}55` },
 
     gameBox: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 20, width: "100%", minHeight: 420, justifyContent: "center" },
-    levelLabel: { fontFamily: font.display, fontSize: 18, letterSpacing: "0.06em", textTransform: "uppercase", color: c.gold, margin: 0 },
+    levelLabel: { fontFamily: font.display, fontSize: 18, letterSpacing: "0.06em", textTransform: "uppercase", color: c.accent, margin: 0 },
     instruction: { fontFamily: font.display, fontWeight: 500, fontSize: 15.5, lineHeight: 1.7, color: c.ink, maxWidth: 480, margin: 0 },
     recallGameDescription: { fontFamily: font.display, fontWeight: 500, fontSize: 14, lineHeight: 1.6, color: c.ink, maxWidth: 620, textAlign: "center", margin: 0 },
     resultText: { fontFamily: font.mono, fontWeight: 400, fontSize: 15, lineHeight: 1.7, color: c.muted, maxWidth: 480 },
     verdict: { fontFamily: font.display, fontSize: 26, letterSpacing: "0.03em", textTransform: "uppercase", margin: 0 },
-    timerTrack: { width: 220, height: 6, borderRadius: 3, background: "#202B31", overflow: "hidden" },
-    timerFill: { height: "100%", background: c.gold, transition: "width 1s linear" },
+    timerTrack: { width: 220, height: 6, borderRadius: 3, background: c.panelHover, overflow: "hidden" },
+    timerFill: { height: "100%", background: c.accent, transition: "width 1s linear" },
     digitDisplay: { fontFamily: font.mono, fontSize: 52, letterSpacing: "0.14em", margin: 0, color: c.ink, userSelect: "none", WebkitUserSelect: "none", MozUserSelect: "none", msUserSelect: "none", WebkitTouchCallout: "none" },
     wordDisplay: { fontFamily: font.mono, fontWeight: 700, fontSize: 40, letterSpacing: "0.03em", margin: 0, color: c.ink },
     textInput: { fontFamily: font.mono, fontSize: 22, letterSpacing: "0.1em", textAlign: "center", border: `1px solid ${c.line}`, borderRadius: 8, padding: "10px 14px", width: 220, background: c.panel, color: c.ink },
@@ -4898,14 +4909,14 @@ function styles(c) {
     scatterWrap: { position: "relative", width: "100%", maxWidth: 480, height: 240 },
     scatterTile: { position: "absolute", transform: "translate(-50%, -50%)" },
     sqTile: { background: "#F5F0E3", border: "1px solid #DCD0B4", borderRadius: 8, cursor: "pointer", width: "100%", height: "100%", outline: "none", WebkitAppearance: "none", appearance: "none" },
-    sqTileActive: { background: c.gold, borderColor: c.gold },
+    sqTileActive: { background: c.accent, borderColor: c.accent },
     bounceAnim: { animation: "bouncePop 0.15s ease" },
     shakeAnim: { animation: "shakeIt 0.32s ease" },
     visualGrid: { display: "grid", gap: 8, width: "100%", maxWidth: 360 },
     numTile: { background: c.panel, border: `1px solid ${c.line}`, borderRadius: 8, height: 52, fontFamily: font.mono, fontSize: 18, color: c.ink, cursor: "pointer", outline: "none", WebkitAppearance: "none", appearance: "none" },
     numTileUsed: { background: c.bg, opacity: 0.3 },
     btnPrimary: { fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.good, color: "#0E1410", border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer" },
-    btnGold: { textDecoration: "none", fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.gold, color: "#111820", border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer" },
+    btnGold: { textDecoration: "none", fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: c.accent, color: c.onAccent, border: "none", borderRadius: 6, padding: "13px 24px", cursor: "pointer" },
     btnGhost: { fontFamily: font.display, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase", background: "transparent", color: c.ink, border: `1px solid ${c.line}`, borderRadius: 6, padding: "13px 20px", cursor: "pointer" },
     caseList: { textAlign: "left", fontSize: 14.5, lineHeight: 1.9, color: c.ink, maxWidth: 480, margin: 0, paddingLeft: 20 },
     caseItem: {},
@@ -4917,20 +4928,20 @@ function styles(c) {
       paddingLeft: 22, textAlign: "left", maxWidth: 480, listStyleType: "disc",
     },
     faqWrap: { width: "100%", maxWidth: 600, display: "flex", flexDirection: "column", alignItems: "center", gap: 28, padding: "8px 0 20px" },
-    faqHeading: { fontFamily: font.display, fontWeight: 600, fontSize: 27, letterSpacing: "0.03em", lineHeight: 1.3, color: c.gold, margin: "2px 0 0", textAlign: "center", textWrap: "balance" },
+    faqHeading: { fontFamily: font.display, fontWeight: 600, fontSize: 27, letterSpacing: "0.03em", lineHeight: 1.3, color: c.accent, margin: "2px 0 0", textAlign: "center", textWrap: "balance" },
     faqSection: { width: "100%", textAlign: "left" },
     faqItems: { borderBottom: `1px solid ${c.line}`, marginTop: 8 },
     faqItem: { borderTop: `1px solid ${c.line}` },
     faqQuestion: {
       display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 2px",
-      fontFamily: font.display, fontWeight: 500, fontSize: 16.5, letterSpacing: "0.02em", lineHeight: 1.45, color: c.gold,
+      fontFamily: font.display, fontWeight: 500, fontSize: 16.5, letterSpacing: "0.02em", lineHeight: 1.45, color: c.accent,
     },
-    faqIcon: { flexShrink: 0, width: 22, height: 22, borderRadius: "50%", border: `1px solid ${c.strongLine}`, color: c.gold, fontFamily: font.display, fontSize: 16, lineHeight: "20px", textAlign: "center" },
+    faqIcon: { flexShrink: 0, width: 22, height: 22, borderRadius: "50%", border: `1px solid ${c.strongLine}`, color: c.accent, fontFamily: font.display, fontSize: 16, lineHeight: "20px", textAlign: "center" },
     faqAnswer: { padding: "0 2px 16px", display: "flex", flexDirection: "column", gap: 10 },
     faqAnswerText: { fontFamily: font.body, fontSize: 15.5, lineHeight: 1.7, color: c.muted, margin: 0 },
     faqList: { fontFamily: font.body, fontSize: 15.5, lineHeight: 1.7, color: c.muted, margin: 0, paddingLeft: 22, listStyleType: "disc" },
     faqListItem: { marginBottom: 4 },
-    faqLink: { color: c.gold, textDecoration: "none" },
+    faqLink: { color: c.accent, textDecoration: "none" },
     faqCta: { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: 4 },
     faqCtaText: { fontFamily: font.display, fontWeight: 500, fontSize: 18, letterSpacing: "0.02em", color: c.ink, margin: 0 },
     articleWrap: { width: "100%", maxWidth: 640, display: "flex", flexDirection: "column", alignItems: "center", gap: 28, padding: "8px 0 20px" },
@@ -4941,22 +4952,22 @@ function styles(c) {
       background: c.surface, border: `1px solid ${c.line}`, borderRadius: 12, padding: "18px 20px",
     },
     articleCardDate: { fontFamily: font.mono, fontSize: 12, letterSpacing: "0.02em", color: c.muted },
-    articleCardTitle: { fontFamily: font.display, fontWeight: 500, fontSize: 20, letterSpacing: "0.02em", lineHeight: 1.35, color: c.gold, margin: 0 },
+    articleCardTitle: { fontFamily: font.display, fontWeight: 500, fontSize: 20, letterSpacing: "0.02em", lineHeight: 1.35, color: c.accent, margin: 0 },
     articleCardSummary: { fontFamily: font.body, fontSize: 15.5, lineHeight: 1.6, color: c.muted, margin: 0 },
     articleMain: { width: "100%", display: "flex", flexDirection: "column", gap: 28 },
     articleHeader: { display: "flex", flexDirection: "column", alignItems: "center", gap: 10, textAlign: "center" },
-    articleBack: { fontFamily: font.display, fontWeight: 500, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: c.gold, textDecoration: "none" },
+    articleBack: { fontFamily: font.display, fontWeight: 500, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: c.accent, textDecoration: "none" },
     articleMetaLine: { fontFamily: font.mono, fontSize: 12.5, color: c.muted, margin: 0, display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" },
     articleAuthor: {
       display: "flex", alignItems: "center", gap: 16, textAlign: "left",
       background: c.surface, border: `1px solid ${c.line}`, borderRadius: 12, padding: "16px 18px",
     },
-    articleAuthorPhoto: { width: 64, height: 64, borderRadius: "50%", objectFit: "cover", objectPosition: "50% 22%", flexShrink: 0, border: `1px solid ${c.gold}` },
-    articleAuthorName: { fontFamily: font.display, fontWeight: 500, fontSize: 16, letterSpacing: "0.02em", color: c.gold, margin: "0 0 4px" },
+    articleAuthorPhoto: { width: 64, height: 64, borderRadius: "50%", objectFit: "cover", objectPosition: "50% 22%", flexShrink: 0, border: `1px solid ${c.accent}` },
+    articleAuthorName: { fontFamily: font.display, fontWeight: 500, fontSize: 16, letterSpacing: "0.02em", color: c.accent, margin: "0 0 4px" },
     articleAuthorBio: { fontFamily: font.body, fontSize: 15, lineHeight: 1.55, color: c.muted, margin: 0 },
     articleCtaText: { fontFamily: font.body, fontStyle: "italic", fontSize: 17, lineHeight: 1.6, color: c.ink, margin: 0, textAlign: "center" },
     placeholderSection: { width: "100%", maxWidth: 480, textAlign: "left" },
-    placeholderSubhead: { fontFamily: font.display, fontWeight: 500, fontSize: 14, letterSpacing: "0.08em", textTransform: "uppercase", color: c.gold, margin: "0 0 4px" },
+    placeholderSubhead: { fontFamily: font.display, fontWeight: 500, fontSize: 14, letterSpacing: "0.08em", textTransform: "uppercase", color: c.accent, margin: "0 0 4px" },
     placeholderListItem: { fontFamily: font.body, fontSize: 15, lineHeight: 1.75, color: c.ink, marginBottom: 8 },
 
     cardScreenWrap: { position: "relative", width: "100%", display: "flex", justifyContent: "center", paddingTop: 50 },
@@ -4990,14 +5001,14 @@ function styles(c) {
       boxShadow: "0 18px 46px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.03)",
     },
     contactEyebrow: { fontFamily: font.mono, fontSize: 13.5, letterSpacing: "0.16em", textTransform: "uppercase", color: c.good, margin: "0 0 4px" },
-    contactTitle: { fontFamily: font.display, fontSize: 27, letterSpacing: "0.02em", lineHeight: 1.4, color: c.gold, margin: "2px 0 8px" },
-    contactBigHeading: { fontFamily: font.display, fontWeight: 700, fontSize: 32, letterSpacing: "0.03em", textTransform: "uppercase", color: c.gold, margin: "0 0 10px", lineHeight: 1.3 },
+    contactTitle: { fontFamily: font.display, fontSize: 27, letterSpacing: "0.02em", lineHeight: 1.4, color: c.accent, margin: "2px 0 8px" },
+    contactBigHeading: { fontFamily: font.display, fontWeight: 700, fontSize: 32, letterSpacing: "0.03em", textTransform: "uppercase", color: c.accent, margin: "0 0 10px", lineHeight: 1.3 },
     contactBody: { fontSize: 14.5, lineHeight: 1.75, color: c.muted, margin: 0 },
     contactDivider: { height: 1, background: `linear-gradient(90deg, ${c.line} 0%, transparent 90%)`, width: "100%", margin: "2px 0" },
     contactSteps: { margin: 0, paddingLeft: 22, display: "flex", flexDirection: "column", gap: 10, color: c.muted },
     contactStepTitle: { color: c.ink, fontWeight: 600 },
     contactClosing: { fontFamily: font.body, fontStyle: "italic", fontSize: 15.5, lineHeight: 1.7, color: c.ink, margin: "6px 0 0" },
-    contactSubhead: { fontFamily: font.display, fontSize: 19, letterSpacing: "0.06em", textTransform: "uppercase", color: c.gold, margin: "8px 0 6px" },
+    contactSubhead: { fontFamily: font.display, fontSize: 19, letterSpacing: "0.06em", textTransform: "uppercase", color: c.accent, margin: "8px 0 6px" },
 
     writeToMeWrap: {
       width: "100%", maxWidth: 460, display: "flex", flexDirection: "column", alignItems: "stretch", gap: 12,
@@ -5030,7 +5041,7 @@ function styles(c) {
     },
     housePortraitFrame: { position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" },
     contactFirstHourWrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, margin: "12px 0 4px" },
-    contactFirstHour: { fontFamily: font.display, fontWeight: 500, fontSize: 24, letterSpacing: "0.03em", lineHeight: 1.3, color: c.gold, margin: 0, textAlign: "center", textWrap: "balance" },
+    contactFirstHour: { fontFamily: font.display, fontWeight: 500, fontSize: 24, letterSpacing: "0.03em", lineHeight: 1.3, color: c.accent, margin: 0, textAlign: "center", textWrap: "balance" },
     coffeeTable: { width: "clamp(220px, 58vw, 280px)", height: "auto", display: "block", overflow: "visible" },
     contactBubbleStack: { display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10 },
     contactBubble: {
@@ -5045,36 +5056,36 @@ function styles(c) {
       background: "rgba(255,255,255,0.03)", transition: "border-color 0.15s ease",
     },
 
-    rvOuter: { width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 24, padding: "24px 16px 60px", background: "#050F15", borderRadius: 20 },
+    rvOuter: { width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 24, padding: "24px 16px 60px", background: c.secondary, borderRadius: 20 },
     rvCard: {
       width: "100%", maxWidth: 520, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, textAlign: "center",
-      background: "#0C202A", border: `1px solid ${c.line}`, borderRadius: 20, padding: "34px 32px",
+      background: c.surface, border: `1px solid ${c.line}`, borderRadius: 20, padding: "34px 32px",
       boxShadow: "0 18px 46px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.03)",
     },
-    rvHeading: { fontFamily: font.display, fontWeight: 600, fontSize: 27, letterSpacing: "0.03em", color: c.gold, margin: "2px 0 4px" },
+    rvHeading: { fontFamily: font.display, fontWeight: 600, fontSize: 27, letterSpacing: "0.03em", color: c.accent, margin: "2px 0 4px" },
     rvInstruction: { fontFamily: font.body, fontWeight: 400, fontSize: 15.5, lineHeight: 1.7, color: c.ink, margin: 0, maxWidth: 420 },
     rvSubhead: { fontFamily: font.display, fontWeight: 500, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: c.muted, margin: "6px 0 0" },
-    rvTargetNumber: { fontFamily: font.mono, fontWeight: 700, fontSize: 30, letterSpacing: "0.08em", color: c.goldHover, margin: "0 0 6px" },
+    rvTargetNumber: { fontFamily: font.mono, fontWeight: 700, fontSize: 30, letterSpacing: "0.08em", color: c.accentHover, margin: "0 0 6px" },
     rvImage: { width: "100%", maxWidth: 460, borderRadius: 12, border: `1px solid ${c.line}`, display: "block" },
     rvImageFallback: {
       width: "100%", maxWidth: 460, minHeight: 220, display: "flex", alignItems: "center", justifyContent: "center",
-      textAlign: "center", padding: "24px", borderRadius: 12, border: `1px dashed ${c.line}`, background: "#08131B",
+      textAlign: "center", padding: "24px", borderRadius: 12, border: `1px dashed ${c.line}`, background: c.playfield,
       fontFamily: font.mono, fontSize: 13, lineHeight: 1.7, color: c.muted,
     },
 
     // ---- RV session transcription form ----
     rvSessionWrap: { display: "flex", flexDirection: "column", gap: 20, width: "100%", maxWidth: 640 },
     rvSection: {
-      background: "#0C202A", border: `1px solid ${c.line}`, borderRadius: 16, padding: "24px 26px",
+      background: c.surface, border: `1px solid ${c.line}`, borderRadius: 16, padding: "24px 26px",
       display: "flex", flexDirection: "column", gap: 14, textAlign: "left", width: "100%",
     },
-    rvSectionTitle: { fontFamily: font.display, fontWeight: 600, fontSize: 18, letterSpacing: "0.03em", color: c.gold, margin: 0 },
+    rvSectionTitle: { fontFamily: font.display, fontWeight: 600, fontSize: 18, letterSpacing: "0.03em", color: c.accent, margin: 0 },
     rvSectionSubtitle: { fontFamily: font.body, fontWeight: 400, fontSize: 14, lineHeight: 1.65, color: c.muted, margin: 0 },
     rvHiddenNote: { fontFamily: font.mono, fontSize: 12.5, color: c.muted, margin: "2px 0 0" },
     rvErrorNote: { fontFamily: font.display, fontWeight: 500, fontSize: 14, color: c.bad, margin: 0 },
     rvNotesReadout: {
       fontFamily: font.body, fontSize: 15, lineHeight: 1.7, color: c.ink, whiteSpace: "pre-wrap",
-      background: "#08131B", border: `1px solid ${c.line}`, borderRadius: 8, padding: "12px 14px", margin: 0,
+      background: c.playfield, border: `1px solid ${c.line}`, borderRadius: 8, padding: "12px 14px", margin: 0,
     },
     rvCompareGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20, width: "100%" },
     rvCompareCol: { display: "flex", flexDirection: "column", gap: 10 },
@@ -5082,7 +5093,7 @@ function styles(c) {
     rvFieldLabelWrap: { display: "flex", flexDirection: "column", gap: 6, width: "100%" },
     rvFieldLabel: { fontFamily: font.display, fontWeight: 500, fontSize: 11.5, letterSpacing: "0.06em", textTransform: "uppercase", color: c.muted, margin: 0 },
     rvTextarea: {
-      fontFamily: font.mono, fontSize: 13.5, lineHeight: 1.6, color: c.ink, background: "#08131B",
+      fontFamily: font.mono, fontSize: 13.5, lineHeight: 1.6, color: c.ink, background: c.playfield,
       border: `1px solid ${c.line}`, borderRadius: 8, padding: "9px 12px", outline: "none", width: "100%", resize: "vertical",
     },
 
@@ -5093,8 +5104,8 @@ function styles(c) {
       fontFamily: font.mono, fontSize: 12, letterSpacing: "0.03em", textTransform: "uppercase",
       background: "transparent", border: `1px solid ${c.line}`, color: c.muted, borderRadius: 6, padding: "6px 12px", cursor: "pointer",
     },
-    canvasToolBtnActive: { background: c.gold, borderColor: c.gold, color: "#111820" },
-    canvasSurfaceWrap: { width: "100%", borderRadius: 10, border: `1px dashed ${c.line}`, background: "#08131B", overflow: "hidden" },
+    canvasToolBtnActive: { background: c.accent, borderColor: c.accent, color: c.onAccent },
+    canvasSurfaceWrap: { width: "100%", borderRadius: 10, border: `1px dashed ${c.line}`, background: c.playfield, overflow: "hidden" },
     canvasSurface: { width: "100%", height: "100%", display: "block", cursor: "crosshair", touchAction: "none" },
 
     // ---- N-Back ----
@@ -5107,8 +5118,8 @@ function styles(c) {
       padding: 0, outline: "none", WebkitAppearance: "none", appearance: "none",
       transition: "background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease",
     },
-    nbackCellActive: { background: c.surface, borderColor: c.gold, boxShadow: `0 0 0 2px ${c.gold}55` },
-    nbackCellPressed: { borderColor: c.goldHover, boxShadow: `0 0 0 2px ${c.goldHover}88` },
+    nbackCellActive: { background: c.surface, borderColor: c.accent, boxShadow: `0 0 0 2px ${c.accent}55` },
+    nbackCellPressed: { borderColor: c.accentHover, boxShadow: `0 0 0 2px ${c.accentHover}88` },
     nbackCellFeedbackGood: { borderColor: c.good, boxShadow: `0 0 0 2px ${c.good}55` },
     nbackCellFeedbackBad: { borderColor: c.bad, boxShadow: `0 0 0 2px ${c.bad}55` },
     nbackCellImage: { fontSize: 34, lineHeight: 1, userSelect: "none", pointerEvents: "none" },
@@ -5120,13 +5131,13 @@ function styles(c) {
       fontFamily: font.mono, fontWeight: 700, fontSize: 14, letterSpacing: "0.06em", color: c.ink, background: c.panel,
       border: `1px solid ${c.line}`, borderRadius: 6, padding: "6px 10px", cursor: "pointer",
     },
-    chessTimerBadgePaused: { color: c.gold, borderColor: c.gold },
+    chessTimerBadgePaused: { color: c.accent, borderColor: c.accent },
     chessStatus: { fontFamily: font.display, fontWeight: 500, fontSize: 14.5, color: c.muted, margin: 0 },
     chessCheckmateOverlay: {
       position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6,
-      background: "rgba(6,19,27,0.82)", zIndex: 50,
+      background: c.overlay, zIndex: 50,
     },
-    chessCheckmateText: { fontFamily: font.display, fontWeight: 700, fontSize: 30, letterSpacing: "0.06em", textTransform: "uppercase", color: c.gold, margin: 0 },
+    chessCheckmateText: { fontFamily: font.display, fontWeight: 700, fontSize: 30, letterSpacing: "0.06em", textTransform: "uppercase", color: c.accent, margin: 0 },
     chessCheckmateSub: { fontFamily: font.mono, fontSize: 15, color: c.ink, margin: 0 },
     chessBoard: { display: "flex", flexDirection: "column", border: "2px solid #4A2E1B", borderRadius: 4, overflow: "hidden", width: "100%", maxWidth: "min(560px, max(280px, calc(100vh - 200px)))", aspectRatio: "1 / 1", touchAction: "none", position: "relative" },
     chessRow: { display: "flex", flex: 1 },
@@ -5136,7 +5147,7 @@ function styles(c) {
     },
     chessSquareLight: { background: "#F0D9B5" },
     chessSquareDark: { background: "#B58863" },
-    chessSquareSelected: { boxShadow: `inset 0 0 0 3px ${c.gold}` },
+    chessSquareSelected: { boxShadow: `inset 0 0 0 3px ${c.accent}` },
     chessLastMoveTint: { position: "absolute", inset: 0, background: "rgba(246, 200, 60, 0.45)", pointerEvents: "none" },
     chessCheckTint: { position: "absolute", inset: 0, background: "rgba(220, 60, 50, 0.55)", pointerEvents: "none" },
     chessPieceIconWrap: { width: "94%", height: "94%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,0.4))", zIndex: 1, position: "relative" },
