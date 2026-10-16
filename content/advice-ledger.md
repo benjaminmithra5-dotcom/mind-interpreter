@@ -81,3 +81,14 @@ private conversation at /consultation.
 - If they dodge, narrow to a choice: "Which one thing on my plate would you most like to see handled differently?"
 - After two tries: "I'm worried I'm guessing. Could we pick one thing together for the next month?"
 - Treat vague criticism as small information (they want something), not a verdict on who you are.
+
+## 2026-10-16 · empty-after-getting-what-you-wanted
+
+- List the scaffolding the chase gave you (alarm, Sunday purpose, group chat, "working toward" identity) to turn a vague void into a specific, replaceable loss.
+- Finish "When I get this, I'll finally feel ___" and find a modest version of that feeling available this week (call a friend, an hour phone-free).
+- Mark the win deliberately: one hour doing something only possible because it finished.
+- Tell one person who saw the cost, not just those who congratulate.
+- Keep one old routine with no outcome attached (run at dawn for no reason, write one paragraph).
+- Put two or three ordinary plans with people on the calendar unrelated to the win.
+- Rest two to four weeks before choosing the next goal.
+- Test the next goal: would you still want it if no one ever found out?
