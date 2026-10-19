@@ -92,3 +92,16 @@ private conversation at /consultation.
 - Put two or three ordinary plans with people on the calendar unrelated to the win.
 - Rest two to four weeks before choosing the next goal.
 - Test the next goal: would you still want it if no one ever found out?
+
+## 2026-10-19 · friends-dont-invite-me-anymore
+
+- Invitations go to whoever comes to mind first (fast replier, nearby, free schedule), not by a vote; being forgotten is not the same as being excluded.
+- Count your last five invitations; frequent "maybe" or "can't" teaches friends to stop asking.
+- Attach a date to a decline: "Can't make Friday. Could we do coffee the week after?"
+- Don't hunt for a cause at 2 a.m.; look only for a real shift (job, move, a joke that landed badly).
+- Script: "I saw the pictures from Saturday, and I'll admit it stung a little. I'd love to be there for the next one." Ask for the next plan, not an explanation.
+- Ask one safe friend privately; never in the group chat or three people in a row.
+- For one month, send the invitations yourself: specific place, time and easy exit ("tacos on Elm, Thursday 6:30, come if you can"); invite one friend, not the whole group.
+- Six-week test of two or three low-pressure overtures; watch whether anyone reaches back.
+- If it's one-sided, stop pouring hope into that friendship without ending it, and invest in people who show up (neighbor, coworker, classmate).
+- Closing image: the person holding the camera is in the party but not in the frame; take the next picture yourself.
