@@ -98,9 +98,15 @@
   </url>
   <url>
     <loc>https://benjaminmithra.com/articles</loc>
-    <lastmod>2026-10-19</lastmod>
+    <lastmod>2026-10-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://benjaminmithra.com/articles/not-coming-home-for-thanksgiving</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://benjaminmithra.com/articles/friends-dont-invite-me-anymore</loc>
