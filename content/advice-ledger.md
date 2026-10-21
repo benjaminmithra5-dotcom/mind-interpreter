@@ -105,3 +105,17 @@ private conversation at /consultation.
 - Six-week test of two or three low-pressure overtures; watch whether anyone reaches back.
 - If it's one-sided, stop pouring hope into that friendship without ending it, and invest in people who show up (neighbor, coworker, classmate).
 - Closing image: the person holding the camera is in the party but not in the frame; take the next picture yourself.
+
+## 2026-10-21 · not-coming-home-for-thanksgiving
+
+- Tell parents about four weeks ahead (early November) so they have time to be sad and recover; late news only leaves time to be hurt.
+- Tell a sibling the day before so they don't hear it secondhand or become the negotiator.
+- Write a sticky note with one sentence (the no) and one dated yes (a December weekend, or a call during cooking).
+- Keep the reason to one honest line; long explanations invite fixes like "we'll buy the ticket."
+- Call rather than text; open with "I've made a decision about Thanksgiving, and I wanted you to hear it from me," then state the no and the yes, then stop.
+- Avoid hedges ("I might not," "we'll see"); a maybe invites pushing, and let the silence sit.
+- Ready answers to guilt lines: "We won't be here forever" → "That's why I'm planning December now"; "Your cousin is flying in" → "I'm glad she is. I still can't this year"; "Did we do something?" → "No. This is about my calendar, not about you."
+- Repeat one calm sentence ("I know it's disappointing. I'm still not coming this year") instead of new arguments.
+- If a parent cries, stay on the line without changing the answer, or end kindly with "Let's talk tomorrow."
+- Ask "What's the part of Thursday you'd miss me at most?" and join that piece (called in during the stuffing, same recipe on video, on speaker for the thankful round).
+- Plan the three o'clock hour on the day: coworker's invitation, volunteer shift, Friendsgiving potluck, or a shaped solo day (one family dish, walk before dark, saved movie); send mom a photo of your plate.
