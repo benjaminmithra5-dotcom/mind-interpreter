@@ -3202,7 +3202,7 @@ const CONTACT_INTRO_BUBBLES = ["Hi, I'm Benjamin Mithra.", "I'm a Mind Interpret
 const CONTACT_STEPS = [
   { title: "Reach out.", text: "Send me a message on WhatsApp, by email, or through the Write to Me form. You don't need to explain everything; a few words are enough." },
   { title: "Choose a time.", text: "We'll find a time that suits you. I'm based in India, so just tell me your time zone and I'll work around it." },
-  { title: "We talk.", text: "Sessions are 60 minutes, by video or voice call. You can keep your camera off if you prefer. There's no agenda, and nothing you need to prepare." },
+  { title: "We talk.", text: "Sessions are 45 minutes, by video or voice call. You can keep your camera off if you prefer. There's no agenda, and nothing you need to prepare." },
 ];
 const CONTACT_NOT_PARAGRAPHS = [
   "These conversations are a space to talk, reflect and understand. They aren't therapy, counselling, or medical or psychological treatment, and I don't diagnose or treat any condition. If you're working with a doctor or therapist, this can sit alongside that, but it isn't a replacement for it.",
@@ -3978,7 +3978,7 @@ const FAQ_SECTIONS = [
   {
     heading: "Sessions and booking",
     items: [
-      { q: "Can talking about my feelings for 60 minutes really bring change?", a: ["It can. Each session is a full, uninterrupted hour, which is something most people rarely get. Saying things out loud, without being judged or interrupted, often helps you see them more clearly than going over them alone. Some people leave feeling lighter after one conversation, and others come back to keep exploring. I can't promise any particular result, but I can promise you'll be truly heard."] },
+      { q: "Can talking about my feelings for 45 minutes really bring change?", a: ["It can. Each session is 45 full, uninterrupted minutes, which is something most people rarely get. Saying things out loud, without being judged or interrupted, often helps you see them more clearly than going over them alone. Some people leave feeling lighter after one conversation, and others come back to keep exploring. I can't promise any particular result, but I can promise you'll be truly heard."] },
       { q: "Do I have to show my face?", a: ["No. Sessions are by video or voice call, on an app we agree on beforehand, and you can keep your camera off if you prefer."] },
       { q: "You're in India and I'm not. Will the timing work?", a: ["Yes. Tell me your time zone and I'll find a time that works for you."] },
       {
@@ -3995,7 +3995,7 @@ const FAQ_SECTIONS = [
           ],
         }],
       },
-      { q: "Is the first hour really free? What's the catch?", a: ["No catch. Your first hour is on me. After that, sessions are $25 USD each, and only if you want to continue."] },
+      { q: "Is the first hour really free? What's the catch?", a: ["No catch. Your first hour is on me. After that, sessions are $9.80 for 45 minutes, and only if you want to continue."] },
       { q: "How do I pay after that?", a: ["We'll go over payment options during our call, so you can choose what works best for you."] },
       { q: "What if something comes up and I can't make it?", a: ["No problem. Just let me know 24 hours before, and we'll reschedule."] },
       { q: "Is there an age limit?", a: ["Yes. Sessions are for adults aged 18 and over."] },
