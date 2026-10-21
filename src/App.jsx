@@ -3591,21 +3591,20 @@ async function gdLife(e, canStart, onAction) {
 }
 
 // ---- Drawing ---------------------------------------------------------
-// Diego's outline: a thin light-black line around every part of him, the
-// same thickness at every size (non-scaling), so he reads as solid on the
-// light theme.
+// Diego's outline and face: solid black, the same thickness at every size
+// (non-scaling), so he reads as solid on the light theme.
+const GD_INK = "#111111";
 const GD_OUTLINE = {
-  stroke: "#1E2B2C", strokeOpacity: 0.85, strokeWidth: 1.5,
+  stroke: GD_INK, strokeWidth: 2,
   strokeLinejoin: "round", strokeLinecap: "round", vectorEffect: "non-scaling-stroke",
 };
 
 function GdLeg({ x }) {
-  const detail = COLORS.bg;
   return (
     <g>
       <path {...GD_OUTLINE} d={`M${x - 6} 98 V86 C${x - 6} 81.5 ${x - 3.2} 79.5 ${x} 79.5 C${x + 3.2} 79.5 ${x + 6} 81.5 ${x + 6} 86 V98 Z`} />
       <path {...GD_OUTLINE} d={`M${x - 8.5} 97 C${x - 8.5} 93 ${x - 4.5} 91.8 ${x} 91.8 C${x + 4.5} 91.8 ${x + 8.5} 93 ${x + 8.5} 97 C${x + 8.5} 99.2 ${x + 6} 100 ${x} 100 C${x - 6} 100 ${x - 8.5} 99.2 ${x - 8.5} 97 Z`} />
-      <path fill="none" stroke={detail} strokeWidth="0.9" strokeLinecap="round" d={`M${x - 2.8} 95.6 V99 M${x} 95.2 V99.4 M${x + 2.8} 95.6 V99`} />
+      <path fill="none" stroke={GD_INK} strokeWidth="0.9" strokeLinecap="round" d={`M${x - 2.8} 95.6 V99 M${x} 95.2 V99.4 M${x + 2.8} 95.6 V99`} />
     </g>
   );
 }
@@ -3613,7 +3612,7 @@ function GdLeg({ x }) {
 function GuideDogScene({ nodes, scale }) {
   const r = (key) => (el) => { nodes[key] = el; };
   const accent = COLORS.accent;
-  const detail = COLORS.bg; // eyes, nose and lines, drawn on the accent body
+  const detail = GD_INK; // face lines, drawn on the accent body
   const earFill = COLORS.accentPressed;
   return (
     <svg
@@ -3632,8 +3631,8 @@ function GuideDogScene({ nodes, scale }) {
       <g clipPath="url(#gd-door-clip)" fill={accent}>
         <path ref={r("chest")} {...GD_OUTLINE} d="M34 100 C34 86 40 77 50 77 C60 77 66 86 66 100 Z" />
         <path {...GD_OUTLINE} d="M41 82 C41 72 42 64 44 58 L56 58 C58 64 59 72 59 82 Z" />
-        <path fill="none" {...GD_OUTLINE} strokeWidth="3.3" d="M42.5 70 Q50 72.5 57.5 70" />
-        <path fill="none" stroke={detail} strokeWidth="1.8" strokeLinecap="round" d="M42.5 70 Q50 72.5 57.5 70" />
+        <path fill="none" {...GD_OUTLINE} strokeWidth="3.8" d="M42.5 70 Q50 72.5 57.5 70" />
+        <path fill="none" stroke={COLORS.bg} strokeWidth="1.8" strokeLinecap="round" d="M42.5 70 Q50 72.5 57.5 70" />
         <g ref={r("paw")}><GdLeg x={35} /></g>
         <GdLeg x={65} />
         <g ref={r("head")}>
@@ -3641,14 +3640,19 @@ function GuideDogScene({ nodes, scale }) {
           <g ref={r("face")}>
             <path fill="none" stroke={detail} strokeWidth="0.9" strokeLinecap="round" d="M50 32.5 V38.5 M42.6 48 C42 52 42 56.5 43.2 61 M57.4 48 C58 52 58 56.5 56.8 61" />
             <path fill="none" stroke={detail} strokeWidth="1.1" strokeLinecap="round" d="M41.8 39.2 Q44.5 38 47 39.4 M53 39.4 Q55.5 38 58.2 39.2" />
-            <g ref={r("eyes")} fill={detail} {...GD_OUTLINE}>
-              <ellipse cx="44.6" cy="42" rx="1.7" ry="1.5" />
-              <ellipse cx="55.4" cy="42" rx="1.7" ry="1.5" />
+            <g ref={r("eyes")}>
+              <ellipse cx="44.6" cy="42" rx="1.7" ry="1.65" fill={GD_INK} {...GD_OUTLINE} />
+              <ellipse cx="55.4" cy="42" rx="1.7" ry="1.65" fill={GD_INK} {...GD_OUTLINE} />
+              <circle cx="43.9" cy="41.25" r="0.92" fill="#FFFFFF" />
+              <circle cx="54.7" cy="41.25" r="0.92" fill="#FFFFFF" />
             </g>
-            <path ref={r("eyesShut")} opacity="0" fill="none" stroke={detail} strokeWidth="1.1" strokeLinecap="round" d="M42.8 42 Q44.6 43.6 46.4 42 M53.6 42 Q55.4 43.6 57.2 42" />
-            <ellipse ref={r("mouth")} opacity="0" cx="50" cy="62" rx="5.2" ry="4.6" fill={detail} {...GD_OUTLINE} />
+            <path ref={r("eyesShut")} opacity="0" fill="none" {...GD_OUTLINE} d="M42.8 42 Q44.6 43.6 46.4 42 M53.6 42 Q55.4 43.6 57.2 42" />
+            <ellipse ref={r("mouth")} opacity="0" cx="50" cy="62" rx="5.2" ry="4.6" fill={GD_INK} {...GD_OUTLINE} />
             <path fill="none" stroke={detail} strokeWidth="1.1" strokeLinecap="round" d="M50 56.6 V59.6 M44.2 60.4 C46.8 62.2 49 61.8 50 59.6 C51 61.8 53.2 62.2 55.8 60.4" />
-            <path ref={r("nose")} fill={detail} {...GD_OUTLINE} d="M45.2 52.2 C45.2 50.3 54.8 50.3 54.8 52.2 C54.8 55 52.3 56.6 50 56.6 C47.7 56.6 45.2 55 45.2 52.2 Z" />
+            <g ref={r("nose")}>
+              <path fill={GD_INK} {...GD_OUTLINE} d="M45.2 52.2 C45.2 50.3 54.8 50.3 54.8 52.2 C54.8 55 52.3 56.6 50 56.6 C47.7 56.6 45.2 55 45.2 52.2 Z" />
+              <ellipse cx="47.7" cy="52.2" rx="1.2" ry="0.7" fill="#FFFFFF" />
+            </g>
           </g>
           <g ref={r("earL")}>
             <path fill={earFill} {...GD_OUTLINE} d="M39.6 31.4 C36 30.6 32 32 30.2 35.2 L35 47.2 C36.8 44.4 38.4 40 39.8 35.6 Z" />
