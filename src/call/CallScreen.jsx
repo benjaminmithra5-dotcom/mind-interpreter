@@ -27,12 +27,12 @@ export function CallScreen({ ui, timer, connecting, muted, onMute, onEnd, remote
       ) : (
         <audio ref={remoteRef} autoPlay />
       )}
-      <p style={ui.clock} data-testid="time-left" aria-live="off">{t.phase === "wrapup" ? `0:00` : formatClock(t.secondsRemaining)}</p>
+      <p style={ui.clock} data-testid="time-left" aria-live="off">{!timer ? "–:––" : t.phase === "wrapup" ? "0:00" : formatClock(t.secondsRemaining)}</p>
       <p style={{ ...ui.small, textAlign: "center" }}>{t.phase === "wrapup" ? "Time is up" : "left on the code"}</p>
       {t.paused && (
         <p style={ui.banner} role="status" data-testid="paused-banner">The connection dropped. The timer is paused while we wait to reconnect ({t.graceLeft}s).</p>
       )}
-      {!t.paused && t.warning && (
+      {!t.paused && t.warning && t.phase !== "wrapup" && (
         <p style={ui.banner} role="status" data-testid="warning-banner">About 2 minutes left.</p>
       )}
       {!t.paused && t.phase === "wrapup" && (

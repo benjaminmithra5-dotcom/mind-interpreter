@@ -3,3 +3,5 @@ data
 test-results
 playwright-report
 .env
+.test-data
+.test-site
