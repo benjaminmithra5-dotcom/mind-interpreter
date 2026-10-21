@@ -9,6 +9,7 @@ import { checkCode, publicCodeInfo, createCode, listCodes, addMinutes, setDisabl
 import { passwordMatches, makeSessionToken, sessionCookie, isAdminRequest } from "./auth.js";
 import { FailureLimiter } from "./rateLimit.js";
 import { CallManager, recentCalls } from "./calls.js";
+import { pushEnabled, saveSubscription, removeSubscription, notifyDevices } from "./push.js";
 
 const problems = checkConfig();
 if (problems.length) {
@@ -19,8 +20,7 @@ if (problems.length) {
 const codeLimiter = new FailureLimiter({ maxFailures: config.codeMaxFailures, windowMs: config.codeLockoutMinutes * 60e3, lockoutMs: config.codeLockoutMinutes * 60e3 });
 const loginLimiter = new FailureLimiter({ maxFailures: config.loginMaxFailures, windowMs: config.loginLockoutMinutes * 60e3, lockoutMs: config.loginLockoutMinutes * 60e3 });
 
-let notifyHook = () => {};
-export const setNotifyHook = (fn) => { notifyHook = fn; };
+const notifyHook = (event) => { notifyDevices(event).catch((err) => console.warn("Push failed:", err.message)); };
 const calls = new CallManager({ notify: (event) => notifyHook(event) });
 
 const app = express();
@@ -113,7 +113,7 @@ const listRequests = () =>
     .map((r) => ({ id: r.id, name: r.name, code: r.code, note: r.note, preferredTime: r.preferred_time, timezone: r.timezone, createdAt: r.created_at, done: Boolean(r.done) }));
 
 admin.get("/overview", (req, res) => {
-  res.json({ status: calls.status(), away: calls.manualAway, codes: listCodes(), requests: listRequests(), calls: recentCalls(), vapidPublicKey: config.vapid.publicKey || null });
+  res.json({ status: calls.status(), away: calls.manualAway, codes: listCodes(), requests: listRequests(), calls: recentCalls(), vapidPublicKey: pushEnabled ? config.vapid.publicKey : null });
 });
 
 const intIn = (v, min, max) => Number.isInteger(v) && v >= min && v <= max;
@@ -136,6 +136,19 @@ admin.post("/codes/:id/disabled", (req, res) => {
 });
 admin.post("/requests/:id/done", (req, res) => {
   db.prepare("UPDATE requests SET done = ? WHERE id = ?").run(req.body?.done === false ? 0 : 1, Number(req.params.id));
+  res.json({ ok: true });
+});
+admin.post("/push/subscribe", (req, res) => {
+  if (!pushEnabled) return res.status(503).json({ message: "Notifications aren't set up on the server (VAPID keys)." });
+  saveSubscription(req.body?.subscription) ? res.json({ ok: true }) : res.status(400).json({ message: "That subscription isn't valid." });
+});
+admin.post("/push/unsubscribe", (req, res) => {
+  removeSubscription(req.body?.endpoint);
+  res.json({ ok: true });
+});
+admin.post("/push/test", async (req, res) => {
+  if (!pushEnabled) return res.status(503).json({ message: "Notifications aren't set up on the server (VAPID keys)." });
+  await notifyDevices({ type: "test", title: "Talk now", body: "Notifications are working on this device." });
   res.json({ ok: true });
 });
 admin.post("/status", (req, res) => {

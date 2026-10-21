@@ -3,7 +3,7 @@ import { api, canConnect, connectSocket, getMedia, CallConnection, formatClock, 
 import { callStyles } from "./callStyles.js";
 import { CallScreen } from "./CallScreen.jsx";
 import { StatusBadge } from "./CallPage.jsx";
-import { PushControls } from "./push.jsx";
+import { PushControls, useAdminApp } from "./push.jsx";
 
 const REASON = {
   time: "time used up", "visitor-ended": "caller ended", "benjamin-ended": "you ended", dropped: "connection lost",
@@ -13,6 +13,7 @@ const when = (iso) => new Date(iso).toLocaleString("en-GB", { day: "numeric", mo
 
 export function AdminPage({ c, font, headingStyle }) {
   const ui = useMemo(() => callStyles(c, font), [c, font]);
+  useAdminApp();
   const [session, setSession] = useState(canConnect() ? "checking" : "offline"); // checking | out | in | offline
   useEffect(() => {
     if (!canConnect()) return;

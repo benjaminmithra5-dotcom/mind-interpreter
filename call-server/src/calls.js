@@ -145,7 +145,7 @@ export class CallManager {
     send(ws, { type: "accepted", ...info, note: c.note, code: c.code });
     send(c.visitorWs, { type: "accepted", ...info });
     this.broadcastAdmins({ type: "ring-cancel", callId: c.id, reason: "taken" }, ws);
-    this.notify({ type: "cancel", callId: c.id });
+    this.notify({ type: "cancel", callId: c.id, reason: "taken" });
     this.broadcastStatus();
   }
   decline(ws, callId) {
@@ -258,7 +258,7 @@ export class CallManager {
     send(c.visitorWs, msg);
     if (c.phase === "ringing") {
       this.broadcastAdmins({ type: "ring-cancel", callId: c.id, reason });
-      this.notify({ type: "cancel", callId: c.id });
+      this.notify({ type: "cancel", callId: c.id, reason });
     } else {
       send(c.adminWs, msg);
     }
