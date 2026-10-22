@@ -4368,7 +4368,7 @@ const PAGE_META = {
   faq: { title: "FAQ | Benjamin Mithra, Mind Interpreter", description: "Answers about private conversations with Benjamin Mithra, a Mind Interpreter: what you can talk about, how sessions work, privacy, and the site's Brain Games and Mind Exercises." },
   articles: { title: "Articles | Benjamin Mithra, Mind Interpreter", description: "Articles by Benjamin Mithra, a Mind Interpreter, on loneliness, difficult conversations, hard decisions, overthinking, and the moments in life when you need to be heard." },
   "article-missing": { title: "Article not found | Mind Interpreter", description: "This article could not be found. Browse all articles by Benjamin Mithra, a Mind Interpreter." },
-  call: { title: "Talk now | Mind Interpreter", description: "Call Benjamin Mithra from the website with your minute code. $9.80 for 45 minutes.", noindex: true },
+  call: { title: "Talk now | Mind Interpreter", description: "Call Benjamin Mithra from the website. $9.80 for 45 minutes. Audio call.", noindex: true },
   admin: { title: "Admin | Mind Interpreter", description: "Private.", noindex: true },
   disclaimer: { title: "Disclaimer | Mind Interpreter", description: "Conversations here are not therapy or medical care, and the site's exercises and remote viewing content are educational and experimental." },
 };

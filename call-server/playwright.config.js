@@ -1,7 +1,7 @@
 // End-to-end tests: the call server plus a test build of the site, driven
 // by Chromium with a fake microphone and camera. Run with `npm test`.
 import { defineConfig } from "@playwright/test";
-import { SERVER, SITE, PORTS, ADMIN_PASSWORD, TICK_MS } from "./tests/env.js";
+import { SERVER, SITE, PORTS, ADMIN_PASSWORD, TICK_MS, CALL_LIMIT, HEARTBEAT_SECONDS, CALL_MAX_PRESSES } from "./tests/env.js";
 
 export default defineConfig({
   testDir: "./tests",
@@ -26,22 +26,26 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "rm -rf .test-data && node src/server.js",
+      command: "node src/server.js",
       url: `${SERVER}/healthz`,
       reuseExistingServer: false,
       timeout: 30_000,
       env: {
         NODE_ENV: "test",
         PORT: String(PORTS.server),
-        DATA_DIR: ".test-data",
         ADMIN_PASSWORD,
         SESSION_SECRET: "test-session-secret-that-is-long-enough-123",
         ALLOWED_ORIGINS: SITE,
         ICE_SERVERS: "[]",
         TRUST_PROXY: "true",
-        // One "second" of call time lasts TICK_MS, so the tests run quickly.
+        // One "second" of call time lasts TICK_MS, so the 45-second ring and
+        // the 30-second reconnect wait run quickly. CALL_LIMIT_SECONDS is
+        // counted the same way: 130 "seconds" last 26 real seconds.
         TICK_MS: String(TICK_MS),
-        ADMIN_AWAY_GRACE_SECONDS: "5",
+        CALL_LIMIT_SECONDS: String(CALL_LIMIT),
+        HEARTBEAT_SECONDS: String(HEARTBEAT_SECONDS),
+        // Many test calls come from one address; the limit test uses its own.
+        CALL_MAX_PRESSES: String(CALL_MAX_PRESSES),
       },
     },
     {

@@ -1,15 +1,13 @@
-// Talk now call server: WebRTC signalling, the call timer, minute codes,
-// time requests and the live status board, for benjaminmithra.com.
+// Talk now call server: WebRTC signalling, the call timer, ringing and the
+// live status board, for benjaminmithra.com. No database: nothing about a
+// call is stored.
 import http from "node:http";
 import express from "express";
 import { WebSocketServer } from "ws";
 import { config, checkConfig } from "./config.js";
-import { db, nowIso } from "./db.js";
-import { checkCode, publicCodeInfo, createCode, listCodes, addMinutes, setDisabled } from "./codes.js";
 import { passwordMatches, makeSessionToken, sessionCookie, isAdminRequest } from "./auth.js";
 import { FailureLimiter } from "./rateLimit.js";
-import { CallManager, recentCalls } from "./calls.js";
-import { pushEnabled, saveSubscription, removeSubscription, notifyDevices } from "./push.js";
+import { CallManager } from "./calls.js";
 
 const problems = checkConfig();
 if (problems.length) {
@@ -17,11 +15,11 @@ if (problems.length) {
   process.exit(1);
 }
 
-const codeLimiter = new FailureLimiter({ maxFailures: config.codeMaxFailures, windowMs: config.codeLockoutMinutes * 60e3, lockoutMs: config.codeLockoutMinutes * 60e3 });
+// Every Call press counts, so one address can't ring Benjamin over and over.
+const callLimiter = new FailureLimiter({ maxFailures: config.callMaxPresses, windowMs: config.callWindowMinutes * 60e3, lockoutMs: config.callWindowMinutes * 60e3 });
 const loginLimiter = new FailureLimiter({ maxFailures: config.loginMaxFailures, windowMs: config.loginLockoutMinutes * 60e3, lockoutMs: config.loginLockoutMinutes * 60e3 });
 
-const notifyHook = (event) => { notifyDevices(event).catch((err) => console.warn("Push failed:", err.message)); };
-const calls = new CallManager({ notify: (event) => notifyHook(event) });
+const calls = new CallManager();
 
 const app = express();
 app.disable("x-powered-by");
@@ -51,45 +49,8 @@ app.use((req, res, next) => {
   next();
 });
 
-const reasonText = {
-  invalid: "That code isn't recognised. Please check it and try again.",
-  expired: "That code has expired.",
-  "used-up": "That code has no minutes left.",
-  locked: "Too many attempts. Please wait a little and try again.",
-};
-
-function limitedCodeCheck(req, codeInput) {
-  const lock = codeLimiter.status(req.ip);
-  if (lock.locked) return { status: 429, body: { valid: false, reason: "locked", message: reasonText.locked, retryAfterSeconds: lock.retryAfterSeconds } };
-  const result = checkCode(codeInput);
-  if (!result.ok) {
-    const after = codeLimiter.fail(req.ip);
-    if (after.locked) return { status: 429, body: { valid: false, reason: "locked", message: reasonText.locked, retryAfterSeconds: after.retryAfterSeconds } };
-    return { status: 200, body: { valid: false, reason: result.reason, message: reasonText[result.reason] } };
-  }
-  codeLimiter.succeed(req.ip);
-  return { status: 200, body: { valid: true, ...publicCodeInfo(result.row) }, row: result.row };
-}
-
 // ---- public -------------------------------------------------------------
 app.get("/api/status", (req, res) => res.json({ status: calls.status() }));
-
-app.post("/api/codes/check", (req, res) => {
-  const out = limitedCodeCheck(req, req.body?.code);
-  res.status(out.status).json(out.body);
-});
-
-app.post("/api/requests", (req, res) => {
-  const { name = "", code, preferredTime, timezone } = req.body || {};
-  const clean = (v, max) => String(v ?? "").trim().slice(0, max);
-  if (!clean(preferredTime, 40) || !clean(timezone, 64)) return res.status(400).json({ ok: false, message: "Please choose a day, time and timezone." });
-  const out = limitedCodeCheck(req, code);
-  if (!out.body.valid) return res.status(out.status).json({ ok: false, ...out.body });
-  db.prepare("INSERT INTO requests (code_id, name, preferred_time, timezone, created_at) VALUES (?, ?, ?, ?, ?)").run(out.row.id, clean(name, 80), clean(preferredTime, 40), clean(timezone, 64), nowIso());
-  calls.broadcastAdmins({ type: "requests-changed" });
-  notifyHook({ type: "request", title: "New time request", body: `${clean(name, 80) || "Someone"} asked for ${clean(preferredTime, 40).replace("T", " ")} (${clean(timezone, 64)})` });
-  res.json({ ok: true });
-});
 
 // ---- admin --------------------------------------------------------------
 app.post("/api/admin/login", (req, res) => {
@@ -108,52 +69,10 @@ app.get("/api/admin/session", (req, res) => res.json({ loggedIn: isAdminRequest(
 const admin = express.Router();
 admin.use((req, res, next) => (isAdminRequest(req) ? next() : res.status(401).json({ error: "login-required" })));
 
-const listRequests = () =>
-  db.prepare("SELECT requests.*, codes.code, codes.note FROM requests LEFT JOIN codes ON codes.id = requests.code_id ORDER BY requests.done, requests.id DESC LIMIT 200").all()
-    .map((r) => ({ id: r.id, name: r.name, code: r.code, note: r.note, preferredTime: r.preferred_time, timezone: r.timezone, createdAt: r.created_at, done: Boolean(r.done) }));
-
-admin.get("/overview", (req, res) => {
-  res.json({ status: calls.status(), away: calls.manualAway, codes: listCodes(), requests: listRequests(), calls: recentCalls(), vapidPublicKey: pushEnabled ? config.vapid.publicKey : null });
-});
-
-const intIn = (v, min, max) => Number.isInteger(v) && v >= min && v <= max;
-admin.post("/codes", (req, res) => {
-  const { minutes = config.defaultCodeMinutes, mode = "audio", expiresOn = null, note = "" } = req.body || {};
-  if (!intIn(minutes, 1, 600)) return res.status(400).json({ message: "Minutes must be a whole number from 1 to 600." });
-  if (!["audio", "audio+video"].includes(mode)) return res.status(400).json({ message: "Mode must be audio or audio+video." });
-  if (expiresOn && !/^\d{4}-\d{2}-\d{2}$/.test(expiresOn)) return res.status(400).json({ message: "Expiry must be a date." });
-  res.json(createCode({ minutes, mode, expiresOn: expiresOn || null, note: String(note).slice(0, 200) }));
-});
-admin.post("/codes/:id/minutes", (req, res) => {
-  const minutes = req.body?.minutes;
-  if (!intIn(minutes, 1, 600)) return res.status(400).json({ message: "Minutes must be a whole number from 1 to 600." });
-  const out = addMinutes(Number(req.params.id), minutes);
-  out ? res.json(out) : res.status(404).json({ message: "No such code." });
-});
-admin.post("/codes/:id/disabled", (req, res) => {
-  const out = setDisabled(Number(req.params.id), Boolean(req.body?.disabled));
-  out ? res.json(out) : res.status(404).json({ message: "No such code." });
-});
-admin.post("/requests/:id/done", (req, res) => {
-  db.prepare("UPDATE requests SET done = ? WHERE id = ?").run(req.body?.done === false ? 0 : 1, Number(req.params.id));
-  res.json({ ok: true });
-});
-admin.post("/push/subscribe", (req, res) => {
-  if (!pushEnabled) return res.status(503).json({ message: "Notifications aren't set up on the server (VAPID keys)." });
-  saveSubscription(req.body?.subscription) ? res.json({ ok: true }) : res.status(400).json({ message: "That subscription isn't valid." });
-});
-admin.post("/push/unsubscribe", (req, res) => {
-  removeSubscription(req.body?.endpoint);
-  res.json({ ok: true });
-});
-admin.post("/push/test", async (req, res) => {
-  if (!pushEnabled) return res.status(503).json({ message: "Notifications aren't set up on the server (VAPID keys)." });
-  await notifyDevices({ type: "test", title: "Talk now", body: "Notifications are working on this device." });
-  res.json({ ok: true });
-});
+admin.get("/overview", (req, res) => res.json({ status: calls.status(), away: calls.away }));
 admin.post("/status", (req, res) => {
   calls.setAway(Boolean(req.body?.away));
-  res.json({ status: calls.status(), away: calls.manualAway });
+  res.json({ status: calls.status(), away: calls.away });
 });
 app.use("/api/admin", admin);
 export const adminRouter = admin;
@@ -176,7 +95,7 @@ server.on("upgrade", (req, socket, head) => {
       ws.close(4401, "login-required");
       return;
     }
-    // The visitor's IP, for the code-attempt limit (trust proxy rules apply).
+    // The visitor's IP, for the Call-press limit (trust proxy rules apply).
     ws.ip = app.get("trust proxy") ? (String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || req.socket.remoteAddress) : req.socket.remoteAddress;
     ws.isAlive = true;
     ws.on("pong", () => { ws.isAlive = true; });
@@ -186,20 +105,29 @@ server.on("upgrade", (req, socket, head) => {
   });
 });
 
+// Basic checks on the caller's name and email. They're only passed on to
+// Benjamin's admin page while the call rings, never logged or stored.
+const EMAIL = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
+function validCaller(msg) {
+  const name = typeof msg.name === "string" ? msg.name.trim().replace(/\s+/g, " ") : "";
+  const email = typeof msg.email === "string" ? msg.email.trim() : "";
+  if (name.length < 1 || name.length > 80 || email.length > 200 || !EMAIL.test(email)) return null;
+  return { name, email };
+}
+
 function handleMessage(ws, raw) {
   let msg;
   try { msg = JSON.parse(raw); } catch { return; }
   const reply = (m) => ws.readyState === 1 && ws.send(JSON.stringify(m));
   switch (msg.type) {
     case "call": {
-      const lock = codeLimiter.status(ws.ip);
-      if (lock.locked) return reply({ type: "call-error", reason: "locked", message: reasonText.locked });
-      const out = calls.startCall(ws, msg.code);
-      if (out.error) {
-        if (out.codeFailure) codeLimiter.fail(ws.ip);
-        return reply({ type: "call-error", reason: out.error, message: reasonText[out.error] || "Benjamin isn't available right now." });
-      }
-      codeLimiter.succeed(ws.ip);
+      // CALL_MAX_PRESSES presses go through; after that, wait for the window.
+      if (callLimiter.status(ws.ip).locked) return reply({ type: "call-error", reason: "rate-limited" });
+      callLimiter.fail(ws.ip);
+      const caller = validCaller(msg);
+      if (!caller) return reply({ type: "call-error", reason: "invalid" });
+      const out = calls.startCall(ws, caller);
+      if (out.error) return reply({ type: "call-error", reason: out.error });
       return reply({ type: "ringing", ...out });
     }
     case "rejoin":
@@ -223,14 +151,16 @@ function handleMessage(ws, raw) {
   }
 }
 
-// Drop sockets that stopped answering (closed laptops, lost Wi-Fi).
+// Drop pages that stopped answering (closed laptops, sleeping phones, lost
+// Wi-Fi) within a few seconds, so a silent admin page turns the status to
+// "Away" quickly.
 setInterval(() => {
   for (const ws of wss.clients) {
     if (!ws.isAlive) { ws.terminate(); continue; }
     ws.isAlive = false;
     ws.ping();
   }
-}, 25_000).unref();
+}, config.heartbeatSeconds * 1000).unref();
 
 server.listen(config.port, () => console.log(`Call server listening on port ${config.port}`));
 export { app, server, calls };

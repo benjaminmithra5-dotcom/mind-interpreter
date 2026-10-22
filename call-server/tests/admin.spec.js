@@ -1,7 +1,8 @@
 import { test, expect, adminApi, SERVER, SITE, ADMIN_PASSWORD } from "./helpers.js";
 import { request } from "@playwright/test";
+import WebSocket from "ws";
 
-test("admin login: a wrong password is refused, the right one opens the console", async ({ open }) => {
+test("admin login: a wrong password is refused, the right one opens the admin page", async ({ open }) => {
   const page = await open("/admin");
   await page.getByLabel("Password").fill("not-the-password");
   await page.getByRole("button", { name: "Sign in" }).click();
@@ -10,17 +11,21 @@ test("admin login: a wrong password is refused, the right one opens the console"
   await page.getByLabel("Password").fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByTestId("status-control")).toBeVisible();
+  await expect(page.getByTestId("status-control")).toContainText("Keep this page open to receive calls.");
 
   // The signed cookie keeps the session after a reload.
   await page.reload();
   await expect(page.getByTestId("status-control")).toBeVisible();
 });
 
-test("admin API needs the session cookie", async () => {
+test("the admin API and the admin socket need the session cookie", async () => {
   const ctx = await request.newContext({ baseURL: SERVER, extraHTTPHeaders: { Origin: SITE } });
   expect((await ctx.get("/api/admin/overview")).status()).toBe(401);
-  expect((await ctx.post("/api/admin/codes", { data: {} })).status()).toBe(401);
+  expect((await ctx.post("/api/admin/status", { data: { away: false } })).status()).toBe(401);
   await ctx.dispose();
+  const ws = new WebSocket(`${SERVER.replace("http", "ws")}/ws?role=admin`, { headers: { Origin: SITE } });
+  const code = await new Promise((resolve) => ws.on("close", resolve));
+  expect(code).toBe(4401);
 });
 
 test("admin login is rate limited after repeated failures", async () => {
@@ -35,28 +40,12 @@ test("admin login is rate limited after repeated failures", async () => {
   (await adminApi("198.51.100.21")).dispose();
 });
 
-test("create a code, add minutes and disable it from the admin page", async ({ open }) => {
-  const page = await open("/admin");
-  await page.getByLabel("Password").fill(ADMIN_PASSWORD);
-  await page.getByRole("button", { name: "Sign in" }).click();
-
-  const form = page.getByTestId("new-code");
-  await expect(form.getByLabel("Minutes")).toHaveValue("45");
-  await form.getByLabel("Note, just for you").fill("Test person");
-  await form.getByRole("button", { name: "Create code" }).click();
-  const created = page.getByTestId("created-code");
-  await expect(created).toContainText("45:00");
-  await expect(created).toContainText("Audio only");
-  const code = (await created.locator("span").textContent()).trim();
-  expect(code).toMatch(/^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{10}$/);
-
-  const row = page.locator(`[data-testid="code-row"][data-code="${code}"]`);
-  await expect(row).toContainText("Test person");
-  await row.getByLabel(`Minutes to add to ${code}`).fill("15");
-  await row.getByRole("button", { name: "Add minutes" }).click();
-  await expect(row).toContainText("60:00 left");
-  await row.getByRole("button", { name: "Disable" }).click();
-  await expect(row).toContainText("Disabled");
+test("other sites can't use the API (CORS)", async () => {
+  const ctx = await request.newContext({ baseURL: SERVER, extraHTTPHeaders: { Origin: "https://evil.example" } });
+  expect((await ctx.post("/api/admin/login", { data: { password: ADMIN_PASSWORD } })).status()).toBe(403);
+  const res = await ctx.get("/api/status");
+  expect(res.headers()["access-control-allow-origin"]).toBeUndefined();
+  await ctx.dispose();
 });
 
 test("/admin is an installable app; /call is not, and both are noindex", async ({ open }) => {
@@ -72,13 +61,16 @@ test("/admin is an installable app; /call is not, and both are noindex", async (
   const call = await open("/call");
   await expect(call.locator('link[rel="manifest"]')).toHaveCount(0);
   await expect(call.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
-  await expect(call.getByTestId("crisis-notice")).toContainText("988");
-  await expect(call.getByText("$9.80 for 45 minutes. Audio call; video only on prior request.")).toBeVisible();
+  await expect(call.getByText("$9.80 for 45 minutes. Audio call.")).toBeVisible();
+  await expect(call.getByText("I accept calls from people who have booked with me.")).toBeVisible();
+  await expect(call.getByTestId("crisis-notice")).toHaveText("This is not an emergency service. If you are in crisis, contact your local emergency services or a crisis line right away (for example, 988 in the US).");
 });
 
 test("the mic test shows a level from the microphone", async ({ open }) => {
   const page = await open("/call");
+  await expect(page.getByText("Use headphones or over-ear headphones.")).toBeVisible();
   await page.getByRole("button", { name: "Test microphone" }).click();
   await expect(page.getByRole("button", { name: "Stop microphone test" })).toBeVisible();
-  await expect.poll(async () => Number(await page.getByRole("meter").getAttribute("aria-valuenow"))).toBeGreaterThan(0);
+  // The fake microphone beeps once a second; catch the meter moving.
+  await page.waitForFunction(() => Number(document.querySelector('[role="meter"]').getAttribute("aria-valuenow")) > 0, null, { polling: "raf", timeout: 20_000 });
 });
