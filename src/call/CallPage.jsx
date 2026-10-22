@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { BOOKING_URL, isPrerender, normalizeCode } from "./talkConfig.js";
 import { checkCode, getStatus } from "./bookingApi.js";
-import { getMic } from "./media.js";
+import { getCallMic } from "./media.js";
 import { GuestRoom } from "./room.js";
 import { callStyles } from "./callStyles.js";
 import { CallScreen } from "./CallScreen.jsx";
@@ -72,8 +72,12 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
       .catch(() => setStatus({ immediate: false, paused: false }));
   }, []);
 
+  // The microphone (after strong noise reduction, if on) and how to release
+  // it, including its AudioContext.
+  const mic = useRef(null);
   function stopMic() {
-    stream.current?.getTracks().forEach((t) => t.stop());
+    mic.current?.stop();
+    mic.current = null;
     stream.current = null;
   }
   useEffect(() => () => { room.current?.finish("cancelled"); stopMic(); }, []);
@@ -113,8 +117,8 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
     if (!saved || !saved.token || !BOOKING_URL || isPrerender()) return;
     setCode(saved.code);
     setName(saved.name);
-    getMic()
-      .then((s) => { stream.current = s; startRoom(saved); })
+    getCallMic()
+      .then((m) => { mic.current = m; stream.current = m.stream; startRoom(saved); })
       .catch(() => { writeSaved(null); setMessage({ id: "mic" }); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -152,7 +156,8 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
       return;
     }
     try {
-      stream.current = await getMic();
+      mic.current = await getCallMic();
+      stream.current = mic.current.stream;
     } catch {
       setPhase("idle");
       setMessage({ id: "mic" });
@@ -207,7 +212,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
               <label style={ui.label}>Your name
                 <input style={ui.input} value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoComplete="given-name" data-testid="join-name" />
               </label>
-              <DeviceCheck ui={ui} framed={false} />
+              <DeviceCheck ui={ui} c={c} framed={false} />
               {message && <Message ui={ui} msg={message} consultationPath={consultationPath} />}
               <button type="submit" style={ui.btnLarge} disabled={phase === "checking"} data-testid="join-button">{phase === "checking" ? "Checking…" : "Join"}</button>
             </form>

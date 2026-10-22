@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BOOKING_URL, JOIN_LATE_MINUTES, normalizeCode } from "./talkConfig.js";
 import { checkCode } from "./bookingApi.js";
-import { getMic, playChime } from "./media.js";
+import { getCallMic, playChime } from "./media.js";
 import { HostRoom } from "./room.js";
 import { callStyles } from "./callStyles.js";
 import { CallScreen } from "./CallScreen.jsx";
@@ -77,7 +77,9 @@ export function HostPage({ c, font, headingStyle, Footer }) {
 
   const roomOpen = ["opening", "open", "in-call", "time-up"].includes(state);
   useWakeLock(roomOpen);
-  useEffect(() => () => { room.current?.close(); stream.current?.getTracks().forEach((t) => t.stop()); }, []);
+  const mic = useRef(null); // the microphone after strong noise reduction (if on), and how to release it
+  const stopMic = () => { mic.current?.stop(); mic.current = null; stream.current = null; };
+  useEffect(() => () => { room.current?.close(); stopMic(); }, []);
 
   // A short ring while a guest waits.
   useEffect(() => {
@@ -101,7 +103,8 @@ export function HostPage({ c, font, headingStyle, Footer }) {
     if (!res || !res.startsAt) { setState("idle"); setError("That code isn't valid (or the booking hasn't been approved)."); return; }
     if (Date.now() > Date.parse(res.startsAt) + JOIN_LATE_MINUTES * 60000) { setState("idle"); setError("This code has expired."); return; }
     try {
-      stream.current = await getMic();
+      mic.current = await getCallMic();
+      stream.current = mic.current.stream;
     } catch {
       setState("idle");
       setError("Your microphone isn't available. Please allow microphone access and try again.");
@@ -119,8 +122,7 @@ export function HostPage({ c, font, headingStyle, Footer }) {
           if (room.current !== r) return;
           if (s === "closed") {
             room.current = null;
-            stream.current?.getTracks().forEach((t) => t.stop());
-            stream.current = null;
+            stopMic();
             setState("idle");
             setGuest(null);
             return;
@@ -166,7 +168,7 @@ export function HostPage({ c, font, headingStyle, Footer }) {
           {earlier && (
             <p style={ui.small} data-testid="host-resume-hint">To continue the earlier call, paste the same code again. Its time left ({formatClock(earlier.remaining)}) is kept.</p>
           )}
-          <DeviceCheck ui={ui} framed={false} />
+          <DeviceCheck ui={ui} c={c} framed={false} />
           {error && <p style={ui.error} role="alert" data-testid="host-error">{error}</p>}
           {notice && <p style={ui.text} role="status">{notice}</p>}
           <button type="submit" style={ui.btnLarge} disabled={state === "checking" || !BOOKING_URL} data-testid="open-room">{state === "checking" ? "Checking…" : "Open room"}</button>

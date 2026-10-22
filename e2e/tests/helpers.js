@@ -28,9 +28,12 @@ export const test = base.extend({
   },
   open: async ({ browser }, use) => {
     const contexts = [];
-    await use(async (path, opts = {}) => {
+    // opts: browser-context options, plus initScript (a script to run in the
+    // page before the site's own code, as a function or { content }).
+    await use(async (path, { initScript, ...opts } = {}) => {
       const context = await browser.newContext({ baseURL: SITE, ...opts });
       await context.addInitScript(() => Object.defineProperty(Navigator.prototype, "webdriver", { get: () => false }));
+      if (initScript) await context.addInitScript(initScript);
       contexts.push(context);
       const page = await context.newPage();
       await page.goto(path);
@@ -40,8 +43,8 @@ export const test = base.extend({
   },
 });
 
-export async function openHost(open, code) {
-  const host = await open("/host");
+export async function openHost(open, code, opts) {
+  const host = await open("/host", opts);
   await host.getByTestId("host-code").fill(code);
   await host.getByTestId("open-room").click();
   await expect(host.getByTestId("room-status")).toHaveAttribute("data-state", "open");
@@ -55,10 +58,10 @@ export async function joinAsGuest(page, code, name = "Asha") {
 }
 
 // Host opens the room, guest joins and is admitted, and the call connects.
-export async function startCall(open, gas, name = "Asha") {
+export async function startCall(open, gas, name = "Asha", { initScript } = {}) {
   const { code } = await gas.booking({ startsInMinutes: 5 });
-  const host = await openHost(open, code);
-  const guest = await open(`/call?room=${code}`);
+  const host = await openHost(open, code, { initScript });
+  const guest = await open(`/call?room=${code}`, { initScript });
   await joinAsGuest(guest, code, name);
   await expect(guest.getByTestId("waiting")).toHaveText("Waiting for Benjamin to let you in…");
   await expect(host.getByTestId("guest-name")).toHaveText(`${name} is waiting.`);

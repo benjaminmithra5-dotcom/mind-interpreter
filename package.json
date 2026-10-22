@@ -11,6 +11,7 @@
     "test:timezones": "node --test src/call/test/*.test.mjs"
   },
   "dependencies": {
+    "@sapphi-red/web-noise-suppressor": "0.3.5",
     "marked": "^18.0.14",
     "peerjs": "^1.5.5",
     "react": "^18.3.1",
