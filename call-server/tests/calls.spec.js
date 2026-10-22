@@ -1,66 +1,71 @@
-import { test, expect, openAdmin, createCode, codeState, enterCode, startCall, clockSeconds, ticks, TICK_MS } from "./helpers.js";
+import { test, expect, openAdmin, rawSocket, fillCaller, ring, startCall, clockSeconds, ticks, TICK_MS, CALL_LIMIT, CALL_MAX_PRESSES } from "./helpers.js";
 
-test("ringing, then decline: the visitor is told kindly and keeps the minutes", async ({ open, api }) => {
-  const { code } = await createCode(api, { note: "Decline tester" });
+const NOT_AVAILABLE = "Not available right now. You can write to me on the Consultation page.";
+const BUSY = "Busy right now. Please try again in a few minutes, or write to me on the Consultation page.";
+
+test("ringing shows the caller's name and email; decline frees the line at once", async ({ open }) => {
   const admin = await openAdmin(open);
   const visitor = await open("/call");
-  const watcher = await open("/call");
-  await enterCode(visitor, code);
-  await visitor.getByTestId("call-button").click();
-
-  await expect(visitor.getByTestId("ringing")).toBeVisible();
-  const incoming = admin.getByTestId("incoming");
-  await expect(incoming).toBeVisible();
-  await expect(incoming).toContainText("Decline tester");
-  // While it rings, everyone else sees "On a call".
-  await expect(watcher.getByTestId("status-badge")).toHaveAttribute("data-status", "on_call");
+  await ring(visitor, admin, "Sam Rivera", "sam@example.com");
+  await expect(admin.getByTestId("caller-name")).toHaveText("Sam Rivera");
+  await expect(admin.getByTestId("caller-email")).toHaveText("sam@example.com");
 
   await admin.getByTestId("decline").click();
-  const ended = visitor.getByTestId("call-ended");
-  await expect(ended).toHaveAttribute("data-reason", "declined");
-  await expect(ended).toContainText("Your minutes are still on your code.");
-  await expect(ended).toContainText("45:00");
-  await expect(watcher.getByTestId("status-badge")).toHaveAttribute("data-status", "available");
-  expect((await codeState(api, code)).secondsRemaining).toBe(45 * 60);
+  const msg = visitor.getByTestId("call-message");
+  await expect(msg).toHaveText(NOT_AVAILABLE);
+  await expect(msg.getByRole("link", { name: "Consultation page" })).toHaveAttribute("href", "/consultation");
+
+  // The line is free again straight away: another visitor can ring.
+  const next = await open("/call");
+  await ring(next, admin, "Alex", "alex@example.com");
+  await next.getByRole("button", { name: "Cancel" }).click();
+  await expect(next.getByTestId("call-message")).toHaveText("Call cancelled.");
+  await expect(admin.getByTestId("incoming")).toHaveCount(0);
 });
 
-test("no answer within the ring time: the call stops ringing and the minutes stay", async ({ open, api }) => {
-  const { code } = await createCode(api);
+test("no answer within 45 seconds: a kind message, and the line is free again", async ({ open }) => {
   const admin = await openAdmin(open);
   const visitor = await open("/call");
-  await enterCode(visitor, code);
-  await visitor.getByTestId("call-button").click();
-  await expect(admin.getByTestId("incoming")).toBeVisible();
-  await expect(visitor.getByTestId("call-ended")).toHaveAttribute("data-reason", "no-answer", { timeout: ticks(45) + 10_000 });
+  await ring(visitor, admin);
+  const msg = visitor.getByTestId("call-message");
+  await expect(msg).toHaveAttribute("data-reason", "no-answer", { timeout: ticks(45) + 10_000 });
+  await expect(msg).toHaveText("Sorry, I couldn't answer just now. You can write to me on the Consultation page.");
+  await expect(msg.getByRole("link")).toHaveAttribute("href", "/consultation");
   await expect(admin.getByTestId("incoming")).toHaveCount(0);
   await expect(admin.getByTestId("admin-notice")).toContainText("Missed call");
-  expect((await codeState(api, code)).secondsRemaining).toBe(45 * 60);
+  await expect(visitor.getByTestId("call-button")).toBeEnabled();
 });
 
-test("only one call at a time", async ({ open, api }) => {
-  const a = await createCode(api);
-  const b = await createCode(api);
+test("a second caller hears Busy while a call rings, and while a call is in progress", async ({ open }) => {
   const admin = await openAdmin(open);
   const first = await open("/call");
   const second = await open("/call");
-  await enterCode(second, b.code);
-  await expect(second.getByTestId("call-button")).toBeVisible();
-  await enterCode(first, a.code);
-  await first.getByTestId("call-button").click();
-  await expect(admin.getByTestId("incoming")).toBeVisible();
-  // The second visitor now sees "On a call" and the request form instead.
+  await ring(first, admin);
+
+  // Ringing: the second visitor can still press Call, and hears Busy.
+  await fillCaller(second, "Jo", "jo@example.com");
+  await second.getByTestId("call-button").click();
+  await expect(second.getByTestId("call-message")).toHaveText(BUSY);
+
+  // In progress: the status says On a call and the button is disabled.
+  await admin.getByTestId("accept").click();
+  await expect(first.getByTestId("call-screen")).toHaveAttribute("data-call-state", "in-call");
   await expect(second.getByTestId("status-badge")).toHaveAttribute("data-status", "on_call");
-  await expect(second.getByTestId("call-button")).toHaveCount(0);
-  await expect(second.getByTestId("request-form")).toBeVisible();
-  await first.getByRole("button", { name: "Cancel" }).click();
-  await expect(first.getByTestId("call-ended")).toHaveAttribute("data-reason", "cancelled");
+  await second.reload();
+  await expect(second.getByTestId("status-message")).toHaveText(BUSY);
+  await expect(second.getByTestId("call-button")).toBeDisabled();
+
+  await first.getByRole("button", { name: "End call" }).click();
+  // After the call, back to Available (toggle on, admin connected).
+  await expect(second.getByTestId("status-badge")).toHaveAttribute("data-status", "available");
+  await expect(second.getByTestId("call-button")).toBeEnabled();
 });
 
-test("accept: the audio call connects, the timer counts down, and the balance carries over", async ({ open, api }) => {
-  const { code } = await createCode(api, { minutes: 45, note: "Call tester" });
+test("accept: the audio call connects and the timer counts down on both sides", async ({ open }) => {
   const admin = await openAdmin(open);
   const visitor = await open("/call");
-  await startCall(visitor, admin, code);
+  await startCall(visitor, admin, "Sam Rivera");
+  await expect(admin.getByTestId("call-screen")).toContainText("In a call with Sam Rivera");
 
   // Both sides hear each other: the remote audio element has a live track.
   for (const page of [visitor, admin]) {
@@ -69,128 +74,77 @@ test("accept: the audio call connects, the timer counts down, and the balance ca
       return el && el.srcObject ? el.srcObject.getAudioTracks().filter((t) => t.readyState === "live").length : 0;
     })).toBeGreaterThan(0);
   }
-  await expect(visitor.getByTestId("call-screen")).toHaveAttribute("data-call-state", "in-call");
+  // Audio only: no video is sent or received.
+  expect(await visitor.evaluate(() => document.querySelectorAll("video").length)).toBe(0);
 
-  // The server's timer counts down on both sides.
   const start = await clockSeconds(visitor);
-  expect(start).toBeLessThanOrEqual(45 * 60);
-  await expect.poll(() => clockSeconds(visitor)).toBeLessThan(start - 5);
-  await expect.poll(() => clockSeconds(admin)).toBeLessThan(start - 5);
-  // Minutes come off the code in real time, not at the end.
-  await expect.poll(async () => (await codeState(api, code)).secondsRemaining).toBeLessThan(45 * 60 - 5);
+  expect(start).toBeLessThanOrEqual(CALL_LIMIT);
+  expect(start).toBeGreaterThan(CALL_LIMIT - 10);
+  await expect.poll(() => clockSeconds(visitor)).toBeLessThan(start - 3);
+  await expect.poll(() => clockSeconds(admin)).toBeLessThan(start - 3);
 
-  await visitor.getByRole("button", { name: "End call" }).click();
-  await expect(visitor.getByTestId("call-ended")).toHaveAttribute("data-reason", "visitor-ended");
-  await expect(admin.getByTestId("admin-notice")).toContainText("caller ended");
-  const left = (await codeState(api, code)).secondsRemaining;
-  expect(left).toBeLessThan(45 * 60);
-  expect(left).toBeGreaterThan(40 * 60);
-
-  // The rest stays on the code: a second call starts from the same balance.
-  await visitor.reload();
-  await enterCode(visitor, code);
-  const m = Math.floor(left / 60), s = String(left % 60).padStart(2, "0");
-  await expect(visitor.getByTestId("code-info")).toContainText(`${m}:${s}`);
-  await visitor.getByTestId("call-button").click();
-  await admin.getByTestId("accept").click();
-  await expect(visitor.getByTestId("call-screen")).toHaveAttribute("data-call-state", "in-call");
-  expect(await clockSeconds(visitor)).toBeLessThanOrEqual(left);
-  expect(await clockSeconds(visitor)).toBeGreaterThan(left - 10);
   await admin.getByRole("button", { name: "End call" }).click();
-  await expect(visitor.getByTestId("call-ended")).toHaveAttribute("data-reason", "benjamin-ended");
-
-  // Only metadata is kept: two calls with their minutes used.
-  const calls = (await (await api.get("/api/admin/overview")).json()).calls.filter((k) => k.code === code);
-  expect(calls).toHaveLength(2);
-  for (const k of calls) {
-    expect(Object.keys(k).sort()).toEqual(expect.arrayContaining(["startedAt", "endedAt", "secondsUsed"]));
-    expect(k.secondsUsed).toBeGreaterThan(0);
-  }
-  await expect(admin.getByTestId("recent-calls")).toContainText("Call tester");
+  await expect(visitor.getByTestId("call-message")).toHaveText("The call has ended. Thank you for talking.");
+  await expect(admin.getByTestId("admin-notice")).toHaveText("Call ended.");
 });
 
-test("2-minute warning, 60-second wrap-up that isn't charged, then the call ends by itself", async ({ open, api }) => {
-  const { code } = await createCode(api, { minutes: 3 });
+test("2-minute banner, then the server ends the call at the limit", async ({ open }) => {
   const admin = await openAdmin(open);
   const visitor = await open("/call");
-  await startCall(visitor, admin, code);
+  await startCall(visitor, admin);
 
-  // More than 2 minutes left: no warning yet.
+  // More than 2 minutes left at the start: no banner yet.
+  expect(await clockSeconds(visitor)).toBeGreaterThan(120);
   await expect(visitor.getByTestId("warning-banner")).toHaveCount(0);
-  await expect(visitor.getByTestId("warning-banner")).toHaveText("About 2 minutes left.", { timeout: ticks(70) + 10_000 });
+  await expect(visitor.getByTestId("warning-banner")).toHaveText("About 2 minutes left.", { timeout: ticks(CALL_LIMIT - 115) + 10_000 });
   await expect(admin.getByTestId("warning-banner")).toBeVisible();
   expect(await clockSeconds(visitor)).toBeLessThanOrEqual(120);
 
-  // At zero: the wrap-up banner on both sides.
-  await expect(visitor.getByTestId("wrapup-banner")).toContainText("Wrapping up.", { timeout: ticks(130) + 10_000 });
-  await expect(admin.getByTestId("wrapup-banner")).toBeVisible();
-  await expect(visitor.getByTestId("warning-banner")).toHaveCount(0);
-  expect((await codeState(api, code)).secondsRemaining).toBe(0);
-
-  // After the grace, the server hangs up by itself.
-  await expect(visitor.getByTestId("call-ended")).toHaveAttribute("data-reason", "time", { timeout: ticks(70) + 10_000 });
-  await expect(visitor.getByTestId("call-ended")).toContainText("Your time is up.");
-  const call = (await (await api.get("/api/admin/overview")).json()).calls.find((k) => k.code === code);
-  // Wrap-up time is not deducted: exactly the 3 minutes were used.
-  expect(call.secondsUsed).toBe(180);
-  expect(call.endReason).toBe("time");
-
-  // A used-up code can't call again.
-  await visitor.reload();
-  await enterCode(visitor, code);
-  await expect(visitor.getByTestId("code-error")).toHaveText("That code has no minutes left.");
+  await expect(visitor.getByTestId("call-message")).toHaveAttribute("data-reason", "time", { timeout: ticks(125) + 10_000 });
+  await expect(visitor.getByTestId("call-message")).toHaveText("Our time is up. Thank you for talking.");
+  await expect(admin.getByTestId("admin-notice")).toHaveText("Call ended: time is up.");
 });
 
-test("a dropped connection pauses the timer, and the call carries on after a reconnect", async ({ open, api }) => {
-  const { code } = await createCode(api);
+test("a dropped connection pauses the timer, and the call carries on after a reconnect", async ({ open }) => {
   const admin = await openAdmin(open);
   const visitor = await open("/call");
-  await startCall(visitor, admin, code);
-  await expect.poll(() => clockSeconds(visitor)).toBeLessThan(45 * 60 - 2);
+  await startCall(visitor, admin);
+  await expect.poll(() => clockSeconds(admin)).toBeLessThan(CALL_LIMIT - 2);
 
   // The visitor's page goes away: its connections drop.
   await visitor.goto("about:blank");
   await expect(admin.getByTestId("paused-banner")).toBeVisible();
-  const paused = (await codeState(api, code)).secondsRemaining;
+  const paused = await clockSeconds(admin);
   await admin.waitForTimeout(ticks(8));
-  expect((await codeState(api, code)).secondsRemaining).toBe(paused);
+  expect(await clockSeconds(admin)).toBe(paused);
 
   // Back within the grace: the page rejoins and the timer runs again.
   await visitor.goto("/call");
   await expect(admin.getByTestId("paused-banner")).toHaveCount(0, { timeout: ticks(30) + 10_000 });
   await expect(visitor.getByTestId("call-screen")).toBeVisible();
-  await expect.poll(async () => (await codeState(api, code)).secondsRemaining).toBeLessThan(paused);
+  await expect.poll(() => clockSeconds(admin)).toBeLessThan(paused);
   await admin.getByRole("button", { name: "End call" }).click();
-  await expect(visitor.getByTestId("call-ended")).toBeVisible();
+  await expect(visitor.getByTestId("call-message")).toBeVisible();
 });
 
-test("a dropped connection that doesn't come back ends after 30 seconds and keeps the balance", async ({ open, api }) => {
-  const { code } = await createCode(api);
+test("a dropped connection that doesn't come back ends after 30 seconds", async ({ open }) => {
   const admin = await openAdmin(open);
   const visitor = await open("/call");
-  await startCall(visitor, admin, code);
-  await expect.poll(() => clockSeconds(visitor)).toBeLessThan(45 * 60 - 2);
+  await startCall(visitor, admin);
 
   await visitor.close();
   await expect(admin.getByTestId("paused-banner")).toBeVisible();
-  const paused = (await codeState(api, code)).secondsRemaining;
   const t0 = Date.now();
-  await expect(admin.getByTestId("admin-notice")).toContainText("connection lost", { timeout: ticks(30) + 10_000 });
+  await expect(admin.getByTestId("admin-notice")).toHaveText("Call ended: the connection was lost.", { timeout: ticks(30) + 10_000 });
   // It waited the full grace (30 call-seconds) before ending.
   expect(Date.now() - t0).toBeGreaterThan(ticks(30) - 4 * TICK_MS - 1000);
-  expect((await codeState(api, code)).secondsRemaining).toBe(paused);
-  const call = (await (await api.get("/api/admin/overview")).json()).calls.find((k) => k.code === code);
-  expect(call.endReason).toBe("dropped");
 });
 
-test("computer and phone both ring; the first to accept takes the call, the other stops ringing", async ({ open, api }) => {
-  const { code } = await createCode(api);
+test("computer and phone both ring; the first to accept takes the call, the other stops ringing", async ({ open }) => {
   const computer = await openAdmin(open);
-  const phone = await openAdmin(open);
+  const phone = await openAdmin(open, { available: false });
   const visitor = await open("/call");
-  await enterCode(visitor, code);
-  await visitor.getByTestId("call-button").click();
-  await expect(computer.getByTestId("incoming")).toBeVisible();
+  await ring(visitor, computer);
   await expect(phone.getByTestId("incoming")).toBeVisible();
 
   await phone.getByTestId("accept").click();
@@ -200,5 +154,51 @@ test("computer and phone both ring; the first to accept takes the call, the othe
   await expect(visitor.getByTestId("call-screen")).toHaveAttribute("data-call-state", "in-call");
   await expect(computer.getByTestId("call-screen")).toHaveCount(0);
   await visitor.getByRole("button", { name: "End call" }).click();
-  await expect(visitor.getByTestId("call-ended")).toBeVisible();
+  await expect(visitor.getByTestId("call-message")).toBeVisible();
+});
+
+test("name and email are required, on the page and on the server", async ({ open }) => {
+  const admin = await openAdmin(open);
+  const visitor = await open("/call");
+  await visitor.getByTestId("call-button").click();
+  await expect(visitor.getByTestId("form-error")).toHaveText("Please enter your name and a valid email.");
+  await fillCaller(visitor, "Sam", "not-an-email");
+  await visitor.getByTestId("call-button").click();
+  await expect(visitor.getByTestId("form-error")).toBeVisible();
+  await expect(admin.getByTestId("incoming")).toHaveCount(0);
+
+  // The server checks too, whatever the page sends.
+  const raw = await rawSocket({ ip: "192.0.2.50" });
+  raw.send({ type: "call", name: "", email: "x@example.com" });
+  expect((await raw.next("call-error")).reason).toBe("invalid");
+  raw.send({ type: "call", name: "Sam", email: "nope" });
+  expect((await raw.next("call-error")).reason).toBe("invalid");
+  raw.close();
+  await expect(admin.getByTestId("incoming")).toHaveCount(0);
+});
+
+test("Call presses are rate limited per address", async ({ open }) => {
+  const admin = await openAdmin(open);
+  const raw = await rawSocket({ ip: "203.0.113.7" });
+  for (let i = 0; i < CALL_MAX_PRESSES; i++) {
+    raw.send({ type: "call", name: "Sam", email: "sam@example.com" });
+    const reply = await raw.next(["ringing", "call-error"]);
+    expect(reply.reason).not.toBe("rate-limited");
+    if (reply.type === "ringing") {
+      raw.send({ type: "hangup" });
+      await raw.next("ended");
+    }
+  }
+  raw.send({ type: "call", name: "Sam", email: "sam@example.com" });
+  expect((await raw.next("call-error")).reason).toBe("rate-limited");
+  raw.close();
+
+  // Another address can still call.
+  const other = await rawSocket({ ip: "203.0.113.8" });
+  other.send({ type: "call", name: "Sam", email: "sam@example.com" });
+  await other.next("ringing");
+  other.send({ type: "hangup" });
+  await other.next("ended");
+  other.close();
+  await expect(admin.getByTestId("incoming")).toHaveCount(0);
 });

@@ -21,13 +21,15 @@ export async function api(path, { method = "GET", body } = {}) {
   return { ok: res.ok, status: res.status, data };
 }
 
-// A WebSocket that reconnects by itself (1s, 2s, 4s … up to 15s).
-export function connectSocket({ admin = false, onMessage, onOpen, onClose }) {
+// A WebSocket that reconnects by itself (1s, 2s, 4s … up to maxDelay), and
+// straight away when the device wakes up or comes back online.
+export function connectSocket({ admin = false, onMessage, onOpen, onClose, maxDelay = 15000 }) {
   let ws = null;
   let stopped = false;
   let delay = 1000;
   let timer = null;
   const open = () => {
+    clearTimeout(timer);
     ws = new WebSocket(WS_URL + (admin ? "?role=admin" : ""));
     ws.onopen = () => { delay = 1000; onOpen?.(); };
     ws.onmessage = (e) => { try { onMessage(JSON.parse(e.data)); } catch { /* ignore */ } };
@@ -35,25 +37,34 @@ export function connectSocket({ admin = false, onMessage, onOpen, onClose }) {
       onClose?.(e);
       if (stopped || e.code === 4401) return;
       timer = setTimeout(open, delay);
-      delay = Math.min(delay * 2, 15000);
+      delay = Math.min(delay * 2, maxDelay);
     };
   };
+  const wake = () => {
+    if (stopped || document.visibilityState === "hidden") return;
+    if (!ws || ws.readyState === 3) { delay = 1000; open(); }
+  };
+  document.addEventListener("visibilitychange", wake);
+  window.addEventListener("online", wake);
   open();
   return {
     send: (msg) => ws && ws.readyState === 1 && ws.send(JSON.stringify(msg)),
-    close: () => { stopped = true; clearTimeout(timer); ws && ws.close(); },
+    close: () => {
+      stopped = true;
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", wake);
+      window.removeEventListener("online", wake);
+      ws && ws.close();
+    },
     isOpen: () => Boolean(ws) && ws.readyState === 1,
   };
 }
 
-// Microphone (and camera for video codes) with the browser's own echo
-// cancellation, noise suppression and automatic gain switched on.
+// Microphone only (audio calls), with the browser's own echo cancellation,
+// noise suppression and automatic gain switched on.
 export const AUDIO_CONSTRAINTS = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
-export function getMedia({ video = false } = {}) {
-  return navigator.mediaDevices.getUserMedia({
-    audio: AUDIO_CONSTRAINTS,
-    video: video ? { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" } : false,
-  });
+export function getMedia() {
+  return navigator.mediaDevices.getUserMedia({ audio: AUDIO_CONSTRAINTS, video: false });
 }
 
 // One side of the call. The visitor makes the offer; Benjamin answers. When
@@ -81,7 +92,7 @@ export class CallConnection {
   }
   async offer() {
     const pc = this.newPeer();
-    const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+    const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
     await pc.setLocalDescription(offer);
     this.send({ kind: "offer", sdp: pc.localDescription.toJSON() });
   }
@@ -105,7 +116,6 @@ export class CallConnection {
     for (const c of this.pending.splice(0)) await this.pc.addIceCandidate(c).catch(() => {});
   }
   setMuted(muted) { for (const t of this.localStream.getAudioTracks()) t.enabled = !muted; }
-  setCamera(on) { for (const t of this.localStream.getVideoTracks()) t.enabled = on; }
   close() {
     if (this.pc) { this.pc.onconnectionstatechange = null; this.pc.close(); this.pc = null; }
     for (const t of this.localStream.getTracks()) t.stop();
@@ -117,11 +127,6 @@ export const formatClock = (seconds) => {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 };
 export const STATUS_LABEL = { available: "Available", on_call: "On a call", away: "Away", checking: "Checking…" };
-export const MODE_LABEL = { audio: "Audio only", "audio+video": "Audio and video" };
-export function formatExpiry(iso) {
-  if (!iso) return "No expiry";
-  return "Expires " + new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
-}
 
 // Short sounds made in the browser (no audio files): a speaker test chime
 // and Benjamin's ring.

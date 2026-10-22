@@ -15,7 +15,6 @@ export function callStyles(c, font) {
     dot: { width: 10, height: 10, borderRadius: "50%", flexShrink: 0 },
     label: { fontFamily: font.display, fontWeight: 500, fontSize: 13, letterSpacing: "0.05em", textTransform: "uppercase", color: c.muted, display: "flex", flexDirection: "column", gap: 6 },
     input: { fontFamily: font.body, fontSize: 16, color: c.ink, background: c.playfield, border: `1px solid ${c.fieldBorder}`, borderRadius: 8, padding: "10px 12px", width: "100%", boxSizing: "border-box", minWidth: 0 },
-    codeInput: { fontFamily: font.mono, fontSize: 18, letterSpacing: "0.12em", textTransform: "uppercase" },
     row: { display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" },
     btn: { ...btn, background: c.accent, color: c.onAccent, WebkitTextStroke: "var(--text-outline-on-accent)" },
     btnQuiet: { ...btn, background: "transparent", color: c.accent, border: `1px solid ${c.strongLine}` },
@@ -26,11 +25,7 @@ export function callStyles(c, font) {
     meterFill: { height: "100%", background: c.accent, transition: "width 80ms linear" },
     clock: { fontFamily: font.mono, fontWeight: 700, fontSize: 40, color: c.accent, margin: 0, textAlign: "center" },
     banner: { width: "100%", boxSizing: "border-box", borderRadius: 10, padding: "12px 14px", fontFamily: font.body, fontSize: 15.5, lineHeight: 1.5, background: c.secondary, border: `1px solid ${c.strongLine}`, color: c.ink, textAlign: "center", margin: 0 },
-    video: { width: "100%", borderRadius: 10, background: "#000000", aspectRatio: "4 / 3", objectFit: "cover" },
-    videoSelf: { width: 120, borderRadius: 8, background: "#000000", aspectRatio: "4 / 3", objectFit: "cover", alignSelf: "flex-end" },
     notice: { fontFamily: font.body, fontSize: 14, lineHeight: 1.6, color: c.muted, margin: 0, textAlign: "center", borderTop: `1px solid ${c.line}`, paddingTop: 16, width: "100%" },
-    listItem: { borderTop: `1px solid ${c.line}`, padding: "10px 0", display: "flex", flexDirection: "column", gap: 6 },
-    mono: { fontFamily: font.mono, fontSize: 15, letterSpacing: "0.06em", color: c.ink, wordBreak: "break-all" },
   };
 }
 
