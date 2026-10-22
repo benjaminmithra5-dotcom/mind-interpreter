@@ -4300,7 +4300,7 @@ const TOP_TABS = [
 function TabLabel({ t }) {
   if (!t.phone) return t.label;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+    <span className="talk-shake" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
       <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style={{ flexShrink: 0 }}>
         <path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" />
       </svg>
@@ -4557,19 +4557,30 @@ export default function App() {
           @media (prefers-reduced-motion: reduce) {
             .emotion-marquee-track { animation-duration: 400s !important; }
           }
-          /* "Talk now": a soft teal ring that grows and fades every 2 seconds.
-             It's drawn on a pseudo-element with box-shadow, so the tab's size
-             and position never change. A cue only, not an "online" light. */
+          /* "Talk now": every 2 seconds a deep teal ring with a bright aqua
+             glow (#1ECFC0) grows from the tab and fades; every 3.5 seconds the
+             label gives a quick 0.5-second wiggle. The glow is box-shadow on a
+             pseudo-element and the wiggle is translateX on the label inside
+             the tab, so the tab itself (and where you tap it) never moves.
+             A cue only, not an "online" light. */
           @keyframes talkPulse {
-            0% { box-shadow: 0 0 0 0 ${withAlpha(c.accent, 0.5)}; opacity: 1; }
-            70% { box-shadow: 0 0 0 9px ${withAlpha(c.accent, 0)}; opacity: 1; }
-            100% { box-shadow: 0 0 0 9px ${withAlpha(c.accent, 0)}; opacity: 0; }
+            0% { box-shadow: 0 0 0 0 ${withAlpha(c.accent, 0.6)}, 0 0 0 0 ${withAlpha("#1ECFC0", 0)}; opacity: 1; }
+            25% { box-shadow: 0 0 0 3px ${withAlpha(c.accent, 0.45)}, 0 0 8px 6px ${withAlpha("#1ECFC0", 0.75)}; opacity: 1; }
+            70% { box-shadow: 0 0 0 5px ${withAlpha(c.accent, 0)}, 0 0 10px 12px ${withAlpha("#1ECFC0", 0)}; opacity: 1; }
+            100% { box-shadow: 0 0 0 5px ${withAlpha(c.accent, 0)}, 0 0 10px 12px ${withAlpha("#1ECFC0", 0)}; opacity: 0; }
+          }
+          /* 4 left-right shakes of 2px in 0.5s (8 a second), then still until 3.5s. */
+          @keyframes talkShake {
+            0%, 14.29%, 100% { transform: translateX(0); }
+            1.79%, 5.36%, 8.93%, 12.5% { transform: translateX(-2px); }
+            3.57%, 7.14%, 10.71% { transform: translateX(2px); }
           }
           .talk-pulse { position: relative; }
           .talk-pulse::after {
-            content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+            content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; z-index: -1;
             animation: talkPulse 2s ease-out infinite;
           }
+          .talk-shake { animation: talkShake 3.5s linear infinite; }
           .menu-btn { position: relative; }
           .menu-dot {
             position: absolute; top: -4px; right: -4px; width: 9px; height: 9px; border-radius: 50%;
@@ -4580,10 +4591,11 @@ export default function App() {
             animation: talkPulse 2s ease-out infinite;
           }
           /* Browsers already stop painting hidden tabs; this pauses it explicitly too. */
-          html[data-page-hidden] .talk-pulse::after, html[data-page-hidden] .menu-dot::after { animation-play-state: paused; }
+          html[data-page-hidden] .talk-pulse::after, html[data-page-hidden] .menu-dot::after, html[data-page-hidden] .talk-shake { animation-play-state: paused; }
           @media (prefers-reduced-motion: reduce) {
-            .talk-pulse::after, .menu-dot::after { animation: none; }
-            .talk-pulse::after { box-shadow: 0 0 0 3px ${withAlpha(c.accent, 0.45)}; }
+            .talk-pulse::after, .menu-dot::after, .talk-shake { animation: none; }
+            /* A steady teal outline and a soft aqua tint behind the text instead. */
+            .talk-pulse::after { box-shadow: 0 0 0 3px ${withAlpha(c.accent, 0.45)}; background: ${withAlpha("#1ECFC0", 0.14)}; }
           }
           .fade-in { animation: fadeIn 0.35s ease both; }
           .nav-btn:hover { background: ${c.accentPressed} !important; border-color: ${c.accentPressed} !important; color: ${c.onAccent} !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
