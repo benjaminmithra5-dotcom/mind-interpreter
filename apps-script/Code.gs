@@ -498,7 +498,7 @@ function ownerPage_(action, id, token) {
       "if(typeof m==='string'){msg.textContent=m;return;}" +
       "msg.textContent=m.message;" +
       "var a=document.createElement('a');a.href=m.whatsapp;a.target='_top';a.rel='noopener';a.className='wa';a.id='wa';a.textContent='Send the code on WhatsApp';" +
-      "var t=document.createElement('textarea');t.readOnly=true;t.id='text';t.value=m.text;t.rows=6;" +
+      "var t=document.createElement('textarea');t.readOnly=true;t.id='text';t.value=m.text;t.rows=10;" +
       "var c=document.createElement('button');c.type='button';c.id='copy';c.textContent='Copy message';" +
       "var note=document.createElement('p');note.id='copied';note.setAttribute('aria-live','polite');" +
       "c.onclick=function(){t.focus();t.select();var ok=false;try{ok=document.execCommand('copy');}catch(e){}" +
