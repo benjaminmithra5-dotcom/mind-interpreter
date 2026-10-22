@@ -183,3 +183,24 @@ test("the mic test shows a level from the microphone", async ({ open }) => {
   await page.getByRole("button", { name: "Test microphone" }).click();
   await page.waitForFunction(() => Number(document.querySelector('[role="meter"]').getAttribute("aria-valuenow")) > 0, null, { polling: "raf", timeout: 20_000 });
 });
+
+test("at 390px the join code placeholder fits in the field", async ({ open }) => {
+  const page = await open("/call", { viewport: { width: 390, height: 844 } });
+  const input = page.getByTestId("code-input");
+  await expect(input).toHaveAttribute("placeholder", "Your code");
+  // Width of the placeholder as drawn (same font, capitals, letter spacing)
+  // against the space inside the field.
+  const fit = await input.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    let text = el.placeholder;
+    if (cs.textTransform === "uppercase") text = text.toUpperCase();
+    const spacing = parseFloat(cs.letterSpacing) || 0;
+    const textWidth = ctx.measureText(text).width + spacing * text.length;
+    const room = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    return { textWidth, room };
+  });
+  expect(fit.textWidth).toBeLessThanOrEqual(fit.room);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
