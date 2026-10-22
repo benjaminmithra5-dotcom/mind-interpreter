@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getSlots, book } from "./bookingApi.js";
 import { isPrerender } from "./talkConfig.js";
 import { TimeZonePicker } from "./TimeZonePicker.jsx";
-import { addDays, dateKey, detectZone, formatDayKey, formatDateTime, formatTime, offsetLabel, offsetMinutes, weekdayIndex } from "./timezones.js";
+import { addDays, dateKey, detectZone, formatDayKey, formatDateTime, formatTime, loadZoneData, weekdayIndex, zoneInfo, zoneSummary } from "./timezones.js";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const EMAIL = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[A-Za-z]{2,}$/;
@@ -48,6 +48,10 @@ export function BookTime({ ui, c }) {
     }
   }
   useEffect(() => { if (!isPrerender()) load(); }, []);
+
+  // Zone names, abbreviations and countries for the picker, loaded only here.
+  const [zoneData, setZoneData] = useState(null);
+  useEffect(() => { loadZoneData().then(setZoneData).catch(() => { /* labels stay plain */ }); }, []);
 
   // Days to show: from today (in the chosen zone) for 14 days, or to the last free time.
   const { days, byDay } = useMemo(() => {
@@ -117,13 +121,13 @@ export function BookTime({ ui, c }) {
     );
   }
 
-  const tzLabel = `${tz.replace(/_/g, " ")} (${offsetLabel(offsetMinutes(tz))})`;
+  const tzSummary = zoneSummary(zoneInfo(tz, zoneData));
   const lead = days.length ? weekdayIndex(days[0]) : 0;
   const daySlots = (day && byDay.get(day)) || [];
   return (
     <div style={ui.panel} data-testid="book">
-      <TimeZonePicker ui={ui} c={c} value={tz} onChange={setTz} />
-      <p style={ui.small} data-testid="tz-note">All times are shown in your time: {tzLabel}.</p>
+      <TimeZonePicker ui={ui} c={c} value={tz} onChange={setTz} data={zoneData} />
+      <p style={ui.small} data-testid="tz-note">Times are shown in {tzSummary}.</p>
 
       {slots === null && <p style={ui.small}>Loading free times…</p>}
       {loadError && (
