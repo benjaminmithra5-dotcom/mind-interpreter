@@ -1,7 +1,7 @@
 {
   "name": "Talk now · Mind Interpreter",
   "short_name": "Talk now",
-  "description": "Benjamin's call desk: take Talk now calls and manage minute codes.",
+  "description": "Benjamin's call desk: take Talk now calls.",
   "start_url": "/admin",
   "scope": "/admin",
   "id": "/admin",
