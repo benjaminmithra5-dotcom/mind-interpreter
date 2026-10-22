@@ -252,3 +252,23 @@ test("works at 390px with no sideways scroll", async ({ open, gas }) => {
   await chooseSlot(page, slot);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test("time zones: typing straight after leaving the field keeps the list open", async ({ open }) => {
+  const page = await open("/call");
+  const input = page.getByTestId("tz-input");
+  await expect(input).toHaveValue(/IST/);
+  for (let i = 0; i < 5; i++) {
+    // Leave the field (a click elsewhere), then type in it again at once.
+    await page.evaluate(() => {
+      const el = document.querySelector('[data-testid="tz-input"]');
+      el.focus();
+      el.blur();
+      el.focus();
+    });
+    await input.fill(i % 2 ? "pago" : "kiritimati");
+    await page.waitForTimeout(250); // longer than the close delay
+    await expect(page.getByTestId("tz-list")).toBeVisible();
+    await expect(page.locator(`[data-zone="${i % 2 ? "Pacific/Pago_Pago" : "Pacific/Kiritimati"}"]`)).toBeVisible();
+    await input.press("Escape");
+  }
+});

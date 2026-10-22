@@ -12,6 +12,11 @@ export function TimeZonePicker({ ui, c, value, onChange, data }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  // Leaving the field closes the list a moment later (so a click on an
+  // option still lands). Coming back or typing cancels that pending close.
+  const closeTimer = useRef(null);
+  const cancelClose = () => { clearTimeout(closeTimer.current); closeTimer.current = null; };
+  useEffect(() => cancelClose, []);
   const listRef = useRef(null);
   const id = useId();
   const current = zones.find((z) => z.id === value);
@@ -25,6 +30,7 @@ export function TimeZonePicker({ ui, c, value, onChange, data }) {
     setQuery("");
   }
   function openList() {
+    cancelClose();
     setOpen(true);
     setQuery("");
     const i = Math.max(0, zones.findIndex((z) => z.id === value));
@@ -74,8 +80,8 @@ export function TimeZonePicker({ ui, c, value, onChange, data }) {
         value={shown}
         onFocus={openList}
         onClick={() => !open && openList()}
-        onBlur={() => setTimeout(() => setOpen(false), 120)}
-        onChange={(e) => { setQuery(e.target.value); setActive(0); setOpen(true); }}
+        onBlur={() => { cancelClose(); closeTimer.current = setTimeout(() => setOpen(false), 120); }}
+        onChange={(e) => { cancelClose(); setQuery(e.target.value); setActive(0); setOpen(true); }}
         onKeyDown={onKeyDown}
         data-testid="tz-input"
       />
