@@ -133,6 +133,12 @@ test("blocked times: block a day, see it in the list and the preview, remove it"
 
 test("the availability section fits at 390px", async ({ open, gas }) => {
   const host = await openUnlocked(open, gas, { viewport: { width: 390, height: 844 } });
-  await host.locator('[data-day-row="monday"]').getByRole("button", { name: "Add a time range" }).click();
+  const monday = host.locator('[data-day-row="monday"]');
+  await monday.getByRole("button", { name: "Add a time range" }).click();
   expect(await host.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  // After 18:00-23:00 there's no room, so the new range starts in the morning, ready to save.
+  await expect(monday.getByLabel("Monday from").nth(1)).toHaveValue("09:00");
+  await expect(monday.getByLabel("Monday to").nth(1)).toHaveValue("12:00");
+  await host.getByTestId("save-hours").click();
+  await expect(host.getByTestId("avail-msg-hours")).toHaveText("Saved. Clients now see the new hours.");
 });

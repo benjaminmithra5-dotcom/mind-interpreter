@@ -140,10 +140,16 @@ export function AvailabilityPanel({ ui, c }) {
   }
 
   const setRange = (day, i, j, value) => setHours({ ...hours, [day]: hours[day].map((r, k) => (k === i ? (j === 0 ? [value, r[1]] : [r[0], value]) : r)) });
+  // A new range goes after the last one if there's room, otherwise in the morning.
   const addRange = (day) => {
     const list = hours[day];
-    const last = list[list.length - 1];
-    setHours({ ...hours, [day]: [...list, last ? [last[1], last[1] < "23:00" ? "23:00" : last[1]] : ["18:00", "23:00"]] });
+    const hhmm = (m) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+    const lastEnd = list.length ? endMins(list[list.length - 1][1]) : null;
+    let range = ["18:00", "23:00"];
+    if (lastEnd !== null && lastEnd <= 22 * 60) range = [hhmm(lastEnd + 60), lastEnd + 180 >= 24 * 60 ? "00:00" : hhmm(lastEnd + 180)];
+    else if (list.length && mins(list[0][0]) >= 12 * 60) range = ["09:00", "12:00"];
+    else if (list.length) range = ["", ""];
+    setHours({ ...hours, [day]: [...list, range] });
   };
   const removeRange = (day, i) => setHours({ ...hours, [day]: hours[day].filter((_, k) => k !== i) });
   const setClosed = (day, closed) => setHours({ ...hours, [day]: closed ? [] : [["18:00", "23:00"]] });
@@ -162,7 +168,8 @@ export function AvailabilityPanel({ ui, c }) {
 
   const Msg = ({ area }) => (message.area === area && message.text ? <p style={ui.success} role="status" data-testid={`avail-msg-${area}`}>{message.text}</p> : null);
   const smallBtn = { ...ui.btnQuiet, padding: "8px 12px", fontSize: 13 };
-  const timeInput = { ...ui.input, width: "auto", minWidth: 0, flex: "1 1 110px", padding: "8px 10px" };
+  const timeInput = { ...ui.input, width: "100%", minWidth: 0, padding: "8px 8px" };
+  const linkBtn = { ...ui.small, background: "none", border: "none", padding: 0, color: c.accent, textDecoration: "underline", textUnderlineOffset: 3, cursor: "pointer" };
 
   return (
     <section style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }} aria-labelledby="avail-heading" data-testid="availability">
@@ -205,11 +212,13 @@ export function AvailabilityPanel({ ui, c }) {
                     </label>
                   </div>
                   {hours[day].map(([from, to], i) => (
-                    <div key={i} style={{ ...ui.row, flexWrap: "nowrap" }}>
-                      <input style={timeInput} type="time" step={900} value={from} onChange={(e) => setRange(day, i, 0, e.target.value)} aria-label={`${label} from`} />
-                      <span style={ui.small}>to</span>
-                      <input style={timeInput} type="time" step={900} value={to} onChange={(e) => setRange(day, i, 1, e.target.value)} aria-label={`${label} to`} />
-                      <button type="button" style={{ ...smallBtn, flexShrink: 0 }} onClick={() => removeRange(day, i)} aria-label={`Remove ${label} ${from} to ${to}`}>✕</button>
+                    <div key={i} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)", gap: 8, alignItems: "center" }}>
+                        <input style={timeInput} type="time" step={900} value={from} onChange={(e) => setRange(day, i, 0, e.target.value)} aria-label={`${label} from`} />
+                        <span style={ui.small}>to</span>
+                        <input style={timeInput} type="time" step={900} value={to} onChange={(e) => setRange(day, i, 1, e.target.value)} aria-label={`${label} to`} />
+                      </div>
+                      <div><button type="button" style={linkBtn} onClick={() => removeRange(day, i)} aria-label={`Remove ${label} ${from} to ${to}`}>Remove this range</button></div>
                     </div>
                   ))}
                   {!closed && hours[day].length < 6 && (

@@ -161,7 +161,7 @@ export function HostPage({ c, font, headingStyle, Footer }) {
         <form onSubmit={openRoom} noValidate style={ui.panelStrong} data-testid="host-form">
           <label style={ui.label}>Booking code
             <input style={{ ...ui.input, ...ui.codeInput }} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={14}
-              autoComplete="off" autoCapitalize="characters" spellCheck="false" placeholder="Paste from the email" data-testid="host-code" />
+              autoComplete="off" autoCapitalize="characters" spellCheck="false" placeholder="Paste the code" data-testid="host-code" />
           </label>
           {earlier && (
             <p style={ui.small} data-testid="host-resume-hint">To continue the earlier call, paste the same code again. Its time left ({formatClock(earlier.remaining)}) is kept.</p>
