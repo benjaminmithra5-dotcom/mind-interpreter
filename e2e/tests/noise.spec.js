@@ -97,3 +97,23 @@ test("with the switch off, the raw microphone is sent", async ({ open, gas }) =>
   const sent = await sentAudio(guest);
   for (const t of sent) expect(t.label).toBe(raw);
 });
+
+test("the noise code and WASM load only when the microphone starts on /call or /host, never on other pages", async ({ open }) => {
+  const isNoise = (url) => /noiseWorklet|workletProcessor|rnnoise/.test(url);
+  for (const path of ["/", "/articles", "/privacy"]) {
+    const page = await open(path);
+    const seen = [];
+    page.on("request", (r) => { if (isNoise(r.url())) seen.push(r.url()); });
+    await page.waitForLoadState("networkidle");
+    expect(seen, path).toEqual([]);
+    expect(await page.evaluate(() => performance.getEntriesByType("resource").some((e) => /noiseWorklet|workletProcessor|rnnoise/.test(e.name))), path).toBe(false);
+  }
+  const page = await open("/call");
+  await page.waitForLoadState("networkidle");
+  const before = await page.evaluate(() => performance.getEntriesByType("resource").filter((e) => /noiseWorklet|workletProcessor|rnnoise/.test(e.name)).length);
+  expect(before).toBe(0);
+  await page.getByRole("button", { name: "Test microphone" }).click();
+  await expect(page.getByTestId("mic-level")).toHaveAttribute("data-processed", "true");
+  const loaded = await page.evaluate(() => performance.getEntriesByType("resource").map((e) => e.name).filter((n) => /noiseWorklet|workletProcessor|rnnoise/.test(n)));
+  expect(loaded.some((n) => n.endsWith(".wasm"))).toBe(true);
+});
