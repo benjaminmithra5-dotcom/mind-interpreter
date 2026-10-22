@@ -23,3 +23,12 @@ export const getSlots = () => request({ method: "GET" }, { action: "slots" });
 export const checkCode = (code) => request({ method: "GET" }, { action: "check", code });
 export const book = (details) =>
   request({ method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "book", ...details }) });
+
+// Immediate Talk and booking status: { immediate, paused }.
+export const getStatus = () => request({ method: "GET" }, { action: "status" });
+export const requestImmediate = (details) =>
+  request({ method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "immediate", ...details }) });
+
+// Admin actions for /host (Availability). The key is sent in the body, never in the URL.
+export const adminCall = (action, key, payload = {}) =>
+  request({ method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ ...payload, action, key }) });

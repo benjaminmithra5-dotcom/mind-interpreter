@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { BOOKING_URL, isPrerender, normalizeCode } from "./talkConfig.js";
-import { checkCode } from "./bookingApi.js";
+import { checkCode, getStatus } from "./bookingApi.js";
 import { getMic } from "./media.js";
 import { GuestRoom } from "./room.js";
 import { callStyles } from "./callStyles.js";
 import { CallScreen } from "./CallScreen.jsx";
 import { DeviceCheck } from "./DeviceCheck.jsx";
 import { BookTime } from "./BookTime.jsx";
+import { ImmediateTalk } from "./ImmediateTalk.jsx";
 import { LeaveDialog, useLeaveGuard } from "./LeaveGuard.jsx";
 import { detectZone, formatDateTime } from "./timezones.js";
 
@@ -57,8 +58,18 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
   const [tick, setTick] = useState(null);
   const [remote, setRemote] = useState(null);
   const [muted, setMuted] = useState(false);
+  const [status, setStatus] = useState(null); // { immediate, paused } from the booking service
   const room = useRef(null);
   const stream = useRef(null);
+
+  // Whether immediate calls are on, and whether booking is paused.
+  useEffect(() => {
+    if (!BOOKING_URL || isPrerender()) return;
+    getStatus()
+      .then((s) => setStatus({ immediate: s && s.immediate === true, paused: s && s.paused === true }))
+      // Can't tell: show booking as usual (it has its own error messages).
+      .catch(() => setStatus({ immediate: false, paused: false }));
+  }, []);
 
   function stopMic() {
     stream.current?.getTracks().forEach((t) => t.stop());
@@ -192,7 +203,32 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
         </section>
       )}
 
-      {ready && !inCall && !inRoom && (
+      {ready && !inCall && !inRoom && !status && (
+        <p style={ui.small} data-testid="status-loading">Loading…</p>
+      )}
+
+      {ready && !inCall && !inRoom && status && status.paused && (
+        <div style={ui.panel} data-testid="booking-paused">
+          <p style={{ ...ui.text, textAlign: "center" }}>Booking is paused right now. Please check back soon.</p>
+        </div>
+      )}
+
+      {ready && !inCall && !inRoom && status && !status.paused && (
+        <section style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }} aria-labelledby="now-heading" data-testid="immediate-section">
+          <h2 id="now-heading" style={ui.h2}>Need to talk right now?</h2>
+          {status.immediate ? (
+            <>
+              <p style={ui.price}>$9.80 for 45 minutes. Audio call. I will email you a code within a few minutes if I am free.</p>
+              <p style={ui.small}>Check your spam folder, and add benjamin@benjaminmithra.com to your contacts so it reaches you.</p>
+              <ImmediateTalk ui={ui} onStatus={(patch) => setStatus((s) => ({ ...s, ...patch }))} />
+            </>
+          ) : (
+            <p style={ui.text} data-testid="immediate-off">I'm not taking immediate calls right now. You can book a time below.</p>
+          )}
+        </section>
+      )}
+
+      {ready && !inCall && !inRoom && status && !status.paused && (
         <section style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }} aria-labelledby="book-heading" data-testid="book-section">
           <h2 id="book-heading" style={ui.h2}>Book a time</h2>
           <p style={ui.price}>$9.80 for 45 minutes. Audio call.</p>

@@ -9,6 +9,7 @@ import { DeviceCheck } from "./DeviceCheck.jsx";
 import { detectZone, formatDateTime } from "./timezones.js";
 import { formatClock } from "./media.js";
 import { LeaveDialog, useLeaveGuard } from "./LeaveGuard.jsx";
+import { AvailabilityPanel } from "./AvailabilityPanel.jsx";
 
 // The time left in this tab's room, kept across a reload of this page (and
 // only in this tab): { code, startedAt, remaining }. A reopened room with the
@@ -204,6 +205,8 @@ export function HostPage({ c, font, headingStyle, Footer }) {
       {state === "in-call" && (
         <CallScreen ui={ui} tick={tick} connecting={!tick} muted={muted} onMute={toggleMute} onEnd={hangup} remoteStream={remote} who={guestName || "your guest"} />
       )}
+
+      {BOOKING_URL && <AvailabilityPanel ui={ui} c={c} />}
 
       <LeaveDialog ui={ui} c={c} open={guard.asking} onStay={guard.stay} onLeave={guard.leave}
         text={state === "in-call" ? "If you leave, the call ends for both of you." : "If you leave, the room closes."} />

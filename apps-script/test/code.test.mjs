@@ -1,5 +1,5 @@
 // Unit tests for Code.gs, run in Node against fake Google services.
-// Run with: node --test apps-script/test/
+// Run with: node --test apps-script/test/*.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createGas } from "./gas-mock.mjs";
