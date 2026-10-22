@@ -176,7 +176,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
               <p style={ui.small}>Enter the code from your email. The room opens 15 minutes before your call.</p>
               <label style={ui.label}>Your code
                 <input style={{ ...ui.input, ...ui.codeInput }} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={14}
-                  autoComplete="off" autoCapitalize="characters" spellCheck="false" placeholder="ABCDEFGHJK" inputMode="text" data-testid="code-input" />
+                  autoComplete="off" autoCapitalize="characters" spellCheck="false" placeholder="10-character code" inputMode="text" data-testid="code-input" />
               </label>
               <label style={ui.label}>Your name
                 <input style={ui.input} value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoComplete="given-name" data-testid="join-name" />
