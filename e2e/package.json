@@ -1,0 +1,15 @@
+{
+  "name": "mind-interpreter-talk-now-tests",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end tests for Talk now: the site against the real Code.gs (with fake Google services) and a local PeerJS broker.",
+  "scripts": {
+    "test": "playwright test",
+    "test:apps-script": "node --test ../apps-script/test/code.test.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "peer": "1.0.2",
+    "express": "^4.21.2"
+  }
+}

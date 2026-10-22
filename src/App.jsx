@@ -4,7 +4,7 @@ import * as Tone from "tone";
 import { marked } from "marked";
 import { parseArticle, sortArticles, formatArticleDate } from "./articleFormat.js";
 import { CallPage } from "./call/CallPage.jsx";
-import { AdminPage } from "./call/AdminPage.jsx";
+import { HostPage } from "./call/HostPage.jsx";
 
 // =================================================================
 // Theme, dark and warm on purpose. Nothing in this game should sit
@@ -4336,7 +4336,7 @@ const GAME_TABS = [
 const VIEW_PATH = {
   home: "/", journals: "/journals", exercises: "/exercises", games: "/games",
   rvlab: "/rv-lab", contact: "/consultation", faq: "/faq", articles: "/articles", privacy: "/privacy", terms: "/terms", disclaimer: "/disclaimer",
-  call: "/call", admin: "/admin",
+  call: "/call", host: "/host",
 };
 const GAME_SLUG = { chess: "chess", everyday: "recall", nback: "n-back", cards: "card-memory", words: "word-memory", numbers: "number-memory" };
 const GAME_KEY_FROM_SLUG = Object.fromEntries(Object.entries(GAME_SLUG).map(([k, v]) => [v, k]));
@@ -4368,8 +4368,8 @@ const PAGE_META = {
   faq: { title: "FAQ | Benjamin Mithra, Mind Interpreter", description: "Answers about private conversations with Benjamin Mithra, a Mind Interpreter: what you can talk about, how sessions work, privacy, and the site's Brain Games and Mind Exercises." },
   articles: { title: "Articles | Benjamin Mithra, Mind Interpreter", description: "Articles by Benjamin Mithra, a Mind Interpreter, on loneliness, difficult conversations, hard decisions, overthinking, and the moments in life when you need to be heard." },
   "article-missing": { title: "Article not found | Mind Interpreter", description: "This article could not be found. Browse all articles by Benjamin Mithra, a Mind Interpreter." },
-  call: { title: "Talk now | Mind Interpreter", description: "Call Benjamin Mithra from the website. $9.80 for 45 minutes. Audio call.", noindex: true },
-  admin: { title: "Admin | Mind Interpreter", description: "Private.", noindex: true },
+  call: { title: "Talk now | Mind Interpreter", description: "Book a time and join your private audio call with Benjamin Mithra. $9.80 for 45 minutes.", noindex: true },
+  host: { title: "Host | Mind Interpreter", description: "Private.", noindex: true },
   disclaimer: { title: "Disclaimer | Mind Interpreter", description: "Conversations here are not therapy or medical care, and the site's exercises and remote viewing content are educational and experimental." },
 };
 
@@ -4419,7 +4419,7 @@ export default function App() {
     const first = pathParts[0];
     if (first === "consultation") return "contact";
     if (first === "rv-lab") return "rvlab";
-    if (["journals", "exercises", "games", "faq", "articles", "privacy", "terms", "disclaimer", "call", "admin"].includes(first)) return first;
+    if (["journals", "exercises", "games", "faq", "articles", "privacy", "terms", "disclaimer", "call", "host"].includes(first)) return first;
     return "home";
   }, [location.pathname]);
 
@@ -4620,7 +4620,7 @@ export default function App() {
           {view === "contact" && <ContactScreen onNavigate={navigate} />}
           {view === "faq" && <FaqScreen />}
           {view === "call" && <CallPage c={c} font={font} headingStyle={styles(c).faqHeading} consultationPath={VIEW_PATH.contact} Footer={SiteFooterLine} />}
-          {view === "admin" && <AdminPage c={c} font={font} headingStyle={styles(c).faqHeading} />}
+          {view === "host" && <HostPage c={c} font={font} headingStyle={styles(c).faqHeading} Footer={SiteFooterLine} />}
           {view === "articles" && !articleSlug && <ArticlesListScreen />}
           {view === "articles" && articleSlug && <ArticleScreen article={article} />}
           {view === "privacy" && (

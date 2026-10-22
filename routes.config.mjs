@@ -48,10 +48,10 @@ export const ROUTES = [
   { path: "/rv-lab", changefreq: "monthly", priority: "0.8" },
   { path: "/consultation", changefreq: "monthly", priority: "1.0" },
   { path: "/faq", changefreq: "monthly", priority: "0.7" },
-  // The Talk now call pages: prerendered so the URLs work, but private
-  // (noindex) and left out of the sitemap.
+  // The Talk now pages (/call for clients, /host for Benjamin): prerendered
+  // so the URLs work, but private (noindex) and left out of the sitemap.
   { path: "/call", sitemap: false },
-  { path: "/admin", sitemap: false },
+  { path: "/host", sitemap: false },
   { path: "/articles", changefreq: "weekly", priority: "0.7", lastmod: ARTICLES[0]?.date },
   ...ARTICLES.map((a) => ({ path: `/articles/${a.slug}`, changefreq: "monthly", priority: "0.6", lastmod: a.date })),
   { path: "/privacy", changefreq: "yearly", priority: "0.3" },

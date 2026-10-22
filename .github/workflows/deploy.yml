@@ -26,10 +26,12 @@ jobs:
       - name: Build the project (vite build, sitemap, then prerendering)
         run: npm run build
         env:
-          # Address of the Talk now call server (set it under Settings >
-          # Secrets and variables > Actions > Variables). Empty is fine:
-          # the /call page then shows that calls aren't open yet.
-          VITE_CALL_SERVER_URL: ${{ vars.VITE_CALL_SERVER_URL }}
+          # Talk now (set under Settings > Secrets and variables > Actions >
+          # Variables). VITE_BOOKING_URL is the Google Apps Script web app
+          # address; while it's empty, /call shows "Booking opens soon."
+          # VITE_ICE_SERVERS is optional (a TURN relay, as JSON).
+          VITE_BOOKING_URL: ${{ vars.VITE_BOOKING_URL }}
+          VITE_ICE_SERVERS: ${{ vars.VITE_ICE_SERVERS }}
 
       - name: Copy the finished build into deploy-output
         run: |
