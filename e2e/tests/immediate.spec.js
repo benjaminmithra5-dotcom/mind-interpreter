@@ -4,7 +4,7 @@ const fill = async (page, { name = "Asha Rao", email = "asha@example.com", phone
   const form = page.getByTestId("immediate-form");
   await form.getByLabel("Your name").fill(name);
   await form.getByLabel("Your email").fill(email);
-  await form.getByLabel("Phone number, with country code").fill(phone);
+  await form.getByLabel("WhatsApp number (with country code)").fill(phone);
 };
 async function turnOn(gas) {
   await gas.property("ADMIN_KEY", ADMIN_KEY);
@@ -24,21 +24,22 @@ test("immediate on: the form, validation, the honeypot, then a request", async (
   await turnOn(gas);
   const page = await open("/call");
   const section = page.getByTestId("immediate-section");
-  await expect(section.getByText("$9.80 for 45 minutes. Audio call. I will email you a code within a few minutes if I am free.")).toBeVisible();
-  await expect(section.getByText("Check your spam folder, and add benjamin@benjaminmithra.com to your contacts so it reaches you.")).toBeVisible();
+  await expect(section.getByText("$9.80 for 45 minutes. Audio call. I will send you a code on WhatsApp within a few minutes if I am free.")).toBeVisible();
+  await expect(section.getByText(/spam/)).toHaveCount(0);
+  await expect(section.getByText("I will send your code on WhatsApp.")).toBeVisible();
 
   await page.getByTestId("immediate-submit").click();
   await expect(section.getByText("Please enter your name.")).toBeVisible();
   await expect(section.getByText("Please enter a valid email address.")).toBeVisible();
-  await expect(section.getByText(/Please enter your phone number with the country code/)).toBeVisible();
+  await expect(section.getByText(/Please check your WhatsApp number/)).toBeVisible();
 
-  await fill(page, { phone: "98765 43210" });
+  await fill(page, { phone: "+91 98765-ABCDE" });
   await page.getByTestId("immediate-submit").click();
-  await expect(section.getByText(/Please enter your phone number with the country code/)).toBeVisible();
+  await expect(section.getByText(/Please check your WhatsApp number/)).toBeVisible();
 
-  await section.getByLabel("Phone number, with country code").fill("+91 98765 43210");
+  await section.getByLabel("WhatsApp number (with country code)").fill("+91 98765 43210");
   await page.getByTestId("immediate-submit").click();
-  await expect(page.getByTestId("immediate-done")).toHaveText("Request received. Keep an eye on your email.");
+  await expect(page.getByTestId("immediate-done")).toHaveText("Request received. I will review it and send your code on WhatsApp to +919876543210. Please keep WhatsApp ready.");
   const [b] = await gas.bookings();
   expect(b.type).toBe("immediate");
   expect(b.timezone).toBe("Asia/Kolkata");
@@ -64,7 +65,7 @@ test("immediate: one waiting request per email, and at most 5 waiting at once", 
   const page = await open("/call");
   await fill(page, { email: "ASHA@example.com" });
   await page.getByTestId("immediate-submit").click();
-  await expect(page.getByTestId("immediate-notice")).toHaveText("You already have a request waiting. I'll email you once I've seen it.");
+  await expect(page.getByTestId("immediate-notice")).toHaveText("You already have a request waiting. I'll send your code on WhatsApp once I've seen it.");
 
   for (let i = 2; i <= 5; i++) expect((await gas.immediate({ name: `P${i}`, email: `p${i}@example.com`, phone: "+91 98765 43210" })).ok).toBe(true);
   await page.getByTestId("immediate-form").getByLabel("Your email").fill("sixth@example.com");
@@ -109,8 +110,10 @@ test("an approved immediate request starts now: the client's code opens the room
 
   const [b] = await gas.bookings();
   expect(Math.abs(Date.parse(b.start) - Date.now())).toBeLessThan(2 * 60_000);
-  const client = (await gas.mails()).find((m) => m.to === "asha@example.com");
-  expect(client.body).toContain("Your call is ready now. The room is open for you.");
+  expect((await gas.mails()).find((m) => m.to === "asha@example.com")).toBeUndefined();
+  const wa = owner.getByRole("link", { name: "Send the code on WhatsApp" });
+  await expect(wa).toHaveAttribute("target", "_top");
+  expect(await owner.locator("#text").inputValue()).toContain("is ready now");
   expect((await gas.events())[0].title).toBe("Immediate Talk: Asha Rao");
 
   const host = await openHost(open, b.code);

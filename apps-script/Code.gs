@@ -16,13 +16,15 @@
  *   2. A client books one ("book"). It goes on your calendar as
  *      "Talk now: <name> (pending)" and you get an email with Approve and
  *      Decline links. The client is told you'll review it.
- *   3. You tap Approve: the client gets their code and the join link.
+ *   3. You tap Approve: the page gives you a "Send the code on WhatsApp"
+ *      button with a ready-made message (code, time and join link).
+ *      The client isn't emailed the code: you send it on WhatsApp.
  *      Or you tap Decline: the time is freed and the client gets a kind note.
  *   4. At the time of the call, the website checks the code ("check").
  *
  * Immediate Talk: when you switch it on (on /host), clients can ask to talk
  * right now. You get an "Immediate Talk" email with Approve and Decline; on
- * Approve the call starts at that moment and the client gets their code.
+ * Approve the call starts at that moment and you send the code on WhatsApp.
  * Requests you don't answer within 15 minutes are released politely.
  *
  * Your hours, blocked times, "Taking immediate calls" and "Pause all booking"
@@ -356,16 +358,28 @@ function validateBooking_(body) {
   return v;
 }
 
-/** Name, email, phone (with country code) and time zone. */
+/**
+ * A WhatsApp number as digits only: spaces, dashes, brackets and a leading
+ * "+" are removed; anything else makes it invalid. 8 to 15 digits (with the
+ * country code). Returns "" if it isn't valid.
+ */
+function whatsappDigits_(input) {
+  var s = String(input == null ? "" : input).trim();
+  if (s.length > 40) return "";
+  var digits = s.replace(/^\+/, "").replace(/[\s\-()]/g, "");
+  return /^[0-9]{8,15}$/.test(digits) ? digits : "";
+}
+
+/** Name, email, WhatsApp number (with country code) and time zone. */
 function validateContact_(body) {
   var errors = [];
   var name = String(body.name || "").replace(/\s+/g, " ").trim();
   if (name.length < 1 || name.length > 80 || /[<>{}]/.test(name)) errors.push("name");
   var email = String(body.email || "").trim();
   if (email.length > 200 || !/^[^\s@<>()",;]+@[^\s@<>()",;]+\.[A-Za-z]{2,}$/.test(email)) errors.push("email");
-  var phone = String(body.phone || "").replace(/\s+/g, " ").trim();
-  var digits = phone.replace(/\D/g, "");
-  if (!/^\+[0-9][0-9 ()\-.]*$/.test(phone) || phone.length > 30 || digits.length < 8 || digits.length > 15) errors.push("phone");
+  var digits = whatsappDigits_(body.phone);
+  if (!digits) errors.push("phone");
+  var phone = digits ? "+" + digits : "";
   var tz = String(body.timezone || "UTC");
   if (tz.length > 64 || !/^(UTC|[A-Za-z]+(\/[A-Za-z0-9_+\-]+){1,2})$/.test(tz)) tz = "UTC";
   return { errors: errors, name: name, email: email, phone: phone, timezone: tz };
@@ -466,18 +480,32 @@ function ownerPage_(action, id, token) {
     var when = b.start
       ? esc_(formatTime_(b.start, TIMEZONE)) + " (India time)<br>" + esc_(formatTime_(b.start, b.timezone)) + " (" + esc_(b.timezone) + ")"
       : "Immediate Talk: wants to talk now (asked at " + esc_(formatTime_(b.createdAt, TIMEZONE)) + " India time)." +
-        (action === "approve" ? "<br>If you approve, the call starts now and the client gets their code." : "");
+        (action === "approve" ? "<br>If you approve, the call starts now and you send the client their code on WhatsApp." : "");
     body =
       "<p><strong>" + esc_(b.name) + "</strong><br>" + when + "</p>" +
       '<p><button id="go">' + (action === "approve" ? "Approve" : (b.status === "approved" ? "Cancel the call" : "Decline")) + "</button></p>" +
-      '<p id="msg" role="status"></p>' +
+      '<p id="msg" role="status"></p><div id="approved"></div>' +
       "<script>" +
       "var args=" + JSON.stringify([action, id, token]).replace(/</g, "\\u003c") + ";" +
       "document.getElementById('go').onclick=function(){" +
       "var btn=this;btn.disabled=true;btn.textContent='Working…';" +
-      "google.script.run.withSuccessHandler(function(m){btn.remove();document.getElementById('msg').textContent=m;})" +
+      "google.script.run.withSuccessHandler(function(m){btn.remove();show(m);})" +
       ".withFailureHandler(function(){btn.disabled=false;btn.textContent='Try again';document.getElementById('msg').textContent='Something went wrong. Please try again.';})" +
       ".ownerAction(args[0],args[1],args[2]);};" +
+      // After Approve: a big WhatsApp button (opened outside this frame),
+      // the message itself, and a Copy button in case WhatsApp doesn't open.
+      "function show(m){var msg=document.getElementById('msg');" +
+      "if(typeof m==='string'){msg.textContent=m;return;}" +
+      "msg.textContent=m.message;" +
+      "var a=document.createElement('a');a.href=m.whatsapp;a.target='_top';a.rel='noopener';a.className='wa';a.id='wa';a.textContent='Send the code on WhatsApp';" +
+      "var t=document.createElement('textarea');t.readOnly=true;t.id='text';t.value=m.text;t.rows=6;" +
+      "var c=document.createElement('button');c.type='button';c.id='copy';c.textContent='Copy message';" +
+      "var note=document.createElement('p');note.id='copied';note.setAttribute('aria-live','polite');" +
+      "c.onclick=function(){t.focus();t.select();var ok=false;try{ok=document.execCommand('copy');}catch(e){}" +
+      "if(!ok&&navigator.clipboard){navigator.clipboard.writeText(t.value).then(function(){note.textContent='Copied.';},function(){note.textContent='Select the text above and copy it.';});return;}" +
+      "note.textContent=ok?'Copied.':'Select the text above and copy it.';};" +
+      "var box=document.getElementById('approved');box.appendChild(a);" +
+      "var label=document.createElement('p');label.textContent='The message:';box.appendChild(label);box.appendChild(t);box.appendChild(c);box.appendChild(note);}" +
       "</script>";
   }
   return page_(usable ? title : "Talk now", body);
@@ -509,8 +537,8 @@ function ownerAction(action, id, token) {
       var event = CalendarApp.getDefaultCalendar().createEvent("Immediate Talk: " + b.name, start, new Date(b.end), { description: eventDescription_(b) });
       b.eventId = event.getId();
       saveBooking_(b);
-      emailClientApproved_(b);
-      return "Approved. The client has been emailed their code. Open the room on /host.";
+      emailOwnerApproved_(b);
+      return approvedResult_(b, "Approved. The call starts now: send the code on WhatsApp, then open the room on /host.");
     }
     if (action === "approve") {
       if (Date.now() > Date.parse(b.start)) return "This request's time has already passed, so it can't be approved.";
@@ -523,8 +551,8 @@ function ownerAction(action, id, token) {
         ev.setDescription(eventDescription_(b));
       }
       saveBooking_(b);
-      emailClientApproved_(b);
-      return "Approved. The client has been emailed.";
+      emailOwnerApproved_(b);
+      return approvedResult_(b, "Approved.");
     }
     var wasApproved = b.status === "approved";
     deleteEvent_(b);
@@ -649,63 +677,53 @@ function emailOwnerRequest_(b) {
   });
 }
 
-function emailClientApproved_(b) {
-  if (b.type === "immediate") return emailClientImmediateApproved_(b);
+/**
+ * The code goes to the client on WhatsApp, sent by you (fully automatic
+ * WhatsApp messages cost money), so there's no code email to the client.
+ * You get this email with the "Send the code on WhatsApp" button.
+ */
+function emailOwnerApproved_(b) {
   var link = SITE_URL + "/call?room=" + b.code;
-  var theirs = formatTime_(b.start, b.timezone);
-  var india = formatTime_(b.start, TIMEZONE);
-  var subject = "Your Talk now call: " + theirs;
+  var text = codeMessage_(b);
+  var whatsapp = whatsappUrl_(b, text);
+  var when = b.type === "immediate" ? "now (Immediate Talk)" : formatTime_(b.start, TIMEZONE) + " (India time)";
+  var subject = "Approved: send " + b.name + " the code on WhatsApp";
   var html =
-    "<p>Hello " + esc_(b.name) + ",</p>" +
-    "<p>Your call is confirmed.</p>" +
-    "<p style=\"color:#566A6C\">If you can't find this email later, check your spam folder and add " + esc_(OWNER_EMAIL) + " to your contacts.</p>" +
-    "<p><strong>" + esc_(theirs) + "</strong> (your time, " + esc_(b.timezone) + ")<br>" +
-    esc_(india) + " (India time)</p>" +
-    '<p>Your code: <strong style="font-family:monospace;font-size:18px;letter-spacing:2px">' + b.code + "</strong></p>" +
-    '<p><a href="' + esc_(link) + '" style="' + BUTTON_STYLE + '">Join your call</a></p>' +
-    "<p>Or open " + esc_(link) + " a few minutes before the time. The room opens " + JOIN_EARLY_MINUTES + " minutes before the start.</p>" +
-    "<p>Use headphones or over-ear headphones.</p>" +
-    "<p>The call is " + SESSION_MINUTES + " minutes, audio only, private, and not recorded. If you need to change the time, just reply to this email.</p>" +
-    "<p>Benjamin</p>";
-  var text =
-    "Hello " + b.name + ",\n\nYour call is confirmed.\n\n" +
-    "If you can't find this email later, check your spam folder and add " + OWNER_EMAIL + " to your contacts.\n\n" + theirs + " (your time, " + b.timezone + ")\n" + india +
-    " (India time)\n\nYour code: " + b.code + "\nJoin here: " + link +
-    "\n\nThe room opens " + JOIN_EARLY_MINUTES + " minutes before the start.\nUse headphones or over-ear headphones.\n\n" +
-    "The call is " + SESSION_MINUTES + " minutes, audio only, private, and not recorded. If you need to change the time, just reply to this email.\n\nBenjamin\n";
-  MailApp.sendEmail({ to: b.email, replyTo: OWNER_EMAIL, subject: subject, body: text, htmlBody: wrapHtml_(html), name: "Benjamin Mithra" });
-  // Your copy, with a button to send the code on WhatsApp too, in case the
-  // email lands in the client's spam folder.
-  sendOwnerCopy_(b, subject, text, html, whatsappCodeLink_(b, theirs, india, link));
+    "<p>You approved <strong>" + esc_(b.name) + "</strong>'s call: " + esc_(when) + ".</p>" +
+    "<p>Send them the code on WhatsApp:</p>" +
+    '<p><a href="' + esc_(whatsapp) + '" style="' + BUTTON_STYLE + '">Send the code on WhatsApp</a></p>' +
+    "<p style=\"color:#566A6C\">The message:</p>" +
+    '<p style="border-left:3px solid #0E5A5F;padding-left:12px">' + esc_(text) + "</p>" +
+    "<p>Code: <strong style=\"font-family:monospace\">" + b.code + "</strong><br>Join link: " + esc_(link) + "<br>WhatsApp: " + esc_(b.phone) + "</p>";
+  var body =
+    "You approved " + b.name + "'s call: " + when + ".\n\nSend the code on WhatsApp: " + whatsapp +
+    "\n\nThe message:\n" + text + "\n\nCode: " + b.code + "\nJoin link: " + link + "\nWhatsApp: " + b.phone + "\n";
+  MailApp.sendEmail({ to: OWNER_EMAIL, subject: subject, body: body, htmlBody: wrapHtml_(html), name: "Talk now" });
 }
 
-/** Your copy of an email to the client, with the "Send the code on WhatsApp" button. */
-function sendOwnerCopy_(b, subject, text, html, whatsapp) {
-  MailApp.sendEmail({
-    to: OWNER_EMAIL,
-    subject: "Copy: " + subject + " (sent to " + b.name + ")",
-    body: "This is a copy of the email sent to " + b.email + ".\n\nSend the code on WhatsApp: " + whatsapp + "\n\n" + text,
-    htmlBody: wrapHtml_(
-      "<p style=\"color:#566A6C\">This is a copy of the email sent to " + esc_(b.email) + ".</p>" +
-      '<p><a href="' + esc_(whatsapp) + '" style="' + BUTTON_STYLE + '">Send the code on WhatsApp</a></p><hr>' + html
-    ),
-    name: "Talk now",
-  });
+/** What the Approve page shows: the WhatsApp button and the message. */
+function approvedResult_(b, message) {
+  var text = codeMessage_(b);
+  return { message: message, whatsapp: whatsappUrl_(b, text), text: text };
 }
 
 /**
- * A wa.me link that opens WhatsApp with a short message to the client,
- * ready to send: their name, the time (theirs and India's), the code, the
- * join link and the headphones reminder.
+ * The message with the code, ready to send on WhatsApp: the client's name,
+ * the time (theirs and India's, or "ready now"), the code, the join link and
+ * the headphones reminder.
  */
-function whatsappCodeLink_(b, theirs, india, link) {
-  var when = theirs
-    ? "is confirmed for " + theirs + " (your time, " + b.timezone + "), which is " + india + " in India"
-    : "is ready now"; // Immediate Talk
-  var message =
-    "Hello " + b.name + ", your Talk now call " + when + ". Your code is " + b.code + ". Join here: " + link +
+function codeMessage_(b) {
+  var link = SITE_URL + "/call?room=" + b.code;
+  var when = b.type === "immediate"
+    ? "is ready now"
+    : "is confirmed for " + formatTime_(b.start, b.timezone) + " (your time, " + b.timezone + "), which is " + formatTime_(b.start, TIMEZONE) + " in India";
+  return "Hello " + b.name + ", your Talk now call " + when + ". Your code is " + b.code + ". Join here: " + link +
     " Please use headphones or over-ear headphones. Benjamin";
-  return "https://wa.me/" + b.phone.replace(/\D/g, "") + "?text=" + encodeURIComponent(message);
+}
+
+/** https://wa.me/<digits only>?text=<the message, URL-encoded> */
+function whatsappUrl_(b, text) {
+  return "https://wa.me/" + String(b.phone).replace(/\D/g, "") + "?text=" + encodeURIComponent(text);
 }
 
 /** Immediate Talk: you got a request to talk now. */
@@ -722,36 +740,13 @@ function emailOwnerImmediate_(b) {
     "Asked at " + esc_(asked) + " (India time). Their time zone: " + esc_(b.timezone) + "</p>" +
     '<p><a href="' + esc_(approve) + '" style="' + BUTTON_STYLE + '">Approve</a> &nbsp; ' +
     '<a href="' + esc_(decline) + '" style="' + BUTTON_QUIET_STYLE + '">Decline</a></p>' +
-    "<p style=\"color:#566A6C\">If you approve, the call starts then: the client gets their code, and you open the room on /host. " +
+    "<p style=\"color:#566A6C\">If you approve, the call starts then: you send the client their code on WhatsApp, and open the room on /host. " +
     "If you don't answer within " + IMMEDIATE_WAIT_MINUTES + " minutes, the request is released and the client is told politely.</p>";
   var text =
     b.name + " would like to talk now.\n\nEmail: " + b.email + "\nPhone: " + b.phone + "\nWhatsApp: " + whatsapp +
     "\nAsked at " + asked + " (India time). Their time zone: " + b.timezone +
     "\n\nApprove: " + approve + "\nDecline: " + decline + "\n";
   MailApp.sendEmail({ to: OWNER_EMAIL, replyTo: b.email, subject: "Immediate Talk: " + b.name, body: text, htmlBody: wrapHtml_(html), name: "Talk now" });
-}
-
-/** Immediate Talk approved: the code, ready now. */
-function emailClientImmediateApproved_(b) {
-  var link = SITE_URL + "/call?room=" + b.code;
-  var subject = "Your Talk now call is ready";
-  var html =
-    "<p>Hello " + esc_(b.name) + ",</p>" +
-    "<p>Your call is ready now. The room is open for you.</p>" +
-    "<p style=\"color:#566A6C\">If you can't find this email later, check your spam folder and add " + esc_(OWNER_EMAIL) + " to your contacts.</p>" +
-    '<p>Your code: <strong style="font-family:monospace;font-size:18px;letter-spacing:2px">' + b.code + "</strong></p>" +
-    '<p><a href="' + esc_(link) + '" style="' + BUTTON_STYLE + '">Join your call</a></p>' +
-    "<p>Or open " + esc_(link) + ".</p>" +
-    "<p>Use headphones or over-ear headphones.</p>" +
-    "<p>The call is " + SESSION_MINUTES + " minutes, audio only, private, and not recorded.</p>" +
-    "<p>Benjamin</p>";
-  var text =
-    "Hello " + b.name + ",\n\nYour call is ready now. The room is open for you.\n\n" +
-    "If you can't find this email later, check your spam folder and add " + OWNER_EMAIL + " to your contacts.\n\n" +
-    "Your code: " + b.code + "\nJoin here: " + link + "\n\nUse headphones or over-ear headphones.\n\n" +
-    "The call is " + SESSION_MINUTES + " minutes, audio only, private, and not recorded.\n\nBenjamin\n";
-  MailApp.sendEmail({ to: b.email, replyTo: OWNER_EMAIL, subject: subject, body: text, htmlBody: wrapHtml_(html), name: "Benjamin Mithra" });
-  sendOwnerCopy_(b, subject, text, html, whatsappCodeLink_(b, null, null, link));
 }
 
 function emailClientDeclined_(b, wasApproved) {
@@ -1038,7 +1033,10 @@ function page_(title, body) {
     "main{max-width:520px;margin:40px auto;padding:24px;background:#FFFFFF;border:1px solid rgba(14,90,95,.28);border-radius:12px}" +
     "h1{color:#0E5A5F;font-size:22px;margin:0 0 12px}" +
     "button{background:#0E5A5F;color:#FFFFFF;border:0;border-radius:6px;padding:12px 24px;font-size:16px;cursor:pointer}" +
-    "button:disabled{opacity:.6}</style></head><body><main><h1>" + esc_(title) + "</h1>" + body + "</main></body></html>";
+    "button:disabled{opacity:.6}" +
+    ".wa{display:block;text-align:center;background:#0E5A5F;color:#FFFFFF;border-radius:8px;padding:16px 20px;font-size:19px;font-weight:bold;text-decoration:none;margin:8px 0 16px}" +
+    "textarea{width:100%;box-sizing:border-box;font:15px/1.5 Georgia,serif;border:1px solid rgba(14,90,95,.5);border-radius:8px;padding:10px;background:#FBF7EE;color:#1E2B2C}" +
+    "#copy{margin-top:8px;background:transparent;color:#0E5A5F;border:1px solid rgba(14,90,95,.5)}</style></head><body><main><h1>" + esc_(title) + "</h1>" + body + "</main></body></html>";
   return HtmlService.createHtmlOutput(html)
     .setTitle(title)
     .addMetaTag("viewport", "width=device-width, initial-scale=1");

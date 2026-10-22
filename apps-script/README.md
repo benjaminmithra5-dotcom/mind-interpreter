@@ -18,6 +18,21 @@ and the known limits are in the main [README](../README.md#talk-now-booking-and-
 
 The web app URL stays the same, so nothing needs to change on the website.
 
+Check it worked: book a test time, tap **Approve** in the email and then the
+**Approve** button. The page should say "Approved." and show **Send the code
+on WhatsApp**. If it still says "The client has been emailed", the old
+version is still deployed: repeat step 3 and make sure **New version** is
+chosen.
+
+## Why the code goes on WhatsApp by hand
+
+Sending WhatsApp messages automatically needs the paid WhatsApp Business API
+(through a provider that charges per message). A `https://wa.me/<number>?text=…`
+link is free: it opens WhatsApp with the client's chat and the message
+already typed, and you press send. So `Code.gs` never emails the code to the
+client; the Approve page and your "Approved" email have the button and the
+message (with **Copy message** as a fallback).
+
 ## The admin key (ADMIN_KEY), once
 
 The Availability section on benjaminmithra.com/host (switches, weekly hours,

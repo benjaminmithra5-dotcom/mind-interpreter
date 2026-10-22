@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { getSlots, book } from "./bookingApi.js";
 import { isPrerender } from "./talkConfig.js";
 import { TimeZonePicker } from "./TimeZonePicker.jsx";
@@ -9,17 +9,51 @@ const EMAIL = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[A-Za-z]{2,}$/;
 export const FIELD_ERROR = {
   name: "Please enter your name.",
   email: "Please enter a valid email address.",
-  phone: "Please enter your phone number with the country code, for example +91 98765 43210.",
+  phone: "Please check your WhatsApp number. Include the country code, for example +91 98765 43210.",
 };
+
+/**
+ * A WhatsApp number as digits only: spaces, dashes, brackets and one
+ * leading + are removed; 8 to 15 digits must remain. "" if it isn't valid.
+ * (The same rule as whatsappDigits_ in Code.gs.)
+ */
+export function whatsappDigits(input) {
+  const s = String(input || "").trim();
+  if (s.length > 40) return "";
+  const digits = s.replace(/^\+/, "").replace(/[\s\-()]/g, "");
+  return /^[0-9]{8,15}$/.test(digits) ? digits : "";
+}
 
 export function validate({ name, email, phone }) {
   const errors = {};
   if (!name.trim() || name.trim().length > 80) errors.name = FIELD_ERROR.name;
   if (!EMAIL.test(email.trim()) || email.trim().length > 200) errors.email = FIELD_ERROR.email;
-  const p = phone.replace(/\s+/g, " ").trim();
-  const digits = p.replace(/\D/g, "").length;
-  if (!/^\+[0-9][0-9 ()\-.]*$/.test(p) || p.length > 30 || digits < 8 || digits > 15) errors.phone = FIELD_ERROR.phone;
+  if (!whatsappDigits(phone)) errors.phone = FIELD_ERROR.phone;
   return errors;
+}
+
+/** The WhatsApp field with its hint, shared by both forms. */
+export function WhatsAppField({ ui, value, onChange, error }) {
+  const hint = useId();
+  return (
+    <>
+      <label style={ui.label}>WhatsApp number (with country code)
+        <input style={ui.input} type="tel" value={value} onChange={onChange} maxLength={40} autoComplete="tel" placeholder="+91 98765 43210"
+          aria-invalid={Boolean(error)} aria-describedby={hint} required data-testid="whatsapp-input" />
+      </label>
+      <p style={ui.small} id={hint}>I will send your code on WhatsApp.</p>
+      {error && <p style={ui.error} role="alert">{error}</p>}
+    </>
+  );
+}
+
+/** "Request received…": shows the number they typed, so a typo can be caught. */
+export function WhatsAppConfirmation({ ui, digits }) {
+  return (
+    <p style={ui.text} data-testid="whatsapp-confirmation">
+      Request received. I will review it and send your code on WhatsApp to <strong style={{ whiteSpace: "nowrap" }}>+{digits}</strong>. Please keep WhatsApp ready.
+    </p>
+  );
 }
 
 // "Book a time": pick a time zone, a day and a free time, then send a request.
@@ -86,9 +120,10 @@ export function BookTime({ ui, c }) {
     if (Object.keys(errs).length || !slot) return;
     setSending(true);
     try {
-      const res = await book({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), website: form.website, timezone: tz, start: slot });
+      const digits = whatsappDigits(form.phone);
+      const res = await book({ name: form.name.trim(), email: form.email.trim(), phone: `+${digits}`, website: form.website, timezone: tz, start: slot });
       if (res.ok) {
-        setDone({ slot, tz });
+        setDone({ slot, tz, digits });
       } else if (res.error === "slot-taken") {
         setSlot(null);
         setNotice("Sorry, that time was just taken. Please choose another time.");
@@ -96,7 +131,7 @@ export function BookTime({ ui, c }) {
       } else if (res.error === "paused") {
         setNotice("Booking is paused right now. Please check back soon.");
       } else if (res.error === "pending-exists") {
-        setNotice("You already have a request waiting. I'll email you once I've reviewed it.");
+        setNotice("You already have a request waiting. I'll send your code on WhatsApp once I've reviewed it.");
       } else if (res.error === "invalid" && Array.isArray(res.fields)) {
         const errs2 = {};
         for (const f of res.fields) if (FIELD_ERROR[f]) errs2[f] = FIELD_ERROR[f];
@@ -115,7 +150,7 @@ export function BookTime({ ui, c }) {
     return (
       <div style={ui.panel} data-testid="book-done" role="status">
         <p style={ui.panelTitle}>Request received</p>
-        <p style={ui.text}>Request received. I will review it and email you a code. Please check your spam folder, and add benjamin@benjaminmithra.com to your contacts so it reaches you.</p>
+        <WhatsAppConfirmation ui={ui} digits={done.digits} />
         <p style={ui.small}>You asked for {formatDateTime(new Date(done.slot), done.tz)} (your time, {done.tz.replace(/_/g, " ")}).</p>
       </div>
     );
@@ -207,10 +242,7 @@ export function BookTime({ ui, c }) {
             <input style={ui.input} type="email" value={form.email} onChange={set("email")} maxLength={200} autoComplete="email" aria-invalid={Boolean(errors.email)} />
           </label>
           {errors.email && <p style={ui.error} role="alert">{errors.email}</p>}
-          <label style={ui.label}>Phone number, with country code
-            <input style={ui.input} type="tel" value={form.phone} onChange={set("phone")} maxLength={30} autoComplete="tel" placeholder="+91 98765 43210" aria-invalid={Boolean(errors.phone)} />
-          </label>
-          {errors.phone && <p style={ui.error} role="alert">{errors.phone}</p>}
+          <WhatsAppField ui={ui} value={form.phone} onChange={set("phone")} error={errors.phone} />
           {/* A hidden field people never see; bots that fill it in are ignored. */}
           <div aria-hidden="true" style={{ position: "absolute", left: -10000, top: "auto", width: 1, height: 1, overflow: "hidden" }}>
             <label>Website<input tabIndex={-1} autoComplete="off" name="website" value={form.website} onChange={set("website")} /></label>

@@ -17,7 +17,7 @@ const SAVED = "talk-now-room"; // this tab's call, so a reload can rejoin it
 // Messages for the client. "{link}" becomes a link to the Consultation page.
 const MESSAGE = {
   form: "Please enter your code and your name.",
-  invalid: "That code isn't valid. Please check the code in the email I sent you.",
+  invalid: "That code isn't valid. Please check the code I sent you on WhatsApp.",
   "not-yet": "Your room opens 15 minutes before your call. Your call is on {when} (your time).",
   expired: "This code has expired. You're welcome to book another time below.",
   network: "We couldn't check your code just now. Please check your connection and try again.",
@@ -204,7 +204,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
 
           {!inCall && !inRoom && (
             <form onSubmit={join} noValidate style={{ display: "flex", flexDirection: "column", gap: 14 }} data-testid="join-form">
-              <p style={ui.small}>Enter the code from your email. The room opens 15 minutes before your call.</p>
+              <p style={ui.small}>Enter the code I sent you on WhatsApp. The room opens 15 minutes before your call.</p>
               <label style={ui.label}>Your code
                 <input style={{ ...ui.input, ...ui.codeInput }} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={14}
                   autoComplete="off" autoCapitalize="characters" spellCheck="false" placeholder="Your code" inputMode="text" data-testid="code-input" />
@@ -235,8 +235,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
           <h2 id="now-heading" style={ui.h2}>Need to talk right now?</h2>
           {status.immediate ? (
             <>
-              <p style={ui.price}>$9.80 for 45 minutes. Audio call. I will email you a code within a few minutes if I am free.</p>
-              <p style={ui.small}>Check your spam folder, and add benjamin@benjaminmithra.com to your contacts so it reaches you.</p>
+              <p style={ui.price}>$9.80 for 45 minutes. Audio call. I will send you a code on WhatsApp within a few minutes if I am free.</p>
               <ImmediateTalk ui={ui} onStatus={(patch) => setStatus((s) => ({ ...s, ...patch }))} />
             </>
           ) : (
@@ -249,7 +248,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
         <section style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }} aria-labelledby="book-heading" data-testid="book-section">
           <h2 id="book-heading" style={ui.h2}>Book a time</h2>
           <p style={ui.price}>$9.80 for 45 minutes. Audio call.</p>
-          <p style={ui.text}>I will review your request and email you a code.</p>
+          <p style={ui.text}>I will review your request and send your code on WhatsApp.</p>
           <BookTime ui={ui} c={c} />
         </section>
       )}
