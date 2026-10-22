@@ -490,6 +490,7 @@ function emailClientApproved_(b) {
   var html =
     "<p>Hello " + esc_(b.name) + ",</p>" +
     "<p>Your call is confirmed.</p>" +
+    "<p style=\"color:#566A6C\">If you can't find this email later, check your spam folder and add " + esc_(OWNER_EMAIL) + " to your contacts.</p>" +
     "<p><strong>" + esc_(theirs) + "</strong> (your time, " + esc_(b.timezone) + ")<br>" +
     esc_(india) + " (India time)</p>" +
     '<p>Your code: <strong style="font-family:monospace;font-size:18px;letter-spacing:2px">' + b.code + "</strong></p>" +
@@ -499,19 +500,38 @@ function emailClientApproved_(b) {
     "<p>The call is " + SESSION_MINUTES + " minutes, audio only, private, and not recorded. If you need to change the time, just reply to this email.</p>" +
     "<p>Benjamin</p>";
   var text =
-    "Hello " + b.name + ",\n\nYour call is confirmed.\n\n" + theirs + " (your time, " + b.timezone + ")\n" + india +
+    "Hello " + b.name + ",\n\nYour call is confirmed.\n\n" +
+    "If you can't find this email later, check your spam folder and add " + OWNER_EMAIL + " to your contacts.\n\n" + theirs + " (your time, " + b.timezone + ")\n" + india +
     " (India time)\n\nYour code: " + b.code + "\nJoin here: " + link +
     "\n\nThe room opens " + JOIN_EARLY_MINUTES + " minutes before the start.\nUse headphones or over-ear headphones.\n\n" +
     "The call is " + SESSION_MINUTES + " minutes, audio only, private, and not recorded. If you need to change the time, just reply to this email.\n\nBenjamin\n";
   MailApp.sendEmail({ to: b.email, replyTo: OWNER_EMAIL, subject: subject, body: text, htmlBody: wrapHtml_(html), name: "Benjamin Mithra" });
-  // Your copy.
+  // Your copy, with a button to send the code on WhatsApp too, in case the
+  // email lands in the client's spam folder.
+  var whatsapp = whatsappCodeLink_(b, theirs, india, link);
   MailApp.sendEmail({
     to: OWNER_EMAIL,
     subject: "Copy: " + subject + " (sent to " + b.name + ")",
-    body: "This is a copy of the email sent to " + b.email + ".\n\n" + text,
-    htmlBody: wrapHtml_("<p style=\"color:#566A6C\">This is a copy of the email sent to " + esc_(b.email) + ".</p><hr>" + html),
+    body: "This is a copy of the email sent to " + b.email + ".\n\nSend the code on WhatsApp: " + whatsapp + "\n\n" + text,
+    htmlBody: wrapHtml_(
+      "<p style=\"color:#566A6C\">This is a copy of the email sent to " + esc_(b.email) + ".</p>" +
+      '<p><a href="' + esc_(whatsapp) + '" style="' + BUTTON_STYLE + '">Send the code on WhatsApp</a></p><hr>' + html
+    ),
     name: "Talk now",
   });
+}
+
+/**
+ * A wa.me link that opens WhatsApp with a short message to the client,
+ * ready to send: their name, the time (theirs and India's), the code, the
+ * join link and the headphones reminder.
+ */
+function whatsappCodeLink_(b, theirs, india, link) {
+  var message =
+    "Hello " + b.name + ", your Talk now call is confirmed for " + theirs + " (your time, " + b.timezone + "), " +
+    "which is " + india + " in India. Your code is " + b.code + ". Join here: " + link +
+    " Please use headphones or over-ear headphones. Benjamin";
+  return "https://wa.me/" + b.phone.replace(/\D/g, "") + "?text=" + encodeURIComponent(message);
 }
 
 function emailClientDeclined_(b, wasApproved) {
