@@ -61,6 +61,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
   const [status, setStatus] = useState(null); // { immediate, paused } from the booking service
   const room = useRef(null);
   const stream = useRef(null);
+  const joining = useRef(false);
 
   // Whether immediate calls are on, and whether booking is paused.
   useEffect(() => {
@@ -120,9 +121,20 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
 
   async function join(e) {
     e.preventDefault();
+    // One join at a time: a second press (a double tap, Enter twice) would
+    // start a second connection, which the host would take for a second guest.
+    if (joining.current || room.current) return;
     setMessage(null);
     const roomCode = normalizeCode(code);
     if (roomCode.length !== 10 || !name.trim()) { setMessage({ id: "form" }); return; }
+    joining.current = true;
+    try {
+      await joinChecked(roomCode);
+    } finally {
+      joining.current = false;
+    }
+  }
+  async function joinChecked(roomCode) {
     setPhase("checking");
     let res;
     try {
