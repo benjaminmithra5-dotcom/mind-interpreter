@@ -4440,6 +4440,16 @@ export default function App() {
   useDocumentMeta(metaKey, location.pathname, article ? articleMeta(article) : null);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  // Pause the "Talk now" pulse while this browser tab is hidden (an event, not a timer).
+  useEffect(() => {
+    const sync = () => {
+      if (document.hidden) document.documentElement.setAttribute("data-page-hidden", "");
+      else document.documentElement.removeAttribute("data-page-hidden");
+    };
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    return () => document.removeEventListener("visibilitychange", sync);
+  }, []);
 
   const [activeGame, setActiveGame] = useState(() => pickRandomGame(new Set()));
   const [phase, setPhase] = useState("intro");
@@ -4547,6 +4557,34 @@ export default function App() {
           @media (prefers-reduced-motion: reduce) {
             .emotion-marquee-track { animation-duration: 400s !important; }
           }
+          /* "Talk now": a soft teal ring that grows and fades every 2 seconds.
+             It's drawn on a pseudo-element with box-shadow, so the tab's size
+             and position never change. A cue only, not an "online" light. */
+          @keyframes talkPulse {
+            0% { box-shadow: 0 0 0 0 ${withAlpha(c.accent, 0.5)}; opacity: 1; }
+            70% { box-shadow: 0 0 0 9px ${withAlpha(c.accent, 0)}; opacity: 1; }
+            100% { box-shadow: 0 0 0 9px ${withAlpha(c.accent, 0)}; opacity: 0; }
+          }
+          .talk-pulse { position: relative; }
+          .talk-pulse::after {
+            content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+            animation: talkPulse 2s ease-out infinite;
+          }
+          .menu-btn { position: relative; }
+          .menu-dot {
+            position: absolute; top: -4px; right: -4px; width: 9px; height: 9px; border-radius: 50%;
+            background: ${c.accent}; pointer-events: none;
+          }
+          .menu-dot::after {
+            content: ""; position: absolute; inset: 0; border-radius: 50%;
+            animation: talkPulse 2s ease-out infinite;
+          }
+          /* Browsers already stop painting hidden tabs; this pauses it explicitly too. */
+          html[data-page-hidden] .talk-pulse::after, html[data-page-hidden] .menu-dot::after { animation-play-state: paused; }
+          @media (prefers-reduced-motion: reduce) {
+            .talk-pulse::after, .menu-dot::after { animation: none; }
+            .talk-pulse::after { box-shadow: 0 0 0 3px ${withAlpha(c.accent, 0.45)}; }
+          }
           .fade-in { animation: fadeIn 0.35s ease both; }
           .nav-btn:hover { background: ${c.accentPressed} !important; border-color: ${c.accentPressed} !important; color: ${c.onAccent} !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
           .hero-btn:hover { background: ${c.accentHover} !important; border-color: ${c.accentHover} !important; color: ${c.onAccent} !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
@@ -4575,7 +4613,7 @@ export default function App() {
               {TOP_TABS.map((t, i) => (
                 <Fragment key={t.key}>
                   {i > 0 && " "}
-                  <Link to={VIEW_PATH[t.key] || "/"} className="nav-btn" style={{ ...styles(c).cornerBtn, ...(view === t.key ? styles(c).cornerBtnActive : {}) }}>
+                  <Link to={VIEW_PATH[t.key] || "/"} className={t.phone ? "nav-btn talk-pulse" : "nav-btn"} style={{ ...styles(c).cornerBtn, ...(view === t.key ? styles(c).cornerBtnActive : {}) }}>
                     <TabLabel t={t} />
                   </Link>
                 </Fragment>
@@ -4586,13 +4624,15 @@ export default function App() {
           <div style={styles(c).topBar}>
             <button className="nav-btn" style={styles(c).subTabBack} onClick={handleBackArrow} aria-label="Back">←</button>
             <div style={styles(c).hamburgerWrap}>
-              <button className="nav-btn" style={styles(c).hamburgerBtn} onClick={() => setMenuOpen((o) => !o)} aria-label="Menu">☰</button>
+              <button className="nav-btn menu-btn" style={styles(c).hamburgerBtn} onClick={() => setMenuOpen((o) => !o)} aria-label="Menu" aria-expanded={menuOpen}>
+                ☰{!menuOpen && <span className="menu-dot" aria-hidden="true" data-testid="menu-dot" />}
+              </button>
               {menuOpen && (
                 <>
                   <div style={styles(c).hamburgerBackdrop} onClick={() => setMenuOpen(false)} />
                   <div style={styles(c).hamburgerMenu}>
                     {HAMBURGER_MENU_ITEMS.map((t) => (
-                      <Link key={t.key} to={VIEW_PATH[t.key] || "/"} onClick={() => setMenuOpen(false)} className="nav-btn" style={{ ...styles(c).hamburgerMenuItem, ...(view === t.key ? styles(c).cornerBtnActive : {}) }}>
+                      <Link key={t.key} to={VIEW_PATH[t.key] || "/"} onClick={() => setMenuOpen(false)} className={t.phone ? "nav-btn talk-pulse" : "nav-btn"} style={{ ...styles(c).hamburgerMenuItem, ...(view === t.key ? styles(c).cornerBtnActive : {}) }}>
                         <TabLabel t={t} />
                       </Link>
                     ))}
