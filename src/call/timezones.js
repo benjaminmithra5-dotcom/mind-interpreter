@@ -72,10 +72,71 @@ export function detectZone() {
   try { return tidyZone(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"); } catch { return "UTC"; }
 }
 
-let zoneList = null;
-/** [{ id, offset, label, search }] sorted by offset, then name. */
-export function allZones(now = new Date()) {
-  if (zoneList) return zoneList;
+// ---- names, abbreviations, countries ------------------------------------
+// timezoneData.json (made by scripts/generate-timezone-data.mjs) has, per
+// zone: [country, city, main cities, generic name, standard, daylight].
+// It's loaded only when the booking picker needs it, so other pages don't
+// carry it.
+export const loadZoneData = () => import("./timezoneData.json").then((m) => m.default || m);
+
+const pad2 = (n) => String(n).padStart(2, "0");
+/** "GMT+3", "GMT+5:30", "GMT−11", "GMT": for zones with no abbreviation. */
+export function gmtStyle(minutes) {
+  if (minutes === 0) return "GMT";
+  const m = Math.abs(minutes);
+  return `GMT${minutes < 0 ? "−" : "+"}${Math.floor(m / 60)}${m % 60 ? `:${pad2(m % 60)}` : ""}`;
+}
+
+/**
+ * Everything shown for a zone at a moment (today, by default). The offset
+ * comes from the browser (Intl), so it's right for today including daylight
+ * saving; the name and abbreviation are the data's standard or daylight
+ * variant that has that offset.
+ */
+export function zoneInfo(id, data, date = new Date()) {
+  const offset = offsetMinutes(id, date);
+  const d = data && data[id];
+  if (!d) return { id, offset, abbr: gmtStyle(offset), name: "", country: "", city: "", cities: [], abbrs: [], known: false };
+  const [country, city, cities, generic, std, dst] = d;
+  const variant = dst && dst[0] === offset ? dst : std[0] === offset ? std : null;
+  return {
+    id,
+    offset,
+    abbr: (variant && variant[2]) || gmtStyle(offset),
+    name: (variant && variant[1]) || generic || "",
+    country,
+    city,
+    cities: cities ? cities.split("|") : [],
+    // Both abbreviations, so "bst" finds London in winter too.
+    abbrs: [std[2], dst && dst[2]].filter(Boolean),
+    known: true,
+  };
+}
+
+/** "(UTC+05:30) IST · India Standard Time · Kolkata, India" */
+export function zoneLabel(z) {
+  const place = z.known ? [z.city, z.country].filter(Boolean).join(", ") : z.id.replace(/_/g, " ");
+  return [`(${offsetLabel(z.offset)}) ${z.abbr}`, z.name, place].filter(Boolean).join(" · ");
+}
+
+/** "IST (UTC+05:30), Kolkata, India": the line under the picker. */
+export function zoneSummary(z) {
+  const place = z.known ? [z.city, z.country].filter(Boolean).join(", ") : z.id.replace(/_/g, " ");
+  return `${z.abbr} (${offsetLabel(z.offset)})${place ? `, ${place}` : ""}`;
+}
+
+// Lower case, no accents, plain minus, spaces for underscores.
+const fold = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[−–]/g, "-").replace(/_/g, " ");
+
+const listCache = new Map();
+/**
+ * Every zone the browser knows (none dropped), with its label for today,
+ * sorted by offset, then country, then city. Without data yet, the labels
+ * are just the offset and the zone's name.
+ */
+export function allZones(now = new Date(), data = null) {
+  const cacheKey = data ? "data" : "plain";
+  if (listCache.has(cacheKey)) return listCache.get(cacheKey);
   let names = [];
   try { names = Intl.supportedValuesOf("timeZone"); } catch { names = FALLBACK; }
   if (!names.length) names = FALLBACK;
@@ -84,14 +145,64 @@ export function allZones(now = new Date()) {
     const id = tidyZone(n);
     if (validZone(id)) ids.add(id);
   }
-  zoneList = [...ids]
+  const list = [...ids]
     .map((id) => {
-      const offset = offsetMinutes(id, now);
-      const label = `${offsetLabel(offset)} · ${id.replace(/_/g, " ")}`;
-      return { id, offset, label, search: `${label} ${id}`.toLowerCase().replace(/[−]/g, "-") };
+      const z = zoneInfo(id, data, now);
+      const label = zoneLabel(z);
+      const offsets = offsetSearchTerms(z.offset);
+      return { ...z, label, hay: fold([label, id, z.cities.join(" "), z.abbrs.join(" "), offsets].join(" ")) };
     })
-    .sort((a, b) => a.offset - b.offset || a.id.localeCompare(b.id));
-  return zoneList;
+    .sort((a, b) =>
+      a.offset - b.offset ||
+      (a.country ? 0 : 1) - (b.country ? 0 : 1) ||
+      a.country.localeCompare(b.country) ||
+      (a.city || a.id).localeCompare(b.city || b.id));
+  listCache.set(cacheKey, list);
+  return list;
+}
+
+function offsetSearchTerms(minutes) {
+  const sign = minutes < 0 ? "-" : "+";
+  const m = Math.abs(minutes);
+  const h = Math.floor(m / 60);
+  const mm = pad2(m % 60);
+  return `utc${sign}${pad2(h)}:${mm} gmt${sign}${h}${m % 60 ? `:${mm}` : ""}`;
+}
+
+/** An offset typed as "+5:30", "+05:30", "gmt+5:30", "utc+5", "-11" (in minutes), or null. */
+export function parseOffset(query) {
+  const q = fold(query).replace(/\s+/g, "");
+  const m = q.match(/^(?:gmt|utc)?([+-])(\d{1,2})(?::?(\d{2}))?$/);
+  if (!m) return null;
+  const minutes = Number(m[2]) * 60 + Number(m[3] || 0);
+  return m[1] === "-" ? -minutes : minutes;
+}
+
+/**
+ * Zones matching what was typed: an abbreviation ("ist", "cst"), a name,
+ * a country, a city, the zone id, or an offset ("+5:30"). Exact
+ * abbreviation matches come first (today's before the other season's),
+ * then exact country, then city.
+ */
+export function searchZones(list, query) {
+  const q = fold(query).trim().replace(/\s+/g, " ");
+  if (!q) return list;
+  const offset = parseOffset(q);
+  if (offset !== null) return list.filter((z) => z.offset === offset);
+  const terms = q.split(" ");
+  const rank = (z) => {
+    if (fold(z.abbr) === q) return 0; // today's abbreviation
+    if (z.abbrs.some((a) => fold(a) === q)) return 1; // the other season's
+    if (fold(z.country) === q) return 2;
+    if (fold(z.city) === q || z.cities.some((c) => fold(c) === q)) return 3;
+    if (fold(z.city).startsWith(q) || fold(z.country).startsWith(q)) return 4;
+    return 5;
+  };
+  return list
+    .filter((z) => terms.every((t) => z.hay.includes(t)))
+    .map((z, i) => [rank(z), i, z])
+    .sort((a, b) => a[0] - b[0] || a[1] - b[1])
+    .map((x) => x[2]);
 }
 
 // ---- showing UTC times in a zone ---------------------------------------
