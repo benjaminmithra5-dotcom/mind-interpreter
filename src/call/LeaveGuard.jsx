@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 
 // Keeps a call from ending by accident while it's waiting, ringing or live.
@@ -112,7 +113,9 @@ export function LeaveDialog({ ui, c, open, text, onStay, onLeave }) {
       (document.activeElement === stayRef.current ? leaveRef : stayRef).current?.focus();
     }
   };
-  return (
+  // Rendered at the end of <body>, so the backdrop covers the whole screen
+  // (the page's fade-in animation would otherwise confine it).
+  return createPortal(
     <div
       style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(30, 43, 44, 0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
       onKeyDown={onKeyDown}
@@ -133,6 +136,7 @@ export function LeaveDialog({ ui, c, open, text, onStay, onLeave }) {
           <button ref={leaveRef} type="button" style={ui.btnQuiet} onClick={onLeave} data-testid="leave-call">Leave</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
