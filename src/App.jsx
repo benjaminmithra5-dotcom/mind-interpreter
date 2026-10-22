@@ -3,6 +3,8 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import * as Tone from "tone";
 import { marked } from "marked";
 import { parseArticle, sortArticles, formatArticleDate } from "./articleFormat.js";
+import { CallPage } from "./call/CallPage.jsx";
+import { AdminPage } from "./call/AdminPage.jsx";
 
 // =================================================================
 // Theme, dark and warm on purpose. Nothing in this game should sit
@@ -4291,7 +4293,21 @@ const TOP_TABS = [
   { key: "rvlab", label: "RV Lab" },
   { key: "contact", label: "Consultation" },
   { key: "faq", label: "FAQ" },
+  { key: "call", label: "Talk now", phone: true },
 ];
+
+// The small phone symbol before "Talk now" in the tabs and the menu.
+function TabLabel({ t }) {
+  if (!t.phone) return t.label;
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+      <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style={{ flexShrink: 0 }}>
+        <path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" />
+      </svg>
+      {t.label}
+    </span>
+  );
+}
 const HAMBURGER_MENU_ITEMS = [
   ...TOP_TABS,
   { key: "articles", label: "Articles" },
@@ -4320,6 +4336,7 @@ const GAME_TABS = [
 const VIEW_PATH = {
   home: "/", journals: "/journals", exercises: "/exercises", games: "/games",
   rvlab: "/rv-lab", contact: "/consultation", faq: "/faq", articles: "/articles", privacy: "/privacy", terms: "/terms", disclaimer: "/disclaimer",
+  call: "/call", admin: "/admin",
 };
 const GAME_SLUG = { chess: "chess", everyday: "recall", nback: "n-back", cards: "card-memory", words: "word-memory", numbers: "number-memory" };
 const GAME_KEY_FROM_SLUG = Object.fromEntries(Object.entries(GAME_SLUG).map(([k, v]) => [v, k]));
@@ -4351,6 +4368,8 @@ const PAGE_META = {
   faq: { title: "FAQ | Benjamin Mithra, Mind Interpreter", description: "Answers about private conversations with Benjamin Mithra, a Mind Interpreter: what you can talk about, how sessions work, privacy, and the site's Brain Games and Mind Exercises." },
   articles: { title: "Articles | Benjamin Mithra, Mind Interpreter", description: "Articles by Benjamin Mithra, a Mind Interpreter, on loneliness, difficult conversations, hard decisions, overthinking, and the moments in life when you need to be heard." },
   "article-missing": { title: "Article not found | Mind Interpreter", description: "This article could not be found. Browse all articles by Benjamin Mithra, a Mind Interpreter." },
+  call: { title: "Talk now | Mind Interpreter", description: "Call Benjamin Mithra from the website with your minute code. $9.80 for 45 minutes.", noindex: true },
+  admin: { title: "Admin | Mind Interpreter", description: "Private.", noindex: true },
   disclaimer: { title: "Disclaimer | Mind Interpreter", description: "Conversations here are not therapy or medical care, and the site's exercises and remote viewing content are educational and experimental." },
 };
 
@@ -4383,6 +4402,10 @@ function useDocumentMeta(key, pathname, override) {
     setHeadTag("meta", "property", "og:description", "content", meta.description);
     setHeadTag("meta", "property", "og:url", "content", url);
     setHeadTag("meta", "property", "og:type", "content", meta.type || "website");
+    // Only the call pages ask search engines not to index them.
+    const robots = document.head.querySelector('meta[name="robots"]');
+    if (meta.noindex) setHeadTag("meta", "name", "robots", "content", "noindex, nofollow");
+    else if (robots) robots.remove();
   }, [key, pathname, override?.title]);
 }
 
@@ -4396,7 +4419,7 @@ export default function App() {
     const first = pathParts[0];
     if (first === "consultation") return "contact";
     if (first === "rv-lab") return "rvlab";
-    if (["journals", "exercises", "games", "faq", "articles", "privacy", "terms", "disclaimer"].includes(first)) return first;
+    if (["journals", "exercises", "games", "faq", "articles", "privacy", "terms", "disclaimer", "call", "admin"].includes(first)) return first;
     return "home";
   }, [location.pathname]);
 
@@ -4536,6 +4559,9 @@ export default function App() {
               font-size: 12px !important; letter-spacing: 0.04em !important; line-height: 1.2; padding: 8px 4px !important; min-height: 40px;
             }
           }
+          @media (max-width: 600px) {
+            .top-tabs > :last-child:nth-child(3n+1) { grid-column: 1 / -1; }
+          }
           @media (max-width: 360px) {
             .top-tabs .nav-btn { font-size: 11px !important; letter-spacing: 0.02em !important; padding: 8px 2px !important; }
           }
@@ -4544,13 +4570,13 @@ export default function App() {
         <CosmicBackground />
 
         {view === "home" || view === "contact" ? (
-          <div style={styles(c).topBar}>
+          <div style={{ ...styles(c).topBar, maxWidth: 820 }}>
             <div className="top-tabs" style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
               {TOP_TABS.map((t, i) => (
                 <Fragment key={t.key}>
                   {i > 0 && " "}
                   <Link to={VIEW_PATH[t.key] || "/"} className="nav-btn" style={{ ...styles(c).cornerBtn, ...(view === t.key ? styles(c).cornerBtnActive : {}) }}>
-                    {t.label}
+                    <TabLabel t={t} />
                   </Link>
                 </Fragment>
               ))}
@@ -4567,7 +4593,7 @@ export default function App() {
                   <div style={styles(c).hamburgerMenu}>
                     {HAMBURGER_MENU_ITEMS.map((t) => (
                       <Link key={t.key} to={VIEW_PATH[t.key] || "/"} onClick={() => setMenuOpen(false)} className="nav-btn" style={{ ...styles(c).hamburgerMenuItem, ...(view === t.key ? styles(c).cornerBtnActive : {}) }}>
-                        {t.label}
+                        <TabLabel t={t} />
                       </Link>
                     ))}
                   </div>
@@ -4593,6 +4619,8 @@ export default function App() {
           {view === "rvlab" && <RVLabScreen />}
           {view === "contact" && <ContactScreen onNavigate={navigate} />}
           {view === "faq" && <FaqScreen />}
+          {view === "call" && <CallPage c={c} font={font} headingStyle={styles(c).faqHeading} consultationPath={VIEW_PATH.contact} Footer={SiteFooterLine} />}
+          {view === "admin" && <AdminPage c={c} font={font} headingStyle={styles(c).faqHeading} />}
           {view === "articles" && !articleSlug && <ArticlesListScreen />}
           {view === "articles" && articleSlug && <ArticleScreen article={article} />}
           {view === "privacy" && (

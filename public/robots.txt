@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /call
+Disallow: /admin
 
 Sitemap: https://benjaminmithra.com/sitemap.xml

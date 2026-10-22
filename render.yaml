@@ -1,0 +1,37 @@
+# Render Blueprint for the Talk now call server (the website itself stays on
+# Vercel). Secrets marked "sync: false" are typed into Render's dashboard and
+# never stored here. See call-server/README.md.
+services:
+  - type: web
+    name: mind-interpreter-calls
+    runtime: docker
+    rootDir: call-server
+    dockerfilePath: ./Dockerfile
+    # Calls need an always-on instance with a persistent disk, which is a
+    # paid instance type on Render. Check current pricing before choosing.
+    plan: starter
+    numInstances: 1
+    healthCheckPath: /healthz
+    disk:
+      name: call-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /data
+      - key: ALLOWED_ORIGINS
+        value: https://benjaminmithra.com,https://www.benjaminmithra.com
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ICE_SERVERS
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
