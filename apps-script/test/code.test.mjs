@@ -352,3 +352,58 @@ test("a visitor across the date line sees the right day in the owner email", () 
   book(gas, IST("2026-11-02", "22:00"), { timezone: "Pacific/Kiritimati" });
   assert.ok(gas.mails[0].htmlBody.includes("Tuesday 3 November 2026, 6:30 AM (Pacific/Kiritimati)"));
 });
+
+test("approve: the owner's copy has a WhatsApp button with the code, ready to send", () => {
+  const gas = setup();
+  book(gas, IST("2026-11-02", "19:00"), { phone: "+44 (0)7700-900.123" });
+  const { id, token } = linkParams(gas.mails[0].htmlBody, "approve");
+  gas.context.ownerAction("approve", id, token);
+  const b = gas.bookings()[0];
+  const [client, copy] = gas.mails.slice(1);
+
+  // The button in the HTML part (href is HTML-escaped there).
+  const href = copy.htmlBody.match(/<a href="(https:\/\/wa\.me\/[^"]+)"[^>]*>Send the code on WhatsApp<\/a>/)[1].replace(/&amp;/g, "&");
+  const url = new URL(href);
+  assert.equal(url.origin + url.pathname, "https://wa.me/4407700900123", "digits only");
+  assert.deepEqual([...url.searchParams.keys()], ["text"]);
+  const raw = href.split("?text=")[1];
+  assert.equal(raw, encodeURIComponent(url.searchParams.get("text")), "the message is URL-encoded");
+  assert.ok(!/[ \n]/.test(raw));
+
+  const message = url.searchParams.get("text");
+  for (const part of [
+    "Asha Rao",
+    "Monday 2 November 2026, 1:30 PM (your time, Europe/London)",
+    "Monday 2 November 2026, 7:00 PM in India",
+    b.code,
+    `https://benjaminmithra.com/call?room=${b.code}`,
+    "Please use headphones or over-ear headphones.",
+  ]) assert.ok(message.includes(part), part);
+
+  // The same link in the plain-text part.
+  assert.ok(copy.body.includes(`Send the code on WhatsApp: ${href}`));
+  // Only the owner's copy has it; the client's email doesn't.
+  assert.ok(!client.htmlBody.includes("wa.me") && !client.body.includes("wa.me"));
+});
+
+test("approve: the client's email suggests checking spam and adding the address to contacts", () => {
+  const gas = setup();
+  book(gas, IST("2026-11-02", "19:00"));
+  const { id, token } = linkParams(gas.mails[0].htmlBody, "approve");
+  gas.context.ownerAction("approve", id, token);
+  const client = gas.mails[1];
+  const line = "If you can't find this email later, check your spam folder and add benjamin@benjaminmithra.com to your contacts.";
+  assert.ok(client.htmlBody.includes(line));
+  assert.ok(client.body.includes(line));
+  // Near the top: before the time and the code.
+  assert.ok(client.body.indexOf(line) < client.body.indexOf("Your code:"));
+  assert.ok(client.htmlBody.indexOf(line) < client.htmlBody.indexOf("Your code:"));
+});
+
+test("the request email to the owner keeps its WhatsApp contact link", () => {
+  const gas = setup();
+  book(gas, IST("2026-11-02", "19:00"));
+  const m = gas.mails[0];
+  assert.ok(m.htmlBody.includes('(<a href="https://wa.me/919876543210">WhatsApp</a>)'));
+  assert.ok(m.body.includes("WhatsApp: https://wa.me/919876543210\n"));
+});

@@ -109,7 +109,7 @@ export function BookTime({ ui, c }) {
     return (
       <div style={ui.panel} data-testid="book-done" role="status">
         <p style={ui.panelTitle}>Request received</p>
-        <p style={ui.text}>Request received. I will review it and email you a code.</p>
+        <p style={ui.text}>Request received. I will review it and email you a code. Please check your spam folder, and add benjamin@benjaminmithra.com to your contacts so it reaches you.</p>
         <p style={ui.small}>You asked for {formatDateTime(new Date(done.slot), done.tz)} (your time, {done.tz.replace(/_/g, " ")}).</p>
       </div>
     );
