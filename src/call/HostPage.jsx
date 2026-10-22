@@ -7,6 +7,18 @@ import { callStyles } from "./callStyles.js";
 import { CallScreen } from "./CallScreen.jsx";
 import { DeviceCheck } from "./DeviceCheck.jsx";
 import { detectZone, formatDateTime } from "./timezones.js";
+import { formatClock } from "./media.js";
+import { LeaveDialog, useLeaveGuard } from "./LeaveGuard.jsx";
+
+// The time left in this tab's room, kept across a reload of this page (and
+// only in this tab): { code, startedAt, remaining }. A reopened room with the
+// same code continues with it if the call began less than an hour ago.
+const SAVED = "talk-now-host";
+const RESUME_WINDOW_MS = 60 * 60 * 1000;
+const readSaved = () => { try { return JSON.parse(sessionStorage.getItem(SAVED) || "null"); } catch { return null; } };
+const writeSaved = (v) => { try { sessionStorage.setItem(SAVED, JSON.stringify(v)); } catch { /* private mode */ } };
+const resumable = (saved, code) =>
+  Boolean(saved && (!code || saved.code === code) && typeof saved.startedAt === "number" && Date.now() - saved.startedAt < RESUME_WINDOW_MS && saved.remaining >= 0);
 
 const ENDED = {
   time: "Call ended: the 45 minutes are up.",
@@ -53,7 +65,8 @@ export function HostPage({ c, font, headingStyle, Footer }) {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [notice, setNotice] = useState("");
-  const [guest, setGuest] = useState(null); // name of the guest waiting
+  const [guest, setGuest] = useState(null); // { name, returning, remaining } of the guest waiting
+  const [earlier] = useState(() => { const s = readSaved(); return resumable(s) && s.remaining > 0 ? s : null; });
   const [guestName, setGuestName] = useState("");
   const [tick, setTick] = useState(null);
   const [remote, setRemote] = useState(null);
@@ -94,9 +107,12 @@ export function HostPage({ c, font, headingStyle, Footer }) {
       return;
     }
     setInfo(`Booked for ${formatDateTime(new Date(res.startsAt), detectZone())} (your time).`);
+    const saved = readSaved();
+    const resume = resumable(saved, roomCode) ? { startedAt: saved.startedAt, remaining: saved.remaining } : null;
     const r = new HostRoom({
       code: roomCode,
       stream: stream.current,
+      resume,
       on: {
         state: (s) => {
           if (room.current !== r) return;
@@ -110,7 +126,8 @@ export function HostPage({ c, font, headingStyle, Footer }) {
           }
           setState(s);
         },
-        waiting: (n) => { setGuest(n); if (n) setGuestName(n); },
+        waiting: (g) => { setGuest(g); if (g) setGuestName(g.name); },
+        save: ({ startedAt, remaining }) => writeSaved({ code: roomCode, startedAt, remaining }),
         remote: setRemote,
         tick: setTick,
         ended: (reason) => { setTick(null); setMuted(false); setNotice(ENDED[reason] || "Call ended."); },
@@ -126,6 +143,8 @@ export function HostPage({ c, font, headingStyle, Footer }) {
   const decline = () => room.current?.decline();
   const closeRoom = () => room.current?.close();
   const hangup = () => room.current?.hangup();
+  // Back, the nav menu, refresh: ask first while the room is open.
+  const guard = useLeaveGuard({ active: ["opening", "open", "in-call"].includes(state), onLeave: () => room.current?.close() });
   const toggleMute = () => {
     const next = !muted;
     setMuted(next);
@@ -143,6 +162,9 @@ export function HostPage({ c, font, headingStyle, Footer }) {
             <input style={{ ...ui.input, ...ui.codeInput }} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={14}
               autoComplete="off" autoCapitalize="characters" spellCheck="false" placeholder="Paste from the email" data-testid="host-code" />
           </label>
+          {earlier && (
+            <p style={ui.small} data-testid="host-resume-hint">To continue the earlier call, paste the same code again. Its time left ({formatClock(earlier.remaining)}) is kept.</p>
+          )}
           <DeviceCheck ui={ui} framed={false} />
           {error && <p style={ui.error} role="alert" data-testid="host-error">{error}</p>}
           {notice && <p style={ui.text} role="status">{notice}</p>}
@@ -162,9 +184,16 @@ export function HostPage({ c, font, headingStyle, Footer }) {
       )}
 
       {guest && state !== "in-call" && (
-        <div style={ui.panelStrong} role="alertdialog" aria-label="A guest is waiting" data-testid="guest-waiting">
+        <div style={ui.panelStrong} role="alertdialog" aria-label="A guest is waiting" data-testid="guest-waiting" data-returning={guest.returning ? "true" : "false"}>
           <p style={ui.panelTitle}>Waiting room</p>
-          <p style={{ ...ui.text, overflowWrap: "anywhere" }} data-testid="guest-name"><strong>{guest}</strong> is waiting.</p>
+          {guest.returning ? (
+            <>
+              <p style={{ ...ui.text, overflowWrap: "anywhere" }} data-testid="guest-name">Returning guest: <strong>{guest.name}</strong></p>
+              <p style={ui.small}>If you admit them, the call continues with the time left ({formatClock(guest.remaining)}).</p>
+            </>
+          ) : (
+            <p style={{ ...ui.text, overflowWrap: "anywhere" }} data-testid="guest-name"><strong>{guest.name}</strong> is waiting.</p>
+          )}
           <div style={ui.row}>
             <button type="button" style={ui.btn} onClick={admit} data-testid="admit">Admit</button>
             <button type="button" style={ui.btnQuiet} onClick={decline} data-testid="decline">Decline</button>
@@ -175,6 +204,9 @@ export function HostPage({ c, font, headingStyle, Footer }) {
       {state === "in-call" && (
         <CallScreen ui={ui} tick={tick} connecting={!tick} muted={muted} onMute={toggleMute} onEnd={hangup} remoteStream={remote} who={guestName || "your guest"} />
       )}
+
+      <LeaveDialog ui={ui} c={c} open={guard.asking} onStay={guard.stay} onLeave={guard.leave}
+        text={state === "in-call" ? "If you leave, the call ends for both of you." : "If you leave, the room closes."} />
 
       <Footer />
     </div>
