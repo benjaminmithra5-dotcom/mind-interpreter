@@ -6,13 +6,13 @@ import { addDays, dateKey, detectZone, formatDayKey, formatDateTime, formatTime,
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const EMAIL = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[A-Za-z]{2,}$/;
-const FIELD_ERROR = {
+export const FIELD_ERROR = {
   name: "Please enter your name.",
   email: "Please enter a valid email address.",
   phone: "Please enter your phone number with the country code, for example +91 98765 43210.",
 };
 
-function validate({ name, email, phone }) {
+export function validate({ name, email, phone }) {
   const errors = {};
   if (!name.trim() || name.trim().length > 80) errors.name = FIELD_ERROR.name;
   if (!EMAIL.test(email.trim()) || email.trim().length > 200) errors.email = FIELD_ERROR.email;
@@ -89,6 +89,8 @@ export function BookTime({ ui, c }) {
         setSlot(null);
         setNotice("Sorry, that time was just taken. Please choose another time.");
         await load({ keepNotice: true });
+      } else if (res.error === "paused") {
+        setNotice("Booking is paused right now. Please check back soon.");
       } else if (res.error === "pending-exists") {
         setNotice("You already have a request waiting. I'll email you once I've reviewed it.");
       } else if (res.error === "invalid" && Array.isArray(res.fields)) {

@@ -5,7 +5,7 @@
   "description": "End-to-end tests for Talk now: the site against the real Code.gs (with fake Google services) and a local PeerJS broker.",
   "scripts": {
     "test": "playwright test",
-    "test:apps-script": "node --test ../apps-script/test/code.test.mjs"
+    "test:apps-script": "node --test ../apps-script/test/*.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",

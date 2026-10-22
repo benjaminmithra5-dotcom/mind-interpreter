@@ -9,6 +9,7 @@ import { DeviceCheck } from "./DeviceCheck.jsx";
 import { detectZone, formatDateTime } from "./timezones.js";
 import { formatClock } from "./media.js";
 import { LeaveDialog, useLeaveGuard } from "./LeaveGuard.jsx";
+import { AvailabilityPanel } from "./AvailabilityPanel.jsx";
 
 // The time left in this tab's room, kept across a reload of this page (and
 // only in this tab): { code, startedAt, remaining }. A reopened room with the
@@ -160,7 +161,7 @@ export function HostPage({ c, font, headingStyle, Footer }) {
         <form onSubmit={openRoom} noValidate style={ui.panelStrong} data-testid="host-form">
           <label style={ui.label}>Booking code
             <input style={{ ...ui.input, ...ui.codeInput }} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={14}
-              autoComplete="off" autoCapitalize="characters" spellCheck="false" placeholder="Paste from the email" data-testid="host-code" />
+              autoComplete="off" autoCapitalize="characters" spellCheck="false" placeholder="Paste the code" data-testid="host-code" />
           </label>
           {earlier && (
             <p style={ui.small} data-testid="host-resume-hint">To continue the earlier call, paste the same code again. Its time left ({formatClock(earlier.remaining)}) is kept.</p>
@@ -204,6 +205,8 @@ export function HostPage({ c, font, headingStyle, Footer }) {
       {state === "in-call" && (
         <CallScreen ui={ui} tick={tick} connecting={!tick} muted={muted} onMute={toggleMute} onEnd={hangup} remoteStream={remote} who={guestName || "your guest"} />
       )}
+
+      {BOOKING_URL && <AvailabilityPanel ui={ui} c={c} />}
 
       <LeaveDialog ui={ui} c={c} open={guard.asking} onStay={guard.stay} onLeave={guard.leave}
         text={state === "in-call" ? "If you leave, the call ends for both of you." : "If you leave, the room closes."} />

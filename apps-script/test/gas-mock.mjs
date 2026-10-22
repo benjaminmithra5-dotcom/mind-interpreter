@@ -124,7 +124,14 @@ export function createGas({ now = null, url = "https://script.google.com/macros/
         return builder;
       },
     },
-    Utilities: { getUuid: () => crypto.randomUUID(), formatDate },
+    Utilities: {
+      getUuid: () => crypto.randomUUID(),
+      formatDate,
+      DigestAlgorithm: { SHA_256: "SHA_256" },
+      Charset: { UTF_8: "UTF_8" },
+      // Like Google's: an array of signed bytes.
+      computeDigest: (alg, value) => [...crypto.createHash("sha256").update(String(value), "utf8").digest()].map((b) => (b > 127 ? b - 256 : b)),
+    },
   };
   const context = vm.createContext(sandbox);
   context.Date = FakeDate;

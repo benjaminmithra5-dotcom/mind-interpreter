@@ -83,6 +83,11 @@ const gasServer = http.createServer(async (req, res) => {
     if (url.pathname === "/__test/bookings") return send(res, 200, "application/json", JSON.stringify(gas.bookings()));
     if (url.pathname === "/__test/events") return send(res, 200, "application/json", JSON.stringify(gas.events.map((e) => ({ title: e.title, start: e.start, end: e.end }))));
     if (url.pathname === "/__test/booking" && req.method === "POST") return send(res, 200, "application/json", JSON.stringify(testBooking(JSON.parse((await readBody(req)) || "{}"))));
+    if (url.pathname === "/__test/property" && req.method === "POST") {
+      const { key, value } = JSON.parse(await readBody(req));
+      if (value == null) gas.props.delete(key); else gas.props.set(key, String(value));
+      return send(res, 200, "application/json", "{}");
+    }
     if (url.pathname === "/__test/busy" && req.method === "POST") {
       const { start, end } = JSON.parse(await readBody(req));
       gas.addBusy(start, end);

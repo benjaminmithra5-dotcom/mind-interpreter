@@ -14,10 +14,11 @@ async function fillDetails(page, { name = "Asha Rao", email = "asha@example.com"
   await page.getByLabel("Phone number, with country code").fill(phone);
 }
 
-test("the page shows Join first, then Book a time, with the price and notices", async ({ open }) => {
+test("the page shows Join first, then Need to talk right now?, then Book a time, with the price and notices", async ({ open }) => {
   const page = await open("/call");
+  await expect(page.getByTestId("book-section")).toBeVisible();
   const headings = await page.getByRole("heading", { level: 2 }).allTextContents();
-  expect(headings).toEqual(["Join your call", "Book a time"]);
+  expect(headings).toEqual(["Join your call", "Need to talk right now?", "Book a time"]);
   await expect(page.getByText("$9.80 for 45 minutes. Audio call.")).toBeVisible();
   await expect(page.getByText("I will review your request and email you a code.")).toBeVisible();
   await expect(page.getByTestId("privacy-notice")).toHaveText("Your call is private and goes directly between us. It is not recorded.");

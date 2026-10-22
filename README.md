@@ -70,14 +70,36 @@ and the call goes directly between the two browsers.
 
 Until `VITE_BOOKING_URL` is set, /call just says "Booking opens soon."
 
-### Changing your hours later
+### Your hours, blocked times and Immediate Talk (on /host)
 
-Open the project on script.google.com, change `WORK_HOURS` (or any other
-setting at the top: session length, buffer, notice, days ahead) and click
-**Save**. Then click **Deploy**, **Manage deployments**, the pencil icon,
-**Version: New version**, and **Deploy**. The web app URL stays the same, so
-nothing changes on the website. Anything on your Google Calendar marked
-"Busy" blocks bookings automatically; events marked "Free" don't.
+After the one-time admin key step (see `apps-script/README.md`, "The admin
+key"), open benjaminmithra.com/host, paste the key under **Availability** and
+click **Unlock**. There you can:
+
+- switch **Taking immediate calls** on or off (off at first);
+- switch **Pause all booking** on or off: while it's on, clients see
+  "Booking is paused right now" and no times;
+- set your **weekly hours** (India time), with more than one range a day or a
+  day closed, then **Save hours**;
+- add **blocked times**: a whole day, or a time range on a day, with a note
+  just for you;
+- check **what clients see**: the next 14 days of free times.
+
+Anything on your Google Calendar marked "Busy" still blocks bookings
+automatically; events marked "Free" don't. Changing your hours doesn't cancel
+bookings already made. The other settings (session length, buffer, notice,
+days ahead) are at the top of `Code.gs`; after changing them there, paste the
+file over the old one and deploy a new version (see `apps-script/README.md`).
+
+### Immediate Talk
+
+While **Taking immediate calls** is on, /call shows "Need to talk right now?"
+with a short form. You get an email "Immediate Talk: name" with the client's
+details, a WhatsApp link, and Approve and Decline. On Approve, the call starts
+then: it goes on your calendar as "Immediate Talk: name", the client gets
+their code with "Your call is ready now", and you open the room on /host with
+that code. A request you don't answer within 15 minutes is released and the
+client is told politely. At most 5 immediate requests can wait at once.
 
 ### Answering requests
 
@@ -99,7 +121,8 @@ and the client gets a polite email.
 - **The script's own private storage** (script properties): the booking code
   and the one-time Approve/Decline links, only while they're needed. Declined
   and released requests are deleted at once; approved ones a day after the
-  call.
+  call. Also your weekly hours, blocked times (with your notes), the two
+  switches, your ADMIN_KEY and a count of recent wrong keys.
 - **Nothing else.** The website has no database. The call itself is never
   recorded, and the script never writes names, emails or phone numbers to its
   log.
@@ -127,12 +150,14 @@ Calls through a relay stay encrypted end to end; the relay can't listen.
   during a call, the call pauses for up to 30 seconds and then ends.
 - Google limits how many emails a script can send each day (a Workspace
   account allows far more than this needs, but check Google's current quotas).
+- Immediate Talk only works while you watch your email: a request waits 15
+  minutes for your answer.
 - One guest at a time per room. Each call lasts up to 45 minutes from the
   moment it connects.
 
 ### Tests
 
-- `node --test apps-script/test/code.test.mjs` runs the booking logic in Node
+- `node --test apps-script/test/*.test.mjs` runs the booking logic in Node
   with stand-ins for Google's services.
 - `cd e2e && npm install && npx playwright test` runs the site end to end in
   Chromium (fake microphone), against a local copy of the script and a local

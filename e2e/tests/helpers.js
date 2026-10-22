@@ -3,6 +3,7 @@ import { GAS, SITE, TICK_MS, CALL_LIMIT } from "./env.js";
 
 export { expect, GAS, SITE, TICK_MS, CALL_LIMIT };
 export const ticks = (n) => n * TICK_MS;
+export const ADMIN_KEY = "e2e-admin-key-not-a-real-secret-123";
 
 // Each page gets its own browser context (its own storage), like two
 // different people. Pages connect even though Playwright marks the browser
@@ -17,6 +18,10 @@ export const test = base.extend({
       bookings: async () => (await ctx.get("/__test/bookings")).json(),
       events: async () => (await ctx.get("/__test/events")).json(),
       slots: async () => (await (await ctx.get("/exec?action=slots")).json()).slots,
+      property: async (key, value) => ctx.post("/__test/property", { data: { key, value } }),
+      admin: async (action, key, payload = {}) => (await (await ctx.post("/exec", { data: JSON.stringify({ ...payload, action, key }), headers: { "Content-Type": "text/plain" } })).json()),
+      immediate: async (body) => (await (await ctx.post("/exec", { data: JSON.stringify({ action: "immediate", ...body }), headers: { "Content-Type": "text/plain" } })).json()),
+      status: async () => (await (await ctx.get("/exec?action=status")).json()),
       book: async (body) => (await (await ctx.post("/exec", { data: JSON.stringify({ action: "book", ...body }), headers: { "Content-Type": "text/plain" } })).json()),
     });
     await ctx.dispose();
