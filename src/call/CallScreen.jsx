@@ -1,25 +1,27 @@
 import { useEffect, useRef } from "react";
-import { formatClock } from "./callClient.js";
+import { formatClock } from "./media.js";
 
-// The in-call view, shared by the visitor's /call page and Benjamin's /admin.
-export function CallScreen({ ui, timer, connecting, muted, onMute, onEnd, remoteStream, who }) {
+// The in-call view, shared by the client's /call page and the host's /host.
+// tick: { remaining, warning, paused, grace } from the host's timer.
+export function CallScreen({ ui, tick, connecting, muted, onMute, onEnd, remoteStream, who }) {
   const remoteRef = useRef(null);
   useEffect(() => {
-    if (remoteRef.current && remoteStream && remoteRef.current.srcObject !== remoteStream) {
-      remoteRef.current.srcObject = remoteStream;
-      remoteRef.current.play?.().catch(() => {});
+    if (remoteRef.current && remoteRef.current.srcObject !== remoteStream) {
+      remoteRef.current.srcObject = remoteStream || null;
+      if (remoteStream) remoteRef.current.play?.().catch(() => {});
     }
   }, [remoteStream]);
 
-  const t = timer || {};
+  const t = tick || {};
+  const hasTime = typeof t.remaining === "number";
   return (
-    <div style={ui.panel} data-testid="call-screen" data-call-state={connecting ? "connecting" : "in-call"}>
+    <div style={ui.panelStrong} data-testid="call-screen" data-call-state={connecting ? "connecting" : t.paused ? "reconnecting" : "in-call"}>
       <p style={ui.panelTitle}>{connecting ? "Connecting…" : `In a call with ${who}`}</p>
       <audio ref={remoteRef} autoPlay />
-      <p style={ui.clock} data-testid="time-left" aria-live="off">{timer ? formatClock(t.secondsRemaining) : "–:––"}</p>
+      <p style={ui.clock} data-testid="time-left" aria-live="off">{hasTime ? formatClock(t.remaining) : "–:––"}</p>
       <p style={{ ...ui.small, textAlign: "center" }}>left in this call</p>
       {t.paused && (
-        <p style={ui.banner} role="status" data-testid="paused-banner">The connection dropped. The timer is paused while we wait to reconnect ({t.graceLeft}s).</p>
+        <p style={ui.banner} role="status" data-testid="reconnecting-banner">Reconnecting… The timer is paused{typeof t.grace === "number" ? ` (${t.grace}s)` : ""}.</p>
       )}
       {!t.paused && t.warning && (
         <p style={ui.banner} role="status" data-testid="warning-banner">About 2 minutes left.</p>

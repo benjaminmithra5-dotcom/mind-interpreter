@@ -1,5 +1,4 @@
 node_modules
-tests
+.site
 test-results
 playwright-report
-.env
