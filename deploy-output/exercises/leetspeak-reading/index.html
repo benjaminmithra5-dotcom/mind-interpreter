@@ -48,7 +48,7 @@
         "author": { "@id": "https://benjaminmithra.com/#person" }
       }
     </script>
-    <script type="module" crossorigin="" src="/assets/index-C-G2negk.js"></script>
+    <script type="module" crossorigin="" src="/assets/index-Bl7mUVIC.js"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&amp;family=Space+Mono:wght@400;700&amp;display=swap"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&amp;family=Space+Mono:wght@400;700&amp;display=swap"></head>
   <body>
     <div id="root"><div style="position: relative; min-height: 100vh; background: rgb(246, 240, 228); color: rgb(30, 43, 44); font-family: &quot;Source Serif 4&quot;, Georgia, serif; display: flex; flex-direction: column; align-items: center;"><style>
@@ -94,6 +94,34 @@
           @media (prefers-reduced-motion: reduce) {
             .emotion-marquee-track { animation-duration: 400s !important; }
           }
+          /* "Talk now": a soft teal ring that grows and fades every 2 seconds.
+             It's drawn on a pseudo-element with box-shadow, so the tab's size
+             and position never change. A cue only, not an "online" light. */
+          @keyframes talkPulse {
+            0% { box-shadow: 0 0 0 0 rgba(14,90,95,0.5); opacity: 1; }
+            70% { box-shadow: 0 0 0 9px rgba(14,90,95,0); opacity: 1; }
+            100% { box-shadow: 0 0 0 9px rgba(14,90,95,0); opacity: 0; }
+          }
+          .talk-pulse { position: relative; }
+          .talk-pulse::after {
+            content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+            animation: talkPulse 2s ease-out infinite;
+          }
+          .menu-btn { position: relative; }
+          .menu-dot {
+            position: absolute; top: -4px; right: -4px; width: 9px; height: 9px; border-radius: 50%;
+            background: #0E5A5F; pointer-events: none;
+          }
+          .menu-dot::after {
+            content: ""; position: absolute; inset: 0; border-radius: 50%;
+            animation: talkPulse 2s ease-out infinite;
+          }
+          /* Browsers already stop painting hidden tabs; this pauses it explicitly too. */
+          html[data-page-hidden] .talk-pulse::after, html[data-page-hidden] .menu-dot::after { animation-play-state: paused; }
+          @media (prefers-reduced-motion: reduce) {
+            .talk-pulse::after, .menu-dot::after { animation: none; }
+            .talk-pulse::after { box-shadow: 0 0 0 3px rgba(14,90,95,0.45); }
+          }
           .fade-in { animation: fadeIn 0.35s ease both; }
           .nav-btn:hover { background: #083A3D !important; border-color: #083A3D !important; color: #FFFFFF !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
           .hero-btn:hover { background: #0B484C !important; border-color: #0B484C !important; color: #FFFFFF !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
@@ -112,7 +140,7 @@
           @media (max-width: 360px) {
             .top-tabs .nav-btn { font-size: 11px !important; letter-spacing: 0.02em !important; padding: 8px 2px !important; }
           }
-        </style><div aria-hidden="true" style="position: fixed; inset: 0px; overflow: hidden; z-index: 0; pointer-events: none; background: rgb(246, 240, 228);"><div style="position: absolute; inset: 0px;"></div></div><div style="position: relative; z-index: 100; width: 100%; max-width: 680px; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px;"><button class="nav-btn" aria-label="Back" style="flex-shrink: 0; font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 16px; background: transparent; border: 1px solid rgba(14, 90, 95, 0.5); border-radius: 6px; padding: 8px 12px; color: rgb(30, 43, 44); cursor: pointer; outline: none;">←</button><div style="position: relative;"><button class="nav-btn" aria-label="Menu" style="flex-shrink: 0; font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 16px; background: transparent; border: 1px solid rgba(14, 90, 95, 0.5); border-radius: 6px; padding: 8px 12px; color: rgb(30, 43, 44); cursor: pointer; outline: none;">☰</button></div></div><main style="position: relative; z-index: 2; width: 100%; max-width: 680px; padding: 10px 20px 80px; min-height: 460px; display: flex; align-items: center; justify-content: center; box-sizing: border-box;"><div class="fade-in" style="display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; max-width: 400px; margin: 0px auto; text-align: center;"><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 27px; letter-spacing: 0.03em; color: rgb(14, 90, 95); margin: 2px 0px 4px;">Leetspeak Reading</p><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(68, 88, 90); margin: 6px 0px 0px;">Reading Fluency</p><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 500; font-size: 15.5px; line-height: 1.7; color: rgb(30, 43, 44); max-width: 480px; margin: 0px;">Every story here is written in leetspeak (letters swapped for numbers). Decoding it as you read trains focus, pattern recognition, and reading speed. A fresh story loads each time, never the same one twice in a row.</p><button style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; background: rgb(14, 90, 95); color: rgb(255, 255, 255); border: none; border-radius: 6px; padding: 13px 24px; cursor: pointer; -webkit-text-stroke: var(--text-outline-on-accent);">Start Reading</button></div></main></div></div>
+        </style><div aria-hidden="true" style="position: fixed; inset: 0px; overflow: hidden; z-index: 0; pointer-events: none; background: rgb(246, 240, 228);"><div style="position: absolute; inset: 0px;"></div></div><div style="position: relative; z-index: 100; width: 100%; max-width: 680px; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px;"><button class="nav-btn" aria-label="Back" style="flex-shrink: 0; font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 16px; background: transparent; border: 1px solid rgba(14, 90, 95, 0.5); border-radius: 6px; padding: 8px 12px; color: rgb(30, 43, 44); cursor: pointer; outline: none;">←</button><div style="position: relative;"><button class="nav-btn menu-btn" aria-label="Menu" aria-expanded="false" style="flex-shrink: 0; font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 16px; background: transparent; border: 1px solid rgba(14, 90, 95, 0.5); border-radius: 6px; padding: 8px 12px; color: rgb(30, 43, 44); cursor: pointer; outline: none;">☰<span class="menu-dot" aria-hidden="true" data-testid="menu-dot"></span></button></div></div><main style="position: relative; z-index: 2; width: 100%; max-width: 680px; padding: 10px 20px 80px; min-height: 460px; display: flex; align-items: center; justify-content: center; box-sizing: border-box;"><div class="fade-in" style="display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; max-width: 400px; margin: 0px auto; text-align: center;"><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 600; font-size: 27px; letter-spacing: 0.03em; color: rgb(14, 90, 95); margin: 2px 0px 4px;">Leetspeak Reading</p><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(68, 88, 90); margin: 6px 0px 0px;">Reading Fluency</p><p style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-weight: 500; font-size: 15.5px; line-height: 1.7; color: rgb(30, 43, 44); max-width: 480px; margin: 0px;">Every story here is written in leetspeak (letters swapped for numbers). Decoding it as you read trains focus, pattern recognition, and reading speed. A fresh story loads each time, never the same one twice in a row.</p><button style="font-family: Oswald, &quot;Arial Narrow&quot;, sans-serif; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; background: rgb(14, 90, 95); color: rgb(255, 255, 255); border: none; border-radius: 6px; padding: 13px 24px; cursor: pointer; -webkit-text-stroke: var(--text-outline-on-accent);">Start Reading</button></div></main></div></div>
   
 
 </body></html>
