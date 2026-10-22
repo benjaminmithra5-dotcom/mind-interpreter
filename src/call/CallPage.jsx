@@ -8,6 +8,7 @@ import { callStyles } from "./callStyles.js";
 import { CallScreen } from "./CallScreen.jsx";
 import { DeviceCheck } from "./DeviceCheck.jsx";
 import { BookTime } from "./BookTime.jsx";
+import { LeaveDialog, useLeaveGuard } from "./LeaveGuard.jsx";
 import { detectZone, formatDateTime } from "./timezones.js";
 
 const SAVED = "talk-now-room"; // this tab's call, so a reload can rejoin it
@@ -143,6 +144,8 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
 
   const inRoom = ["connecting-room", "not-open", "waiting"].includes(phase);
   const inCall = ["connecting", "in-call", "reconnecting"].includes(phase);
+  // Back, the nav menu, refresh: ask first while waiting or in a call.
+  const guard = useLeaveGuard({ active: inRoom || inCall, onLeave: () => (inCall ? hangup() : leave()) });
   const ready = Boolean(BOOKING_URL);
   return (
     <div style={ui.wrap} className="fade-in" data-testid="call-page">
@@ -197,6 +200,9 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
           <BookTime ui={ui} c={c} />
         </section>
       )}
+
+      <LeaveDialog ui={ui} c={c} open={guard.asking} onStay={guard.stay} onLeave={guard.leave}
+        text={inCall ? "If you leave, the call ends." : "If you leave, you'll lose your place in the waiting room."} />
 
       <p style={ui.notice} data-testid="privacy-notice">Your call is private and goes directly between us. It is not recorded.</p>
       <p style={{ ...ui.notice, borderTop: "none", paddingTop: 0 }} data-testid="crisis-notice">This is not an emergency service. If you are in crisis, contact your local emergency services or a crisis line right away (for example, 988 in the US).</p>

@@ -9,11 +9,14 @@
 //
 // The host's page owns the timer: it counts down while both sides are
 // connected, pauses while the connection is lost (up to 30 seconds), and
-// sends the time left to the guest every tick.
+// sends the time left to the guest every tick. The time left belongs to the
+// room, not to one call: a guest who leaves and comes back (and is admitted
+// again) continues with what's left, and the host's page can hand it on to
+// a reopened room after a reload (see HostPage).
 //
 // Messages on the data channel (JSON):
 //   guest → host: { t: "hb" } heartbeat, { t: "end" }
-//   host → guest: { t: "busy" }, { t: "declined" }, { t: "admitted", token },
+//   host → guest: { t: "wait" }, { t: "busy" }, { t: "declined" }, { t: "admitted", token },
 //                 { t: "tick", remaining, warning, paused, grace }, { t: "end", reason }
 import { peerOptions, roomId, CALL_LIMIT_SECONDS, TICK_MS, WARNING_SECONDS, RECONNECT_SECONDS, CONNECT_SECONDS } from "./talkConfig.js";
 
@@ -34,23 +37,32 @@ const safeName = (s) => String(s || "").replace(/\s+/g, " ").trim().slice(0, 60)
 // =====================================================================
 export class HostRoom {
   /**
-   * on: { state(s), waiting(guestName|null), remote(stream), tick(t), ended(reason), notice(text), error(text) }
-   * States: opening | open | in-call | closed
+   * on: { state(s), waiting({ name, returning, remaining }|null), remote(stream), tick(t), ended(reason),
+   *       notice(text), error(text), save({ startedAt, remaining }) }
+   * States: opening | open | in-call | time-up | closed
+   * resume: { startedAt, remaining } from an earlier call in this room (after a reload).
    */
-  constructor({ code, stream, on }) {
+  constructor({ code, stream, on, resume = null }) {
     Object.assign(this, { code, stream, on });
     this.peer = null;
-    this.pending = null; // { conn, name }
+    this.pending = null; // { conn, name, returning }
     this.call = null; // { conn, media, name, token, started, paused, grace, connectLeft, lastHeard }
-    this.remaining = CALL_LIMIT_SECONDS;
+    this.remaining = resume ? resume.remaining : CALL_LIMIT_SECONDS;
+    this.startedAt = resume ? resume.startedAt : null; // when the first call in this room connected
     this.closed = false;
     this.timer = null;
+    this.idRetries = 0;
   }
 
   async open() {
     this.on.state("opening");
+    await this.register();
+    this.timer = setInterval(() => this.tick(), TICK_MS);
+  }
+
+  async register() {
     this.peer = await newPeer(roomId(this.code));
-    this.peer.on("open", () => { if (!this.closed) this.on.state("open"); });
+    this.peer.on("open", () => { if (!this.closed) this.on.state(this.remaining <= 0 ? "time-up" : "open"); });
     this.peer.on("connection", (conn) => this.onConnection(conn));
     this.peer.on("call", (media) => this.onMedia(media));
     this.peer.on("disconnected", () => {
@@ -59,13 +71,24 @@ export class HostRoom {
     });
     this.peer.on("error", (err) => {
       if (this.closed) return;
-      if (err.type === "unavailable-id") this.fail("This room is already open on another page or device.");
+      if (err.type === "unavailable-id") {
+        // Just after a reload the broker can take a few seconds to free the
+        // room's name: try again for a little while before giving up.
+        if (this.idRetries < 6 && !this.everOpen) {
+          this.idRetries += 1;
+          const old = this.peer;
+          old.removeAllListeners();
+          old.destroy();
+          setTimeout(() => { if (!this.closed) this.register(); }, 2000);
+          return;
+        }
+        this.fail("This room is already open on another page or device.");
+      }
       else if (["network", "server-error", "socket-error", "socket-closed", "browser-incompatible", "ssl-unavailable"].includes(err.type) && this.peer.open === false && !this.everOpen) {
         this.fail("Couldn't reach the connection service. Please check your internet and try again.");
       }
     });
     this.peer.on("open", () => { this.everOpen = true; });
-    this.timer = setInterval(() => this.tick(), TICK_MS);
   }
 
   fail(text) {
@@ -92,7 +115,10 @@ export class HostRoom {
         setTimeout(() => conn.close(), 500);
         return;
       }
-      this.pending = { conn, name: safeName(meta.name) };
+      // Someone joining after a call in this room has begun is a returning
+      // guest: they come back to the time that's left.
+      this.pending = { conn, name: safeName(meta.name), returning: this.startedAt !== null };
+      conn.send({ t: "wait" });
       conn.on("close", () => {
         if (this.pending && this.pending.conn === conn) {
           this.pending = null;
@@ -101,7 +127,7 @@ export class HostRoom {
         }
       });
       this.on.notice("");
-      this.on.waiting(this.pending.name);
+      this.on.waiting({ name: this.pending.name, returning: this.pending.returning, remaining: this.remaining });
     });
   }
 
@@ -163,6 +189,7 @@ export class HostRoom {
         return;
       }
       c.started = true;
+      if (this.startedAt === null) this.startedAt = Date.now();
     } else if (!up) {
       if (!c.paused) { c.paused = true; c.grace = RECONNECT_SECONDS; }
       c.grace -= 1;
@@ -172,6 +199,7 @@ export class HostRoom {
     c.paused = false;
     c.grace = null;
     this.remaining -= 1;
+    this.on.save({ startedAt: this.startedAt, remaining: this.remaining });
     if (this.remaining <= 0) return this.endCall("time");
     this.sendTick();
   }
@@ -275,6 +303,12 @@ export class GuestRoom {
     if (!msg || typeof msg !== "object") return;
     this.lastHeard = Date.now();
     switch (msg.t) {
+      case "wait":
+        // Back in the waiting room (for example after the host reopened the
+        // room): wait for Admit instead of counting down to "lost".
+        this.grace = null;
+        this.setState("waiting");
+        return;
       case "busy": return this.finish("busy");
       case "declined": return this.finish("declined");
       case "end": return this.finish(msg.reason || "host-ended");
