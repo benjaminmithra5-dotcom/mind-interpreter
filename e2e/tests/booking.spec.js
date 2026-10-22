@@ -12,7 +12,7 @@ async function chooseSlot(page, iso, tz = "Asia/Kolkata") {
 async function fillDetails(page, { name = "Asha Rao", email = "asha@example.com", phone = "+91 98765 43210" } = {}) {
   await page.getByLabel("Your name", { exact: true }).last().fill(name);
   await page.getByLabel("Your email").fill(email);
-  await page.getByLabel("Phone number, with country code").fill(phone);
+  await page.getByLabel("WhatsApp number (with country code)").fill(phone);
 }
 
 test("the page shows Join first, then Need to talk right now?, then Book a time, with the price and notices", async ({ open }) => {
@@ -21,7 +21,7 @@ test("the page shows Join first, then Need to talk right now?, then Book a time,
   const headings = await page.getByRole("heading", { level: 2 }).allTextContents();
   expect(headings).toEqual(["Join your call", "Need to talk right now?", "Book a time"]);
   await expect(page.getByText("$9.80 for 45 minutes. Audio call.")).toBeVisible();
-  await expect(page.getByText("I will review your request and email you a code.")).toBeVisible();
+  await expect(page.getByText("I will review your request and send your code on WhatsApp.")).toBeVisible();
   await expect(page.getByTestId("privacy-notice")).toHaveText("Your call is private and goes directly between us. It is not recorded.");
   await expect(page.getByTestId("crisis-notice")).toHaveText("This is not an emergency service. If you are in crisis, contact your local emergency services or a crisis line right away (for example, 988 in the US).");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
@@ -160,19 +160,22 @@ test("booking: validation, then a request is sent without the code", async ({ op
   await page.getByTestId("book-submit").click();
   await expect(page.getByText("Please enter your name.")).toBeVisible();
   await expect(page.getByText("Please enter a valid email address.")).toBeVisible();
-  await expect(page.getByText(/Please enter your phone number with the country code/)).toBeVisible();
+  await expect(page.getByText("Please check your WhatsApp number. Include the country code, for example +91 98765 43210.")).toBeVisible();
+  await expect(page.getByText("I will send your code on WhatsApp.")).toBeVisible();
 
-  await fillDetails(page, { phone: "98765 43210" });
+  await fillDetails(page, { phone: "+91 98765" });
   await page.getByTestId("book-submit").click();
-  await expect(page.getByText(/Please enter your phone number with the country code/)).toBeVisible();
+  await expect(page.getByText(/Please check your WhatsApp number/)).toBeVisible();
   await expect(page.getByText("Please enter your name.")).toHaveCount(0);
 
-  await page.getByLabel("Phone number, with country code").fill("+91 98765 43210");
+  await page.getByLabel("WhatsApp number (with country code)").fill("+91 (98765) 432-10");
   await page.getByTestId("book-submit").click();
-  await expect(page.getByTestId("book-done")).toContainText("Request received. I will review it and email you a code.");
+  await expect(page.getByTestId("book-done")).toContainText("Request received. I will review it and send your code on WhatsApp to +919876543210. Please keep WhatsApp ready.");
+  await expect(page.getByTestId("book-done")).not.toContainText("spam");
 
   const [booking] = await gas.bookings();
   expect(booking.status).toBe("pending");
+  expect(booking.phone).toBe("+919876543210");
   expect(booking.timezone).toBe("Asia/Kolkata");
   expect(booking.start).toBe(slot);
   const [mail] = await gas.mails();
@@ -203,7 +206,7 @@ test("booking: one waiting request per email", async ({ open, gas }) => {
   await chooseSlot(page, slots[1]);
   await fillDetails(page, { email: "ASHA@example.com" });
   await page.getByTestId("book-submit").click();
-  await expect(page.getByTestId("book-notice")).toHaveText("You already have a request waiting. I'll email you once I've reviewed it.");
+  await expect(page.getByTestId("book-notice")).toHaveText("You already have a request waiting. I'll send your code on WhatsApp once I've reviewed it.");
   expect((await gas.bookings()).length).toBe(1);
 });
 
@@ -224,23 +227,54 @@ test("booking: a time taken a moment ago is refused kindly and the list refreshe
   await expect(page.getByTestId("book-done")).toBeVisible();
 });
 
-test("the owner approves from the email link; the client gets the code", async ({ open, gas }) => {
+test("the owner approves from the email link; the page shows the WhatsApp button, and no email goes to the client", async ({ open, gas }) => {
   const [slot] = await gas.slots();
   await gas.book({ name: "Asha Rao", email: "asha@example.com", phone: "+91 98765 43210", timezone: "Europe/London", start: slot });
   const [mail] = await gas.mails();
   const approve = mail.htmlBody.match(/href="([^"]*action=approve[^"]*)"/)[1].replace(/&amp;/g, "&");
-  const owner = await open(approve);
+  const owner = await open(approve, { permissions: ["clipboard-read", "clipboard-write"] });
   await expect(owner.getByRole("heading")).toHaveText("Approve this request?");
   expect((await gas.bookings())[0].status).toBe("pending");
   await owner.getByRole("button", { name: "Approve" }).click();
-  await expect(owner.getByRole("status")).toHaveText("Approved. The client has been emailed.");
+  await expect(owner.getByRole("status")).toHaveText("Approved.");
   const [booking] = await gas.bookings();
   expect(booking.status).toBe("approved");
-  const client = (await gas.mails()).find((m) => m.to === "asha@example.com");
-  expect(client.htmlBody).toContain(`https://benjaminmithra.com/call?room=${booking.code}`);
+
+  // The big button opens WhatsApp outside the Apps Script frame, with the message ready.
+  const wa = owner.getByRole("link", { name: "Send the code on WhatsApp" });
+  await expect(wa).toBeVisible();
+  await expect(wa).toHaveAttribute("target", "_top");
+  const href = await wa.getAttribute("href");
+  const text = await owner.locator("#text").inputValue();
+  expect(href).toBe(`https://wa.me/919876543210?text=${encodeURIComponent(text)}`);
+  for (const part of ["Asha Rao", "(your time, Europe/London)", "in India", booking.code, `https://benjaminmithra.com/call?room=${booking.code}`, "Please use headphones or over-ear headphones."]) {
+    expect(text).toContain(part);
+  }
+  // Copy message, in case WhatsApp doesn't open.
+  await owner.getByRole("button", { name: "Copy message" }).click();
+  await expect(owner.locator("#copied")).toHaveText("Copied.");
+
+  // No code email to the client; the owner gets a copy with the same button.
+  const mails = await gas.mails();
+  expect(mails.find((m) => m.to === "asha@example.com")).toBeUndefined();
+  const copy = mails.at(-1);
+  expect(copy.to).toBe("benjamin@benjaminmithra.com");
+  expect(copy.body).toContain(`Send the code on WhatsApp: ${href}`);
+
   // The link only works once.
   await owner.goto(approve);
   await expect(owner.getByText("This link has already been used, or the request is no longer waiting.")).toBeVisible();
+});
+
+test("the approved page fits at 390px", async ({ open, gas }) => {
+  const [slot] = await gas.slots();
+  await gas.book({ name: "Asha Rao", email: "asha@example.com", phone: "+91 98765 43210", timezone: "Europe/London", start: slot });
+  const [mail] = await gas.mails();
+  const approve = mail.htmlBody.match(/href="([^"]*action=approve[^"]*)"/)[1].replace(/&amp;/g, "&");
+  const owner = await open(approve, { viewport: { width: 390, height: 844 } });
+  await owner.getByRole("button", { name: "Approve" }).click();
+  await expect(owner.getByRole("link", { name: "Send the code on WhatsApp" })).toBeVisible();
+  expect(await owner.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
 test("works at 390px with no sideways scroll", async ({ open, gas }) => {

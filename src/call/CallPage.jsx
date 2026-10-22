@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { BOOKING_URL, isPrerender, normalizeCode } from "./talkConfig.js";
 import { checkCode, getStatus } from "./bookingApi.js";
-import { getMic } from "./media.js";
+import { getCallMic } from "./media.js";
 import { GuestRoom } from "./room.js";
 import { callStyles } from "./callStyles.js";
 import { CallScreen } from "./CallScreen.jsx";
@@ -17,7 +17,7 @@ const SAVED = "talk-now-room"; // this tab's call, so a reload can rejoin it
 // Messages for the client. "{link}" becomes a link to the Consultation page.
 const MESSAGE = {
   form: "Please enter your code and your name.",
-  invalid: "That code isn't valid. Please check the code in the email I sent you.",
+  invalid: "That code isn't valid. Please check the code I sent you on WhatsApp.",
   "not-yet": "Your room opens 15 minutes before your call. Your call is on {when} (your time).",
   expired: "This code has expired. You're welcome to book another time below.",
   network: "We couldn't check your code just now. Please check your connection and try again.",
@@ -61,6 +61,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
   const [status, setStatus] = useState(null); // { immediate, paused } from the booking service
   const room = useRef(null);
   const stream = useRef(null);
+  const joining = useRef(false);
 
   // Whether immediate calls are on, and whether booking is paused.
   useEffect(() => {
@@ -71,8 +72,12 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
       .catch(() => setStatus({ immediate: false, paused: false }));
   }, []);
 
+  // The microphone (after strong noise reduction, if on) and how to release
+  // it, including its AudioContext.
+  const mic = useRef(null);
   function stopMic() {
-    stream.current?.getTracks().forEach((t) => t.stop());
+    mic.current?.stop();
+    mic.current = null;
     stream.current = null;
   }
   useEffect(() => () => { room.current?.finish("cancelled"); stopMic(); }, []);
@@ -112,17 +117,28 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
     if (!saved || !saved.token || !BOOKING_URL || isPrerender()) return;
     setCode(saved.code);
     setName(saved.name);
-    getMic()
-      .then((s) => { stream.current = s; startRoom(saved); })
+    getCallMic()
+      .then((m) => { mic.current = m; stream.current = m.stream; startRoom(saved); })
       .catch(() => { writeSaved(null); setMessage({ id: "mic" }); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function join(e) {
     e.preventDefault();
+    // One join at a time: a second press (a double tap, Enter twice) would
+    // start a second connection, which the host would take for a second guest.
+    if (joining.current || room.current) return;
     setMessage(null);
     const roomCode = normalizeCode(code);
     if (roomCode.length !== 10 || !name.trim()) { setMessage({ id: "form" }); return; }
+    joining.current = true;
+    try {
+      await joinChecked(roomCode);
+    } finally {
+      joining.current = false;
+    }
+  }
+  async function joinChecked(roomCode) {
     setPhase("checking");
     let res;
     try {
@@ -140,7 +156,8 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
       return;
     }
     try {
-      stream.current = await getMic();
+      mic.current = await getCallMic();
+      stream.current = mic.current.stream;
     } catch {
       setPhase("idle");
       setMessage({ id: "mic" });
@@ -187,7 +204,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
 
           {!inCall && !inRoom && (
             <form onSubmit={join} noValidate style={{ display: "flex", flexDirection: "column", gap: 14 }} data-testid="join-form">
-              <p style={ui.small}>Enter the code from your email. The room opens 15 minutes before your call.</p>
+              <p style={ui.small}>Enter the code I sent you on WhatsApp. The room opens 15 minutes before your call.</p>
               <label style={ui.label}>Your code
                 <input style={{ ...ui.input, ...ui.codeInput }} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={14}
                   autoComplete="off" autoCapitalize="characters" spellCheck="false" placeholder="Your code" inputMode="text" data-testid="code-input" />
@@ -195,7 +212,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
               <label style={ui.label}>Your name
                 <input style={ui.input} value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoComplete="given-name" data-testid="join-name" />
               </label>
-              <DeviceCheck ui={ui} framed={false} />
+              <DeviceCheck ui={ui} c={c} framed={false} />
               {message && <Message ui={ui} msg={message} consultationPath={consultationPath} />}
               <button type="submit" style={ui.btnLarge} disabled={phase === "checking"} data-testid="join-button">{phase === "checking" ? "Checking…" : "Join"}</button>
             </form>
@@ -218,8 +235,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
           <h2 id="now-heading" style={ui.h2}>Need to talk right now?</h2>
           {status.immediate ? (
             <>
-              <p style={ui.price}>$9.80 for 45 minutes. Audio call. I will email you a code within a few minutes if I am free.</p>
-              <p style={ui.small}>Check your spam folder, and add benjamin@benjaminmithra.com to your contacts so it reaches you.</p>
+              <p style={ui.price}>$9.80 for 45 minutes. Audio call. I will send you a code on WhatsApp within a few minutes if I am free.</p>
               <ImmediateTalk ui={ui} onStatus={(patch) => setStatus((s) => ({ ...s, ...patch }))} />
             </>
           ) : (
@@ -232,7 +248,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
         <section style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }} aria-labelledby="book-heading" data-testid="book-section">
           <h2 id="book-heading" style={ui.h2}>Book a time</h2>
           <p style={ui.price}>$9.80 for 45 minutes. Audio call.</p>
-          <p style={ui.text}>I will review your request and email you a code.</p>
+          <p style={ui.text}>I will review your request and send your code on WhatsApp.</p>
           <BookTime ui={ui} c={c} />
         </section>
       )}

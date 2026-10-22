@@ -33,7 +33,7 @@ it yourself.
 ## Talk now: booking and calls
 
 Clients book a time on benjaminmithra.com/call. You approve it from an email,
-the client gets a code, and at the time of the call they join a private,
+send the client their code on WhatsApp with one tap, and at the time of the call they join a private,
 audio-only room in the browser that you open on benjaminmithra.com/host.
 There's no server of our own, no database and no cost: bookings run on a
 small Google Apps Script in your own Google account (`apps-script/Code.gs`),
@@ -62,11 +62,13 @@ and the call goes directly between the two browsers.
    workflow**. When it has finished, the site shows the booking calendar.
 5. Test it: in a second browser (or a private window), book a time on
    benjaminmithra.com/call. You'll get an email: tap **Approve**, then the
-   **Approve** button on the page that opens. The client email (and your
-   copy) has the code. To try a call straight away, book the earliest time
-   you can, then at that time open benjaminmithra.com/host, paste the code
-   and click **Open room**. In the other browser, open the join link from
-   the email, type a name and click **Join**. Click **Admit** on /host.
+   **Approve** button on the page that opens. The page then shows a big
+   **Send the code on WhatsApp** button (and the message, with **Copy
+   message** in case WhatsApp doesn't open); your copy email has the same
+   button. To try a call straight away, book the earliest time you can, then
+   at that time open benjaminmithra.com/host, paste the code and click
+   **Open room**. In the other browser, open the join link from the
+   message, type a name and click **Join**. Click **Admit** on /host.
 
 Until `VITE_BOOKING_URL` is set, /call just says "Booking opens soon."
 
@@ -96,36 +98,54 @@ file over the old one and deploy a new version (see `apps-script/README.md`).
 While **Taking immediate calls** is on, /call shows "Need to talk right now?"
 with a short form. You get an email "Immediate Talk: name" with the client's
 details, a WhatsApp link, and Approve and Decline. On Approve, the call starts
-then: it goes on your calendar as "Immediate Talk: name", the client gets
-their code with "Your call is ready now", and you open the room on /host with
-that code. A request you don't answer within 15 minutes is released and the
+then: it goes on your calendar as "Immediate Talk: name", you tap **Send the
+code on WhatsApp** (the message says the call "is ready now"), and you open
+the room on /host with that code. A request you don't answer within 15 minutes is released and the
 client is told politely. At most 5 immediate requests can wait at once.
 
 ### Answering requests
 
 Each request appears on your Google Calendar as "Talk now: name (pending)"
-and in your email with the client's name, email, phone (with a WhatsApp
-link) and the time in India and in their time zone. The Approve and Decline
+and in your email with the client's name, email, WhatsApp number (with a
+WhatsApp link) and the time in India and in their time zone. The Approve and Decline
 links each open a page with one button; the button, not the link, does it.
 This way an email security scanner that "opens" links can't approve or
 decline anything by itself. Decline also works after approving, to cancel a
 call. Requests you don't answer within 48 hours are released automatically
 and the client gets a polite email.
 
+### Sending the code on WhatsApp (why it's a tap, not automatic)
+
+The forms ask for the client's **WhatsApp number (with country code)**. When
+you approve, the client is *not* emailed the code. Instead the page you see
+after **Approve** (and your copy email) has a **Send the code on WhatsApp**
+button. It opens WhatsApp with a chat to the client and this message already
+typed: their name, the time in their time zone and in India (or "ready now"
+for Immediate Talk), the code, the join link and a reminder to use
+headphones. You just press send. If WhatsApp doesn't open, **Copy message**
+copies the text so you can paste it yourself.
+
+It's a tap rather than fully automatic on purpose: sending WhatsApp messages
+automatically needs the WhatsApp Business API through a paid provider, which
+costs money per message. A `wa.me` link is free and needs no account or key.
+Declines and released requests still go to the client by email (they carry
+no code).
+
 ### What's stored where
 
 - **Your Google Calendar:** each booking, with the client's name, email,
   phone and time zone in the event description. It stays there as your
   record.
-- **Your Gmail:** the request emails, and copies of what clients were sent.
+- **Your Gmail:** the request emails, your "Approved" copies (with the
+  WhatsApp message), and copies of decline notes.
 - **The script's own private storage** (script properties): the booking code
   and the one-time Approve/Decline links, only while they're needed. Declined
   and released requests are deleted at once; approved ones a day after the
   call. Also your weekly hours, blocked times (with your notes), the two
   switches, your ADMIN_KEY and a count of recent wrong keys.
 - **Nothing else.** The website has no database. The call itself is never
-  recorded, and the script never writes names, emails or phone numbers to its
-  log.
+  recorded, and the script never writes names, emails, phone numbers or codes to
+  its log.
 
 ### Optional: a relay for hard networks (TURN)
 
@@ -152,6 +172,13 @@ Calls through a relay stay encrypted end to end; the relay can't listen.
   account allows far more than this needs, but check Google's current quotas).
 - Immediate Talk only works while you watch your email: a request waits 15
   minutes for your answer.
+- The code reaches the client only when you tap **Send the code on
+  WhatsApp** and press send. If a client typed a wrong number, the page
+  showed it back to them, and their email is in the request so you can reach
+  them another way.
+- Strong noise reduction (RNNoise, on by default, switchable in the device
+  check) is tested automatically only for wiring, not for how it sounds: try
+  a real call with two devices to judge it.
 - One guest at a time per room. Each call lasts up to 45 minutes from the
   moment it connects.
 

@@ -85,7 +85,7 @@ test("book: creates a pending calendar event and emails the owner, but not the c
   assert.equal(ev.title, "Talk now: Asha Rao (pending)");
   assert.equal(new Date(ev.start).toISOString(), start);
   assert.equal(ev.end - ev.start, 45 * 60 * 1000);
-  for (const s of ["Asha Rao", "asha@example.com", "+91 98765 43210", "Europe/London", b.id]) assert.ok(ev.description.includes(s), s);
+  for (const s of ["Asha Rao", "asha@example.com", "+919876543210", "Europe/London", b.id]) assert.ok(ev.description.includes(s), s);
 
   assert.equal(gas.mails.length, 1);
   const m = gas.mails[0];
@@ -109,10 +109,11 @@ test("book: validation of name, email, phone and time", () => {
   assert.deepEqual(bad({ name: "<script>" }).fields, ["name"]);
   assert.deepEqual(bad({ email: "asha@" }).fields, ["email"]);
   assert.deepEqual(bad({ email: "a b@example.com" }).fields, ["email"]);
-  assert.deepEqual(bad({ phone: "98765 43210" }).fields, ["phone"], "needs a country code (+)");
   assert.deepEqual(bad({ phone: "+91 123" }).fields, ["phone"], "too short");
   assert.deepEqual(bad({ phone: "+91 98765 43210 12345 6" }).fields, ["phone"], "too long");
   assert.deepEqual(bad({ phone: "+91 98765-ABCDE" }).fields, ["phone"]);
+  assert.deepEqual(bad({ phone: "+91.98765.43210" }).fields, ["phone"], "dots aren't stripped");
+  assert.deepEqual(bad({ phone: "++91 98765 43210" }).fields, ["phone"], "only one leading +");
   assert.deepEqual(bad({ start: "soon" }).fields, ["start"]);
   assert.deepEqual(bad({ name: "", email: "", phone: "" }).fields, ["name", "email", "phone"]);
   assert.equal(bad({ name: "x" }).ok, true, "a one-letter name is fine");
@@ -172,7 +173,7 @@ test("bad requests get a plain error", () => {
 });
 
 // ---- approve / decline ---------------------------------------------------------------
-test("approve: the link opens a confirm page; the button approves once and emails the client", () => {
+test("approve: the link opens a confirm page; the button approves once, emails only the owner, and shows the WhatsApp button", () => {
   const gas = setup();
   book(gas, IST("2026-11-02", "19:00"));
   const { id, token } = linkParams(gas.mails[0].htmlBody, "approve");
@@ -182,30 +183,33 @@ test("approve: the link opens a confirm page; the button approves once and email
   assert.equal(page.kind, "html");
   assert.ok(page.html.includes("Approve this request?"));
   assert.ok(page.html.includes("google.script.run"));
+  // The page knows how to show the WhatsApp button, outside the Apps Script frame, and a copy fallback.
+  assert.ok(page.html.includes("Send the code on WhatsApp"));
+  assert.ok(page.html.includes("a.target='_top'"));
+  assert.ok(page.html.includes("Copy message"));
   assert.equal(gas.bookings()[0].status, "pending");
 
-  assert.equal(gas.context.ownerAction("approve", id, token), "Approved. The client has been emailed.");
+  const result = gas.context.ownerAction("approve", id, token);
   const b = gas.bookings()[0];
+  assert.equal(result.message, "Approved.");
+  assert.equal(result.whatsapp, `https://wa.me/919876543210?text=${encodeURIComponent(result.text)}`);
+  assert.ok(result.text.includes(b.code));
   assert.equal(b.status, "approved");
   assert.equal(gas.events[0].title, "Talk now: Asha Rao");
 
-  const [client, copy] = gas.mails.slice(1);
-  assert.equal(client.to, "asha@example.com");
-  assert.equal(client.replyTo, "benjamin@benjaminmithra.com");
-  assert.ok(client.htmlBody.includes(b.code));
-  assert.ok(client.htmlBody.includes(`https://benjaminmithra.com/call?room=${b.code}`));
-  assert.ok(client.htmlBody.includes("Monday 2 November 2026, 1:30 PM</strong> (your time, Europe/London)"));
-  assert.ok(client.htmlBody.includes("Monday 2 November 2026, 7:00 PM (India time)"));
-  assert.ok(client.htmlBody.includes("Use headphones or over-ear headphones."));
-  assert.ok(client.body.includes(b.code));
+  // No email to the client: the code goes on WhatsApp. The owner gets his copy.
+  assert.equal(gas.mails.length, 2);
+  assert.ok(!gas.mails.some((m) => m.to === "asha@example.com"));
+  const copy = gas.mails[1];
   assert.equal(copy.to, "benjamin@benjaminmithra.com");
-  assert.ok(copy.subject.startsWith("Copy: "));
+  assert.equal(copy.subject, "Approved: send Asha Rao the code on WhatsApp");
   assert.ok(copy.htmlBody.includes(b.code));
+  assert.ok(copy.htmlBody.includes(`https://benjaminmithra.com/call?room=${b.code}`));
 
   // One use only.
   assert.match(gas.context.ownerAction("approve", id, token), /already been used/);
   assert.ok(gas.get({ action: "approve", id, token }).html.includes("already been used"));
-  assert.equal(gas.mails.length, 3);
+  assert.equal(gas.mails.length, 2);
 });
 
 test("approve/decline: a wrong or missing token changes nothing", () => {
@@ -353,24 +357,27 @@ test("a visitor across the date line sees the right day in the owner email", () 
   assert.ok(gas.mails[0].htmlBody.includes("Tuesday 3 November 2026, 6:30 AM (Pacific/Kiritimati)"));
 });
 
-test("approve: the owner's copy has a WhatsApp button with the code, ready to send", () => {
+test("approve: the WhatsApp link has digits only and the URL-encoded message with the code", () => {
   const gas = setup();
-  book(gas, IST("2026-11-02", "19:00"), { phone: "+44 (0)7700-900.123" });
+  book(gas, IST("2026-11-02", "19:00"), { phone: "+44 (0)7700-900 123" });
+  assert.equal(gas.bookings()[0].phone, "+4407700900123");
   const { id, token } = linkParams(gas.mails[0].htmlBody, "approve");
-  gas.context.ownerAction("approve", id, token);
+  const result = gas.context.ownerAction("approve", id, token);
   const b = gas.bookings()[0];
-  const [client, copy] = gas.mails.slice(1);
+  const copy = gas.mails[1];
 
-  // The button in the HTML part (href is HTML-escaped there).
+  // The button in the owner's copy (href is HTML-escaped there) is the same as on the Approve page.
   const href = copy.htmlBody.match(/<a href="(https:\/\/wa\.me\/[^"]+)"[^>]*>Send the code on WhatsApp<\/a>/)[1].replace(/&amp;/g, "&");
+  assert.equal(href, result.whatsapp);
   const url = new URL(href);
   assert.equal(url.origin + url.pathname, "https://wa.me/4407700900123", "digits only");
   assert.deepEqual([...url.searchParams.keys()], ["text"]);
   const raw = href.split("?text=")[1];
-  assert.equal(raw, encodeURIComponent(url.searchParams.get("text")), "the message is URL-encoded");
+  assert.equal(raw, encodeURIComponent(result.text), "the message is URL-encoded");
   assert.ok(!/[ \n]/.test(raw));
 
   const message = url.searchParams.get("text");
+  assert.equal(message, result.text);
   for (const part of [
     "Asha Rao",
     "Monday 2 November 2026, 1:30 PM (your time, Europe/London)",
@@ -382,22 +389,18 @@ test("approve: the owner's copy has a WhatsApp button with the code, ready to se
 
   // The same link in the plain-text part.
   assert.ok(copy.body.includes(`Send the code on WhatsApp: ${href}`));
-  // Only the owner's copy has it; the client's email doesn't.
-  assert.ok(!client.htmlBody.includes("wa.me") && !client.body.includes("wa.me"));
 });
 
-test("approve: the client's email suggests checking spam and adding the address to contacts", () => {
-  const gas = setup();
-  book(gas, IST("2026-11-02", "19:00"));
-  const { id, token } = linkParams(gas.mails[0].htmlBody, "approve");
-  gas.context.ownerAction("approve", id, token);
-  const client = gas.mails[1];
-  const line = "If you can't find this email later, check your spam folder and add benjamin@benjaminmithra.com to your contacts.";
-  assert.ok(client.htmlBody.includes(line));
-  assert.ok(client.body.includes(line));
-  // Near the top: before the time and the code.
-  assert.ok(client.body.indexOf(line) < client.body.indexOf("Your code:"));
-  assert.ok(client.htmlBody.indexOf(line) < client.htmlBody.indexOf("Your code:"));
+test("whatsappDigits_: strips spaces, dashes, brackets and one leading +; 8 to 15 digits", () => {
+  const { whatsappDigits_ } = createGas().context;
+  assert.equal(whatsappDigits_("+91 98765 43210"), "919876543210");
+  assert.equal(whatsappDigits_(" +1 (415) 555-0100 "), "14155550100");
+  assert.equal(whatsappDigits_("919876543210"), "919876543210");
+  assert.equal(whatsappDigits_("12345678"), "12345678");
+  assert.equal(whatsappDigits_("123456789012345"), "123456789012345");
+  for (const bad of ["", "1234567", "1234567890123456", "+91.98765.43210", "++91 98765 43210", "+91 98765 4321O", "91+9876543210", null, undefined]) {
+    assert.equal(whatsappDigits_(bad), "", String(bad));
+  }
 });
 
 test("the request email to the owner keeps its WhatsApp contact link", () => {

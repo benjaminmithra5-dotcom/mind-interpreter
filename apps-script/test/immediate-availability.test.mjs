@@ -70,7 +70,7 @@ test("immediate: stored without a calendar event; the owner gets an Immediate Ta
   assert.equal(m.to, "benjamin@benjaminmithra.com");
   assert.equal(m.subject, "Immediate Talk: Asha Rao");
   assert.equal(m.replyTo, "asha@example.com");
-  for (const part of ["Asha Rao", "asha@example.com", "+91 98765 43210", 'href="https://wa.me/919876543210"']) assert.ok(m.htmlBody.includes(part), part);
+  for (const part of ["Asha Rao", "asha@example.com", "+919876543210", 'href="https://wa.me/919876543210"']) assert.ok(m.htmlBody.includes(part), part);
   const { approve, decline } = links(m.htmlBody);
   assert.equal(approve.token, b.approveToken);
   assert.equal(decline.token, b.declineToken);
@@ -87,7 +87,7 @@ test("immediate: one waiting request per email (including booked ones), and at m
   assert.equal(gas.bookings().filter((b) => b.type === "immediate").length, 5);
 });
 
-test("immediate approve: starts at the moment of approval, books the calendar, emails the code", () => {
+test("immediate approve: starts at the moment of approval, books the calendar, and shows the WhatsApp button (no client email)", () => {
   const gas = setup();
   turnOn(gas);
   gas.setNow("2026-11-02T10:01:00Z");
@@ -96,7 +96,8 @@ test("immediate approve: starts at the moment of approval, books the calendar, e
   assert.match(gas.get({ action: "approve", ...approve }).html, /wants to talk now/);
 
   gas.setNow("2026-11-02T10:07:31Z");
-  assert.match(gas.context.ownerAction("approve", approve.id, approve.token), /^Approved\./);
+  const result = gas.context.ownerAction("approve", approve.id, approve.token);
+  assert.match(result.message, /^Approved\./);
   const [b] = gas.bookings();
   assert.equal(b.status, "approved");
   assert.equal(b.start, "2026-11-02T10:07:00.000Z", "to the minute");
@@ -105,18 +106,10 @@ test("immediate approve: starts at the moment of approval, books the calendar, e
   assert.equal(gas.events[0].title, "Immediate Talk: Asha Rao");
   assert.equal(new Date(gas.events[0].start).toISOString(), b.start);
 
-  const [client, copy] = gas.mails.slice(1);
-  assert.equal(client.to, "asha@example.com");
-  for (const part of [
-    "Your call is ready now. The room is open for you.",
-    b.code,
-    `https://benjaminmithra.com/call?room=${b.code}`,
-    "Use headphones or over-ear headphones.",
-    "If you can't find this email later, check your spam folder and add benjamin@benjaminmithra.com to your contacts.",
-  ]) {
-    assert.ok(client.htmlBody.includes(part), part);
-    assert.ok(client.body.includes(part), part);
-  }
+  // No email to the client; the owner gets one email with the WhatsApp button.
+  assert.equal(gas.mails.length, 2);
+  assert.ok(!gas.mails.some((m) => m.to === "asha@example.com"));
+  const copy = gas.mails[1];
   // The owner's copy: WhatsApp button with a "ready now" message.
   assert.equal(copy.to, "benjamin@benjaminmithra.com");
   const href = copy.htmlBody.match(/<a href="(https:\/\/wa\.me\/[^"]+)"[^>]*>Send the code on WhatsApp<\/a>/)[1].replace(/&amp;/g, "&");
@@ -127,6 +120,8 @@ test("immediate approve: starts at the moment of approval, books the calendar, e
   assert.match(message, /^Hello Asha Rao, your Talk now call is ready now\. /);
   assert.ok(message.includes(b.code) && message.includes(`/call?room=${b.code}`) && message.includes("Please use headphones or over-ear headphones."));
   assert.ok(copy.body.includes(`Send the code on WhatsApp: ${href}`));
+  assert.equal(result.whatsapp, href);
+  assert.equal(result.text, message);
 
   // The code works now, and until 60 minutes after the start.
   assert.deepEqual(gas.get({ action: "check", code: b.code }), { valid: true, startsAt: b.start, endsAt: b.end });
@@ -248,7 +243,7 @@ test("saving hours changes the slots; existing bookings stay valid", () => {
   // The 19:00 booking made under the old hours is still there and still holds.
   assert.equal(gas.bookings()[0].start, IST("2026-11-02", "19:00"));
   const { approve } = links(gas.mails[0].htmlBody);
-  assert.match(gas.context.ownerAction("approve", approve.id, approve.token), /^Approved/);
+  assert.match(gas.context.ownerAction("approve", approve.id, approve.token).message, /^Approved/);
 });
 
 test("saving hours: invalid hours are refused", () => {

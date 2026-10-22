@@ -109,6 +109,17 @@ export class HostRoom {
         conn.send({ t: "admitted", token: c.token });
         return;
       }
+      // The waiting guest's own browser opening a fresh connection (for
+      // example after its link to the broker dropped): swap it in quietly.
+      const p = this.pending;
+      if (p && meta.joinId && meta.joinId === p.joinId) {
+        p.conn.removeAllListeners("close");
+        p.conn.close();
+        p.conn = conn;
+        this.watchPending(conn);
+        conn.send({ t: "wait" });
+        return;
+      }
       // One guest at a time: anyone else hears "busy".
       if (c || this.pending || this.remaining <= 0) {
         conn.send({ t: this.remaining <= 0 ? "end" : "busy", reason: "time" });
@@ -117,17 +128,21 @@ export class HostRoom {
       }
       // Someone joining after a call in this room has begun is a returning
       // guest: they come back to the time that's left.
-      this.pending = { conn, name: safeName(meta.name), returning: this.startedAt !== null };
+      this.pending = { conn, name: safeName(meta.name), returning: this.startedAt !== null, joinId: typeof meta.joinId === "string" ? meta.joinId : null };
       conn.send({ t: "wait" });
-      conn.on("close", () => {
-        if (this.pending && this.pending.conn === conn) {
-          this.pending = null;
-          this.on.waiting(null);
-          this.on.notice("The guest left the waiting room.");
-        }
-      });
+      this.watchPending(conn);
       this.on.notice("");
       this.on.waiting({ name: this.pending.name, returning: this.pending.returning, remaining: this.remaining });
+    });
+  }
+
+  watchPending(conn) {
+    conn.on("close", () => {
+      if (this.pending && this.pending.conn === conn) {
+        this.pending = null;
+        this.on.waiting(null);
+        this.on.notice("The guest left the waiting room.");
+      }
     });
   }
 
@@ -246,8 +261,12 @@ export class GuestRoom {
    */
   constructor({ code, name, stream, token = null, on }) {
     Object.assign(this, { code, name, stream, on, token });
+    // Identifies this join to the host, so a fresh connection from this same
+    // page replaces the old one instead of looking like a second guest.
+    this.joinId = randomToken();
     this.peer = null;
     this.conn = null;
+    this.connLive = false; // a connection is open or still opening
     this.media = null;
     this.state = "idle";
     this.lastHeard = 0;
@@ -261,7 +280,9 @@ export class GuestRoom {
   async join() {
     this.setState(this.token ? "reconnecting" : "connecting-room");
     this.peer = await newPeer();
-    this.peer.on("open", () => this.connect());
+    // "open" fires again after the link to the broker drops and comes back.
+    // The connection to the host doesn't depend on that link, so keep it.
+    this.peer.on("open", () => { if (!this.connLive) this.connect(); });
     this.peer.on("error", (err) => {
       if (this.done) return;
       if (err.type === "peer-unavailable") {
@@ -278,14 +299,18 @@ export class GuestRoom {
 
   scheduleRetry(ms) {
     clearTimeout(this.retry);
-    this.retry = setTimeout(() => { if (!this.done && this.peer && this.peer.open) this.connect(); }, ms);
+    this.retry = setTimeout(() => { if (!this.done && this.peer && this.peer.open) this.connect({ force: true }); }, ms);
   }
 
-  connect() {
+  /** force: replace a connection that failed or went quiet. */
+  connect({ force = false } = {}) {
     if (this.done) return;
+    if (this.connLive && !force) return; // never a second connection by accident
     if (this.conn) { this.conn.removeAllListeners(); this.conn.close(); }
-    const conn = this.peer.connect(roomId(this.code), { reliable: true, serialization: "json", metadata: { name: this.name, rejoin: this.token || undefined } });
+    const conn = this.peer.connect(roomId(this.code), { reliable: true, serialization: "json", metadata: { name: this.name, rejoin: this.token || undefined, joinId: this.joinId } });
     this.conn = conn;
+    this.connLive = true;
+    conn.on("error", () => { if (conn === this.conn) this.connLive = false; });
     conn.on("open", () => {
       if (conn !== this.conn) return;
       this.lastHeard = Date.now();
@@ -293,6 +318,7 @@ export class GuestRoom {
     });
     conn.on("data", (msg) => conn === this.conn && this.onMessage(msg));
     conn.on("close", () => {
+      if (conn === this.conn) this.connLive = false;
       if (conn !== this.conn || this.done) return;
       if (this.state === "waiting") this.finish("closed");
       // In a call: the heartbeat check below notices and starts reconnecting.
@@ -344,7 +370,7 @@ export class GuestRoom {
       this.setState("reconnecting");
       this.grace = RECONNECT_SECONDS;
       this.graceStarted = Date.now();
-      this.connect();
+      this.connect({ force: true });
       this.on.tick({ paused: true, grace: this.grace, local: true });
     } else if (this.state === "reconnecting" && silent) {
       if (this.grace == null) { this.grace = RECONNECT_SECONDS; this.graceStarted = Date.now(); }
@@ -352,7 +378,7 @@ export class GuestRoom {
       this.on.tick({ paused: true, grace: Math.max(0, left), local: true });
       if (left <= 0) return this.finish("lost");
       if (!this.conn || !this.conn.open) {
-        if (!this.lastTry || Date.now() - this.lastTry > 2500) { this.lastTry = Date.now(); this.connect(); }
+        if (!this.lastTry || Date.now() - this.lastTry > 2500) { this.lastTry = Date.now(); this.connect({ force: true }); }
       }
     }
   }

@@ -4,7 +4,7 @@ import { test, expect, openHost, joinAsGuest, startCall, clockSeconds, remoteAud
 test("join: a code that isn't valid, not open yet, or expired gets a calm message", async ({ open, gas }) => {
   const page = await open("/call");
   await joinAsGuest(page, "ABCDEFGHJK");
-  await expect(page.getByTestId("join-message")).toHaveText("That code isn't valid. Please check the code in the email I sent you.");
+  await expect(page.getByTestId("join-message")).toHaveText("That code isn't valid. Please check the code I sent you on WhatsApp.");
 
   const later = await gas.booking({ startsInMinutes: 30 });
   await joinAsGuest(page, later.code);
@@ -33,7 +33,7 @@ test("join: a code that isn't valid, not open yet, or expired gets a calm messag
   await expect(page.getByTestId("join-message")).toHaveText("Please enter your code and your name.");
 });
 
-test("the code from the email link fills the code field", async ({ open, gas }) => {
+test("the code from the join link fills the code field", async ({ open, gas }) => {
   const { code } = await gas.booking();
   const page = await open(`/call?room=${code.toLowerCase()}`);
   await expect(page.getByTestId("code-input")).toHaveValue(code);
