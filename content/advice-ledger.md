@@ -119,3 +119,13 @@ private conversation at /consultation.
 - If a parent cries, stay on the line without changing the answer, or end kindly with "Let's talk tomorrow."
 - Ask "What's the part of Thursday you'd miss me at most?" and join that piece (called in during the stuffing, same recipe on video, on speaker for the thankful round).
 - Plan the three o'clock hour on the day: coworker's invitation, volunteer shift, Friendsgiving potluck, or a shaped solo day (one family dish, walk before dark, saved movie); send mom a photo of your plate.
+
+## 2026-10-23 · who-am-i-now-that-im-retired
+
+- Reframe the hole as missing being known by the work, not missing the work; the task is new ways of being known, not a replacement job.
+- Write your day as verbs, not a title; verbs come home with you and point to skills still wanting use.
+- Three-part answer to "What do you do?": nod to the past, a present fact, one curiosity; practice it aloud in the car; no "I'm just retired."
+- Aim to be needed by one named person (neighbor with a phone, nephew's résumé) with one skill at a regular time, not generic volunteering.
+- Spend one afternoon first-name-only in a place that doesn't know your title (library workshop, pool, weekday pottery class) and see how people respond.
+- Monthly lunch with former coworkers with a rule: first twenty minutes not about the office.
+- Closing image: the old badge in the kitchen drawer.
