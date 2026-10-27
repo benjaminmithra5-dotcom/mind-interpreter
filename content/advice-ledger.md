@@ -129,3 +129,20 @@ private conversation at /consultation.
 - Spend one afternoon first-name-only in a place that doesn't know your title (library workshop, pool, weekday pottery class) and see how people respond.
 - Monthly lunch with former coworkers with a rule: first twenty minutes not about the office.
 - Closing image: the old badge in the kitchen drawer.
+
+## 2026-10-26 · coworker-keeps-asking-for-favors
+
+- Give the request somewhere to land that isn't yes or no: "Let me look at my week and tell you by three o'clock."
+- Ask "When do you need it by?" because urgency is often smaller than it sounded.
+- Ask "Do you want me to do it, or show you?"
+- Keep a no short with the real reason first ("I'm finishing the quarterly numbers") and skip the long apology.
+- If you've said yes every time, own your half: "I've said yes a lot lately, so it's started to look like my job. I need to pull back."
+- Sticky-note tally for two weeks (who asked, minutes spent) before changing anything; see if one person accounts for most and keep the favors you enjoy.
+- Four answers: no, a smaller piece, a later date, or a way for them to do it themselves.
+- Hand over a template and offer a ten-minute glance Thursday, or record your screen once for a recurring question.
+- Keep a standing open hour for questions (Thursday two to three).
+- Answer "It'll only take a minute" with "If it's quick, I'll show you how in two minutes and you can do it next time."
+- Answer flattery with "Thanks, that's kind. I still can't this week."
+- If it persists, take it to your manager as a workload question with hours logged: "I want to check which of those you'd like me to keep doing."
+- Guilt means you're about to disappoint someone, not that you did wrong; expect it to peak in the first minute and fade.
+- Closing image: the half second before you answer, and the chair rolling up.
