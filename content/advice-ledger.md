@@ -146,3 +146,14 @@ private conversation at /consultation.
 - If it persists, take it to your manager as a workload question with hours logged: "I want to check which of those you'd like me to keep doing."
 - Guilt means you're about to disappoint someone, not that you did wrong; expect it to peak in the first minute and fade.
 - Closing image: the half second before you answer, and the chair rolling up.
+
+## 2026-10-28 · keep-changing-your-mind
+
+- Log each flip in one line (time, place, what just happened) for a few days and read it back for patterns: mood versus reason.
+- Give each answer a page and finish "If I'm wrong about this, what I'll lose is ___" to see which loyalty each side guards.
+- Ask the losing side what it would need to live with the other answer (a number, a promise) and treat the "no" as a request.
+- Say the cost of the leaning choice aloud as if already agreed, then ask whether you could sign for it; ask which cost you can carry, not which choice is best.
+- Reopen a settled decision only for a new fact, never a new mood; name a passing doubt "a mood, nothing has changed."
+- Tell one person the rule so they can remind you what counts as a reason.
+- Expect doubt in the first weeks of a choice; it means you're no longer imagining.
+- Closing image: buying milk in the aisle of the life you chose.
