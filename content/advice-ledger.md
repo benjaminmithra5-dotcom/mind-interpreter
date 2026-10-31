@@ -157,3 +157,18 @@ private conversation at /consultation.
 - Tell one person the rule so they can remind you what counts as a reason.
 - Expect doubt in the first weeks of a choice; it means you're no longer imagining.
 - Closing image: buying milk in the aisle of the life you chose.
+
+## 2026-10-30 · mom-wont-let-me-help
+
+- Hear "I'm fine" as a statement about who gets to be the capable one, a small wince rather than a rejection.
+- Ask once, in a calm moment: "Of the things you do around here, which would be the hardest to hand over?" then leave that one thing alone.
+- Help as company, not a finished job: hold the ladder with two coffees, hand her the cans and let her place them.
+- Split tasks by strength ("I'll carry the bags, you pick the tomatoes").
+- Don't fix things while she's out of the room; if something couldn't wait, tell her afterward plainly.
+- Ask for her expertise first (gravy, a coworker problem, ants in your kitchen).
+- Put your own reason first: "It would settle my mind if you let me drive you Thursday."
+- Offer a dated gift: "For my birthday, let me clean out the garage with you, just that one Saturday."
+- Offer two choices that both end in yes ("Tuesday or Wednesday?").
+- Sort worries into preferences versus things that could hurt her; spend gentle capital only on the second list.
+- If worried about safety or memory, call her doctor's office or the local area agency on aging and share what you've seen.
+- Closing image: two people each holding a handle of one grocery bag.
