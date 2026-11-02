@@ -934,8 +934,9 @@ function HomeScreen({ onNavigate, onOpenExercise }) {
         <p style={styles(c).homePhilosophy}>
           This is a space to slow down and understand your own mind. Talk things through in a{" "}
           <Link to={VIEW_PATH.contact} style={styles(c).homeInlineLink}>private conversation</Link>, or explore on your own:{" "}
-          <Link to={VIEW_PATH.exercises} style={styles(c).homeInlineLink}>Mind Exercises</Link> for calm and focus, and{" "}
-          <Link to={VIEW_PATH.games} style={styles(c).homeInlineLink}>Brain Games</Link> for memory and thinking.
+          <Link to={VIEW_PATH.exercises} style={styles(c).homeInlineLink}>Mind Exercises</Link> for calm and focus,{" "}
+          <Link to={VIEW_PATH.games} style={styles(c).homeInlineLink}>Brain Games</Link> for memory and thinking, and the{" "}
+          <Link to={VIEW_PATH.rvlab} style={styles(c).homeInlineLink}>RV Lab</Link> for something more curious.
         </p>
 
         <div style={styles(c).heroButtonsGrid}>
@@ -2869,6 +2870,331 @@ function PlaceholderScreen({ title, note, points, sections, onNavigate }) {
 }
 
 // =================================================================
+// RV Lab — a Remote Viewing target generator. Every session draws a
+// fresh 8-digit target reference number and pairs it with a real
+// photograph — streets, places, nature, people, everyday scenes —
+// served by Lorem Picsum from real Unsplash photographers under a
+// free-to-use license (no copyright risk, no adult content by
+// Picsum's own curation). Seeds are drawn one at a time from a
+// shuffled pool and marked used, so neither the number nor the image
+// repeats within a session; a pool only reshuffles once fully spent,
+// never reusing the one just drawn.
+//
+// Note: Claude's own artifact preview blocks requests to outside
+// image hosts, so this photo will not load inside that preview
+// window — the onError fallback below explains that rather than
+// showing a broken-image icon. Once this code runs on a real site
+// (or any normal, unsandboxed browser), the actual photos load fine.
+// =================================================================
+const RV_IMAGE_POOL = Array.from({ length: 400 }, (_, i) => i + 1);
+
+function RVTargetImage({ imageId }) {
+  const [failed, setFailed] = useState(false);
+  const c = useColors();
+  if (failed) {
+    return (
+      <div style={styles(c).rvImageFallback}>
+        This preview sandbox blocks outside images. This real photo will display once the site is live outside Claude's preview.
+      </div>
+    );
+  }
+  return (
+    <img
+      key={imageId}
+      src={`https://picsum.photos/id/${imageId}/640/440`}
+      alt="Remote viewing target"
+      style={styles(c).rvImage}
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
+// =================================================================
+// Freehand drawing canvas — used for every ideogram, sketch, and
+// composite drawing area in the RV session form. Strokes are stored
+// as normalized (0–1) point arrays in the parent's session state, so
+// the drawing survives navigation, resizing, and re-renders without
+// ever being cleared behind the user's back. Pointer Events cover
+// mouse, trackpad, touchscreen, and stylus input through one code
+// path. Nothing is smoothed, corrected, or interpreted — nothing but
+// what the user actually drew is stored.
+// =================================================================
+function DrawingCanvas({ strokes, onChange, height = 200 }) {
+  const c = useColors();
+  const containerRef = useRef(null);
+  const canvasRef = useRef(null);
+  const drawingRef = useRef(false);
+  const currentStrokeRef = useRef(null);
+  const redoStackRef = useRef([]);
+  const [tool, setTool] = useState("pen");
+
+  const drawAll = (strokeList, liveStroke) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const paint = (stroke) => {
+      if (!stroke || stroke.points.length < 2) return;
+      ctx.beginPath();
+      ctx.strokeStyle = stroke.tool === "eraser" ? COLORS.playfield : COLORS.ink;
+      ctx.lineWidth = stroke.tool === "eraser" ? 20 : 2.4;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.moveTo(stroke.points[0].x * canvas.width, stroke.points[0].y * canvas.height);
+      for (let i = 1; i < stroke.points.length; i++) ctx.lineTo(stroke.points[i].x * canvas.width, stroke.points[i].y * canvas.height);
+      ctx.stroke();
+    };
+    strokeList.forEach(paint);
+    paint(liveStroke);
+  };
+
+  const resize = () => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+    const rect = container.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    drawAll(strokes, null);
+  };
+
+  useEffect(() => {
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => { drawAll(strokes, null); }, [strokes]);
+
+  const getPos = (e) => {
+    const rect = containerRef.current.getBoundingClientRect();
+    return { x: (e.clientX - rect.left) / rect.width, y: (e.clientY - rect.top) / rect.height };
+  };
+
+  const start = (e) => {
+    e.preventDefault();
+    e.target.setPointerCapture?.(e.pointerId);
+    drawingRef.current = true;
+    currentStrokeRef.current = { tool, points: [getPos(e)] };
+  };
+  const move = (e) => {
+    if (!drawingRef.current) return;
+    e.preventDefault();
+    currentStrokeRef.current.points.push(getPos(e));
+    drawAll(strokes, currentStrokeRef.current);
+  };
+  const end = (e) => {
+    if (!drawingRef.current) return;
+    drawingRef.current = false;
+    if (currentStrokeRef.current && currentStrokeRef.current.points.length > 1) {
+      onChange([...strokes, currentStrokeRef.current]);
+      redoStackRef.current = [];
+    }
+    currentStrokeRef.current = null;
+  };
+
+  const undo = () => {
+    if (strokes.length === 0) return;
+    redoStackRef.current.push(strokes[strokes.length - 1]);
+    onChange(strokes.slice(0, -1));
+  };
+  const redo = () => {
+    if (redoStackRef.current.length === 0) return;
+    const restored = redoStackRef.current.pop();
+    onChange([...strokes, restored]);
+  };
+  const clearAll = () => { redoStackRef.current = []; onChange([]); };
+
+  return (
+    <div style={styles(c).canvasBlock}>
+      <div style={styles(c).canvasToolbar}>
+        <button type="button" style={{ ...styles(c).canvasToolBtn, ...(tool === "pen" ? styles(c).canvasToolBtnActive : {}) }} onClick={() => setTool("pen")}>Pen</button>
+        <button type="button" style={{ ...styles(c).canvasToolBtn, ...(tool === "eraser" ? styles(c).canvasToolBtnActive : {}) }} onClick={() => setTool("eraser")}>Eraser</button>
+        <button type="button" style={styles(c).canvasToolBtn} onClick={undo}>Undo</button>
+        <button type="button" style={styles(c).canvasToolBtn} onClick={redo}>Redo</button>
+        <button type="button" style={styles(c).canvasToolBtn} onClick={clearAll}>Clear</button>
+      </div>
+      <div ref={containerRef} style={{ ...styles(c).canvasSurfaceWrap, height }}>
+        <canvas
+          ref={canvasRef}
+          style={styles(c).canvasSurface}
+          onPointerDown={start}
+          onPointerMove={move}
+          onPointerUp={end}
+          onPointerCancel={end}
+          onPointerLeave={end}
+        />
+      </div>
+    </div>
+  );
+}
+
+// =================================================================
+// Small helpers, styled to match the rest of the RV Lab.
+// =================================================================
+function RVTextArea({ label, value, onChange, rows = 3 }) {
+  const c = useColors();
+  return (
+    <label style={styles(c).rvFieldLabelWrap}>
+      {label && <span style={styles(c).rvFieldLabel}>{label}</span>}
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={rows} style={styles(c).rvTextarea} />
+    </label>
+  );
+}
+
+// A frozen, non-interactive read-out of a finished stroke drawing —
+// used to display the sketch exactly as submitted, once the session
+// is locked in. No pointer handlers, so it can never be edited again
+// and nothing about it is re-interpreted.
+function StaticSketch({ strokes, height = 220 }) {
+  const c = useColors();
+  const containerRef = useRef(null);
+  const canvasRef = useRef(null);
+  const draw = () => {
+    const canvas = canvasRef.current, container = containerRef.current;
+    if (!canvas || !container) return;
+    const rect = container.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    strokes.forEach((stroke) => {
+      if (!stroke || stroke.points.length < 2) return;
+      ctx.beginPath();
+      ctx.strokeStyle = stroke.tool === "eraser" ? COLORS.playfield : COLORS.ink;
+      ctx.lineWidth = stroke.tool === "eraser" ? 20 : 2.4;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.moveTo(stroke.points[0].x * canvas.width, stroke.points[0].y * canvas.height);
+      for (let i = 1; i < stroke.points.length; i++) ctx.lineTo(stroke.points[i].x * canvas.width, stroke.points[i].y * canvas.height);
+      ctx.stroke();
+    });
+  };
+  useEffect(() => {
+    draw();
+    window.addEventListener("resize", draw);
+    return () => window.removeEventListener("resize", draw);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [strokes]);
+  return (
+    <div ref={containerRef} style={{ ...styles(c).canvasSurfaceWrap, height }}>
+      <canvas ref={canvasRef} style={styles(c).canvasSurface} />
+    </div>
+  );
+}
+
+// =================================================================
+// The Remote Viewing session panel. Deliberately minimal: the actual
+// CRV process happens offline, on paper. This just captures the
+// three things that matter afterward — the freehand sketch, the
+// session notes, and the moment of submission — and keeps the target
+// completely hidden until Submit Session is pressed.
+// =================================================================
+function RVSessionForm({ target, onNextTarget }) {
+  const c = useColors();
+  const [sketch, setSketch] = useState([]);
+  const [notes, setNotes] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = () => {
+    if (sketch.length === 0 && !notes.trim()) { setError("Add your freehand sketch or your notes before submitting."); return; }
+    setError("");
+    setSubmitted(true);
+  };
+
+  if (submitted) {
+    return (
+      <div style={styles(c).rvSessionWrap}>
+        <div style={styles(c).rvSection}>
+          <p style={styles(c).rvSectionTitle}>Actual Target</p>
+          <RVTargetImage imageId={target.imageId} />
+        </div>
+
+        <div style={styles(c).rvSection}>
+          <p style={styles(c).rvSectionTitle}>Your Remote View</p>
+          <div style={styles(c).rvCompareGrid}>
+            <div style={styles(c).rvCompareCol}>
+              <p style={styles(c).rvSectionSubtitle}>Your Freehand Sketch</p>
+              <StaticSketch strokes={sketch} height={260} />
+            </div>
+            <div style={styles(c).rvCompareCol}>
+              <p style={styles(c).rvSectionSubtitle}>Your Remote Viewing Notes</p>
+              <p style={styles(c).rvNotesReadout}>{notes.trim() ? notes : "(no notes entered)"}</p>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" style={styles(c).btnGhost} onClick={onNextTarget}>Start a new session with a new target</button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={styles(c).rvSessionWrap}>
+      <div style={styles(c).rvSection}>
+        <p style={styles(c).rvSectionTitle}>Freehand Sketch</p>
+        <p style={styles(c).rvSectionSubtitle}>Recreate the freehand sketch you already made on paper during your offline session. Nothing here is straightened, corrected, or interpreted. It's preserved exactly as you draw it.</p>
+        <DrawingCanvas strokes={sketch} onChange={setSketch} height={280} />
+      </div>
+
+      <div style={styles(c).rvSection}>
+        <p style={styles(c).rvSectionTitle}>Remote Viewing Notes</p>
+        <RVTextArea value={notes} onChange={setNotes} rows={8} />
+      </div>
+
+      {error && <p style={styles(c).rvErrorNote}>{error}</p>}
+      <button type="button" style={styles(c).btnPrimary} onClick={handleSubmit}>Submit Session</button>
+    </div>
+  );
+}
+
+function RVLabScreen() {
+  const c = useColors();
+  const imagePoolRef = useRef(shuffle(RV_IMAGE_POOL));
+  const imageIndexRef = useRef(0);
+  const usedNumbersRef = useRef(new Set());
+
+  const makeTargetNumber = () => {
+    let num;
+    do { num = `${randInt(1000, 9999)}-${randInt(1000, 9999)}`; } while (usedNumbersRef.current.has(num));
+    usedNumbersRef.current.add(num);
+    return num;
+  };
+
+  const makeTarget = () => {
+    if (imageIndexRef.current >= imagePoolRef.current.length) {
+      imagePoolRef.current = shuffle(RV_IMAGE_POOL);
+      imageIndexRef.current = 0;
+    }
+    const imageId = imagePoolRef.current[imageIndexRef.current];
+    imageIndexRef.current += 1;
+    return { number: makeTargetNumber(), imageId };
+  };
+
+  const [target, setTarget] = useState(() => makeTarget());
+  const nextTarget = () => setTarget(makeTarget());
+
+  return (
+    <div style={styles(c).rvOuter} className="fade-in">
+      <div style={styles(c).rvCard}>
+        <p style={styles(c).rvHeading}>Remote Viewing Lab</p>
+        <p style={styles(c).rvInstruction}>Complete your Remote Viewing session offline with pen and paper first. Once you're finished, come back here, recreate your freehand sketch and enter your notes below. The target stays hidden until you submit.</p>
+
+        <div style={styles(c).contactDivider} />
+
+        <p style={styles(c).rvSubhead}>Target Reference Number</p>
+        <p style={styles(c).rvTargetNumber}>{target.number}</p>
+        <p style={styles(c).rvHiddenNote}>Hidden until your completed session below is submitted.</p>
+      </div>
+
+      <RVSessionForm key={target.number} target={target} onNextTarget={nextTarget} />
+    </div>
+  );
+}
+
+// =================================================================
 // Contact
 // =================================================================
 const WHATSAPP_NUMBER = "447440573315";
@@ -3070,6 +3396,7 @@ const GUIDE_DOG_TIPS = {
   contact: { text: "Take your time. Reach out whenever you're ready." },
   exercises: { text: "Try the breathing exercise if you need a calm minute.", link: { to: "/exercises/breathing", label: "Open the breathing exercise" } },
   games: { text: "Sniffing out a challenge? Chess is my favourite.", link: { to: "/games/chess", label: "Play chess" } },
+  rvlab: { text: "Do your session on paper first, then come back here." },
   journals: { text: "New writing is on its way." },
   faq: { text: "Hi, I'm Diego! Can't find your answer? Write to me.", link: { to: "/consultation", label: "Go to Consultation" } },
   other: { text: "Want to talk? I'll show you the way.", link: { to: "/consultation", label: "Go to Consultation" } },
@@ -3693,6 +4020,7 @@ const FAQ_SECTIONS = [
       { q: "Is anything I type or play saved?", a: ["No. Nothing you type or play is stored or sent anywhere. Once you leave the page, it's gone."] },
       { q: "What are the Brain Games good for?", a: ["Memory, attention and thinking: Chess for strategy, Recall and N Back for working memory, and Card, Word and Number Memory for recall."] },
       { q: "What do the Mind Exercises actually do?", a: ["They train calm and focus: Mindfulness Breathing slows you down, Leetspeak Reading sharpens attention, Flow Type builds focus stamina, and Guilford's Test exercises creative thinking."] },
+      { q: "What's the RV Lab?", a: ["A space to practise remote viewing, an experimental exercise in perception. You sketch and describe a hidden target offline, then reveal the image. It's exploratory and experimental, not a scientifically proven method."] },
       { q: "Who's the dog?", a: ["That's Diego, my pet! Tap him on any page for a tip."] },
     ],
   },
@@ -3962,6 +4290,7 @@ const TOP_TABS = [
   { key: "home", label: "Home" },
   { key: "exercises", label: "Mind Exercises" },
   { key: "games", label: "Brain Games" },
+  { key: "rvlab", label: "RV Lab" },
   { key: "contact", label: "Consultation" },
   { key: "faq", label: "FAQ" },
   { key: "call", label: "Talk now", phone: true },
@@ -4006,7 +4335,7 @@ const GAME_TABS = [
 // =================================================================
 const VIEW_PATH = {
   home: "/", journals: "/journals", exercises: "/exercises", games: "/games",
-  contact: "/consultation", faq: "/faq", articles: "/articles", privacy: "/privacy", terms: "/terms", disclaimer: "/disclaimer",
+  rvlab: "/rv-lab", contact: "/consultation", faq: "/faq", articles: "/articles", privacy: "/privacy", terms: "/terms", disclaimer: "/disclaimer",
   call: "/call", host: "/host",
 };
 const GAME_SLUG = { chess: "chess", everyday: "recall", nback: "n-back", cards: "card-memory", words: "word-memory", numbers: "number-memory" };
@@ -4032,15 +4361,16 @@ const PAGE_META = {
   "game-cards": { title: "Card Memory Game | Mind Interpreter", description: "Memorize the positions of cards, then match pairs from memory." },
   "game-words": { title: "Word Memory Game | Mind Interpreter", description: "Memorize a list of words, then recall as many as you can." },
   "game-numbers": { title: "Number Memory Game | Mind Interpreter", description: "Memorize a growing sequence of digits and recall it back correctly." },
+  rvlab: { title: "Remote Viewing Lab | Mind Interpreter", description: "Practice remote viewing with a freehand sketch, session notes, and a hidden target reveal, exploring anomalous perception and parapsychology." },
   contact: { title: "Private Consultation | Benjamin Mithra, Mind Interpreter", description: "A private one to one conversation with Benjamin Mithra, a Mind Interpreter. You talk, I listen, we explore: a space for conversation, reflection, and understanding." },
   privacy: { title: "Privacy Policy | Mind Interpreter", description: "How conversations and this site handle your information: conversations stay private, and the site uses no accounts, cookies, or tracking." },
-  terms: { title: "Terms | Mind Interpreter", description: "Terms for using this site's games and exercises." },
+  terms: { title: "Terms | Mind Interpreter", description: "Terms for using this site's games, exercises, and remote viewing content." },
   faq: { title: "FAQ | Benjamin Mithra, Mind Interpreter", description: "Answers about private conversations with Benjamin Mithra, a Mind Interpreter: what you can talk about, how sessions work, privacy, and the site's Brain Games and Mind Exercises." },
   articles: { title: "Articles | Benjamin Mithra, Mind Interpreter", description: "Articles by Benjamin Mithra, a Mind Interpreter, on loneliness, difficult conversations, hard decisions, overthinking, and the moments in life when you need to be heard." },
   "article-missing": { title: "Article not found | Mind Interpreter", description: "This article could not be found. Browse all articles by Benjamin Mithra, a Mind Interpreter." },
   call: { title: "Talk now | Mind Interpreter", description: "Book a time and join your private audio call with Benjamin Mithra. $9.80 for 45 minutes.", noindex: true },
   host: { title: "Host | Mind Interpreter", description: "Private.", noindex: true },
-  disclaimer: { title: "Disclaimer | Mind Interpreter", description: "Conversations here are not therapy or medical care, and the site's games and exercises are educational and experimental." },
+  disclaimer: { title: "Disclaimer | Mind Interpreter", description: "Conversations here are not therapy or medical care, and the site's exercises and remote viewing content are educational and experimental." },
 };
 
 const SITE_URL = "https://benjaminmithra.com";
@@ -4088,6 +4418,7 @@ export default function App() {
     if (pathParts.length === 0) return "home";
     const first = pathParts[0];
     if (first === "consultation") return "contact";
+    if (first === "rv-lab") return "rvlab";
     if (["journals", "exercises", "games", "faq", "articles", "privacy", "terms", "disclaimer", "call", "host"].includes(first)) return first;
     return "home";
   }, [location.pathname]);
@@ -4337,6 +4668,7 @@ export default function App() {
           {view === "exercises" && exerciseTab === "leet" && <LeetReadingExercise />}
           {view === "exercises" && exerciseTab === "flowtype" && <FlowTypeExercise />}
           {view === "exercises" && exerciseTab === "guilford" && <GuilfordTestExercise />}
+          {view === "rvlab" && <RVLabScreen />}
           {view === "contact" && <ContactScreen onNavigate={navigate} />}
           {view === "faq" && <FaqScreen />}
           {view === "call" && <CallPage c={c} font={font} headingStyle={styles(c).faqHeading} consultationPath={VIEW_PATH.contact} Footer={SiteFooterLine} />}
@@ -4362,10 +4694,11 @@ export default function App() {
                   heading: "About the website",
                   points: [
                     "There are no accounts, logins, or user profiles anywhere on this site.",
+                    "Remote Viewing sketches, notes, and scores exist only in your browser while you're using them, and are never saved or sent anywhere.",
                     "Nothing typed into the Mind Exercises tab (Flow Type, Guilford's Test answers) is stored either.",
                     "The Write to Me forms on the Home and Consultation pages are the one exception: the name, email, and message you submit there are sent to Formspree, a third-party form delivery service, which forwards it directly to the site owner's inbox. That message is not otherwise stored, published, or used for anything else.",
                     "No cookies, no localStorage, and no tracking of any kind are used on this site.",
-                    "Loading the site's fonts (Google Fonts) means your browser contacts that service directly, the same as most websites that use web fonts.",
+                    "Loading the site's fonts (Google Fonts) and Remote Viewing target photos (Lorem Picsum) means your browser contacts those services directly, the same as most websites that use web fonts or hosted images.",
                     "No analytics services or advertising networks are used here.",
                   ],
                 },
@@ -4378,6 +4711,7 @@ export default function App() {
               note="This site is offered for educational, experimental, and personal practice purposes only. A few things follow from that:"
               points={[
                 "Games and exercises may produce different results for different people, and no score or outcome here should be taken as a guarantee of accuracy or ability.",
+                "Remote Viewing content is presented as an experimental practice to explore, not a scientifically proven method with guaranteed results.",
                 "Guilford's Test reports a fluency count (how many distinct, genuine answers you gave), not a judgment of intelligence or creative quality.",
                 "Please don't interfere with, disrupt, or attempt unauthorized access to any part of this site.",
                 "The site's original writing, design, illustrations, and code are protected and may not be redistributed without permission.",
@@ -4405,6 +4739,8 @@ export default function App() {
                   heading: "About the site's content",
                   points: [
                     "Nothing on this site diagnoses, treats, cures, or prevents any medical, psychiatric, or psychological condition.",
+                    "Remote Viewing is presented as an educational and experimental practice, not established medical treatment or a replacement for professional judgment.",
+                    "No claim is made that a user's perceptions during a Remote Viewing session correspond to objective fact about any target.",
                     "No game or exercise here, including Leetspeak Reading, Flow Type, or Guilford's Test, is claimed to raise IQ or change brain function in any clinically proven way.",
                     "Using this site does not create a doctor, therapist, psychologist, or attorney relationship with anyone.",
                   ],
