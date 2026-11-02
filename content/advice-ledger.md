@@ -172,3 +172,15 @@ private conversation at /consultation.
 - Sort worries into preferences versus things that could hurt her; spend gentle capital only on the second list.
 - If worried about safety or memory, call her doctor's office or the local area agency on aging and share what you've seen.
 - Closing image: two people each holding a handle of one grocery bag.
+
+## 2026-11-02 · i-do-more-than-my-partner
+
+- Unspoken effort leaves entries open in your head; notice which entries make your chest tighten, since those are about being seen, not effort.
+- You and your partner count in different currencies (tasks versus work hours and worry); compare ledgers, not totals.
+- Each writes on paper everything they believe they carry, visible and invisible, then trade sheets and read them.
+- Raise one item, not the total, and say what it costs you ("I feel alone in the house. I'd like us to finish together").
+- Ask for being noticed, not an apology: "I don't need you to do everything. I'd like you to see it when I do."
+- Own your half of the silence: "I never told you this was getting heavy."
+- Stop being the manager: hand over a whole domain (e.g., Tuesday through Thursday dinners), no reminding, no redoing, accept the cereal night.
+- Warning signs it's deeper than chores: tally gone cold, withholding because they "haven't earned it," flinching at offers of help.
+- Closing image: splitting a restaurant check without checking who ordered the extra side.
