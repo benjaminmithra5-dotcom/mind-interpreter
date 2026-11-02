@@ -936,7 +936,7 @@ function HomeScreen({ onNavigate, onOpenExercise }) {
           <Link to={VIEW_PATH.contact} style={styles(c).homeInlineLink}>private conversation</Link>, or explore on your own:{" "}
           <Link to={VIEW_PATH.exercises} style={styles(c).homeInlineLink}>Mind Exercises</Link> for calm and focus,{" "}
           <Link to={VIEW_PATH.games} style={styles(c).homeInlineLink}>Brain Games</Link> for memory and thinking, and the{" "}
-          <Link to={VIEW_PATH.rvlab} style={styles(c).homeInlineLink}>RV Lab</Link> for something more curious.
+          <Link to="/exercises/rv-lab" style={styles(c).homeInlineLink}>RV Lab</Link> for something more curious.
         </p>
 
         <div style={styles(c).heroButtonsGrid}>
@@ -2253,6 +2253,10 @@ const EXERCISE_TABS = [
     key: "guilford", label: "Guilford's Test",
     description: "A classic divergent thinking task: naming unusual uses for an everyday object exercises creative fluency, the ability to generate many different ideas instead of settling on the first obvious one.",
   },
+  {
+    key: "rvlab", label: "RV Lab",
+    description: "A remote viewing exercise in perception: sketch and describe a hidden target offline, then reveal the image and compare your impressions.",
+  },
 ];
 
 function ExercisesMenu({ onSelect }) {
@@ -3396,7 +3400,6 @@ const GUIDE_DOG_TIPS = {
   contact: { text: "Take your time. Reach out whenever you're ready." },
   exercises: { text: "Try the breathing exercise if you need a calm minute.", link: { to: "/exercises/breathing", label: "Open the breathing exercise" } },
   games: { text: "Sniffing out a challenge? Chess is my favourite.", link: { to: "/games/chess", label: "Play chess" } },
-  rvlab: { text: "Do your session on paper first, then come back here." },
   journals: { text: "New writing is on its way." },
   faq: { text: "Hi, I'm Diego! Can't find your answer? Write to me.", link: { to: "/consultation", label: "Go to Consultation" } },
   other: { text: "Want to talk? I'll show you the way.", link: { to: "/consultation", label: "Go to Consultation" } },
@@ -4290,7 +4293,6 @@ const TOP_TABS = [
   { key: "home", label: "Home" },
   { key: "exercises", label: "Mind Exercises" },
   { key: "games", label: "Brain Games" },
-  { key: "rvlab", label: "RV Lab" },
   { key: "contact", label: "Consultation" },
   { key: "faq", label: "FAQ" },
   { key: "call", label: "Talk now", phone: true },
@@ -4335,12 +4337,12 @@ const GAME_TABS = [
 // =================================================================
 const VIEW_PATH = {
   home: "/", journals: "/journals", exercises: "/exercises", games: "/games",
-  rvlab: "/rv-lab", contact: "/consultation", faq: "/faq", articles: "/articles", privacy: "/privacy", terms: "/terms", disclaimer: "/disclaimer",
+  contact: "/consultation", faq: "/faq", articles: "/articles", privacy: "/privacy", terms: "/terms", disclaimer: "/disclaimer",
   call: "/call", host: "/host",
 };
 const GAME_SLUG = { chess: "chess", everyday: "recall", nback: "n-back", cards: "card-memory", words: "word-memory", numbers: "number-memory" };
 const GAME_KEY_FROM_SLUG = Object.fromEntries(Object.entries(GAME_SLUG).map(([k, v]) => [v, k]));
-const EXERCISE_SLUG = { breathing: "breathing", leet: "leetspeak-reading", flowtype: "flow-type", guilford: "guilfords-test" };
+const EXERCISE_SLUG = { breathing: "breathing", leet: "leetspeak-reading", flowtype: "flow-type", guilford: "guilfords-test", rvlab: "rv-lab" };
 const EXERCISE_KEY_FROM_SLUG = Object.fromEntries(Object.entries(EXERCISE_SLUG).map(([k, v]) => [v, k]));
 
 // Per page <title> and meta description, applied on every route
@@ -4353,6 +4355,7 @@ const PAGE_META = {
   "exercise-breathing": { title: "Mindfulness Breathing Exercise | Mind Interpreter", description: "A guided breathing exercise: inhale, hold, exhale, and hold again, paced to help you slow down and breathe more deliberately." },
   "exercise-leet": { title: "Leetspeak Reading Exercise | Mind Interpreter", description: "Decode short stories written in leetspeak to train visual attention, pattern recognition, and reading fluency." },
   "exercise-flowtype": { title: "Flow Type Exercise | Mind Interpreter", description: "Type continuously without stopping to build sustained focus and mental stamina under light pressure." },
+  "exercise-rvlab": { title: "RV Lab | Mind Interpreter", description: "Practise remote viewing with a freehand sketch, session notes and a hidden target reveal: an experimental exercise in perception." },
   "exercise-guilford": { title: "Guilford's Test | Mind Interpreter", description: "A classic divergent thinking task: name unusual uses for an everyday object to exercise creative fluency." },
   games: { title: "Brain Games | Mind Interpreter", description: "Chess, Recall, N Back, Card Memory, Word Memory, and Number Memory: games built to train focus, memory, and pattern recognition." },
   "game-chess": { title: "Chess | Mind Interpreter", description: "Play chess against a built in engine, with a running timer and alternating colors each game." },
@@ -4361,7 +4364,6 @@ const PAGE_META = {
   "game-cards": { title: "Card Memory Game | Mind Interpreter", description: "Memorize the positions of cards, then match pairs from memory." },
   "game-words": { title: "Word Memory Game | Mind Interpreter", description: "Memorize a list of words, then recall as many as you can." },
   "game-numbers": { title: "Number Memory Game | Mind Interpreter", description: "Memorize a growing sequence of digits and recall it back correctly." },
-  rvlab: { title: "Remote Viewing Lab | Mind Interpreter", description: "Practice remote viewing with a freehand sketch, session notes, and a hidden target reveal, exploring anomalous perception and parapsychology." },
   contact: { title: "Private Consultation | Benjamin Mithra, Mind Interpreter", description: "A private one to one conversation with Benjamin Mithra, a Mind Interpreter. You talk, I listen, we explore: a space for conversation, reflection, and understanding." },
   privacy: { title: "Privacy Policy | Mind Interpreter", description: "How conversations and this site handle your information: conversations stay private, and the site uses no accounts, cookies, or tracking." },
   terms: { title: "Terms | Mind Interpreter", description: "Terms for using this site's games, exercises, and remote viewing content." },
@@ -4418,7 +4420,7 @@ export default function App() {
     if (pathParts.length === 0) return "home";
     const first = pathParts[0];
     if (first === "consultation") return "contact";
-    if (first === "rv-lab") return "rvlab";
+    if (first === "rv-lab") return "exercises";
     if (["journals", "exercises", "games", "faq", "articles", "privacy", "terms", "disclaimer", "call", "host"].includes(first)) return first;
     return "home";
   }, [location.pathname]);
@@ -4668,7 +4670,7 @@ export default function App() {
           {view === "exercises" && exerciseTab === "leet" && <LeetReadingExercise />}
           {view === "exercises" && exerciseTab === "flowtype" && <FlowTypeExercise />}
           {view === "exercises" && exerciseTab === "guilford" && <GuilfordTestExercise />}
-          {view === "rvlab" && <RVLabScreen />}
+          {view === "exercises" && exerciseTab === "rvlab" && <RVLabScreen />}
           {view === "contact" && <ContactScreen onNavigate={navigate} />}
           {view === "faq" && <FaqScreen />}
           {view === "call" && <CallPage c={c} font={font} headingStyle={styles(c).faqHeading} consultationPath={VIEW_PATH.contact} Footer={SiteFooterLine} />}
