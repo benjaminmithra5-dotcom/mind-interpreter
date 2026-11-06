@@ -184,3 +184,16 @@ private conversation at /consultation.
 - Stop being the manager: hand over a whole domain (e.g., Tuesday through Thursday dinners), no reminding, no redoing, accept the cereal night.
 - Warning signs it's deeper than chores: tally gone cold, withholding because they "haven't earned it," flinching at offers of help.
 - Closing image: splitting a restaurant check without checking who ordered the extra side.
+
+## 2026-11-06 · guilty-relaxing-on-the-weekend
+
+- Guilt means you hold a standard your afternoon is missing; ask whether it points at a named thing or at nothing.
+- If it's a named loose end, say aloud when it will happen ("Gutters, Sunday at ten") and see if the hum quiets.
+- Find the inherited rule: remember who in your childhood home was never seen sitting; finish "In my family, the people who rested were considered ___."
+- Close the week on paper Friday: three finished things on the fridge, so Saturday's guilt meets a settled ledger.
+- Scrolling with one eye on the clock isn't rest; give rest a body and edges (long walk without a podcast, jigsaw puzzle, bake bread, novel in one chair with the phone in another room).
+- Change the room so you aren't facing laundry, mail and the sink (porch, closed bedroom, parked car with a thermos).
+- Fence unavoidable chores: twenty minutes, one room, stop when the timer rings.
+- Announce the plan beforehand ("I'm off from two to five, then I'm all yours") and offer a matching stretch to your partner.
+- Answer "What did you do?" with "Nothing, on purpose. It was great," and repeat it for a few weekends.
+- Closing image: a dog on a warm rug that never apologizes for the afternoon.
