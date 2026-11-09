@@ -197,3 +197,19 @@ private conversation at /consultation.
 - Announce the plan beforehand ("I'm off from two to five, then I'm all yours") and offer a matching stretch to your partner.
 - Answer "What did you do?" with "Nothing, on purpose. It was great," and repeat it for a few weekends.
 - Closing image: a dog on a warm rug that never apologizes for the afternoon.
+
+## 2026-11-09 · friend-wont-pay-you-back
+
+- Decide first whether you want the money or the friend; imagine writing the amount off as a gift and notice relief versus a sinking feeling.
+- Hints get ignored; people who want respect should ask plainly.
+- Unspoken debt shows up as tracking her purchases, fewer plans, slower replies; her silence is usually embarrassment, not scheming.
+- First ask by text, privately, in the morning: name the loan, admit the awkwardness, ask "What payment would feel doable for you?"
+- Let her pick the size of the first payment; pin it to a date ("the first of the month").
+- Send an app payment request with the exact amount and a note ("March flight") so the request is the reminder.
+- Answer "soon" a week later with one line and a date: "Can you do the first $50 by Friday?"
+- Never mention her beach photos or spending ("I saw that you…").
+- After a second silence, state your own deadline ("by the end of the year") and invite her to say if it can't happen.
+- To forgive the loan, say so aloud ("I'm going to consider it settled. I'd love to see you, though"), only if you mean it.
+- When she asks to borrow again: "I can't lend while the last one is still open. When that's cleared, ask me again."
+- Goodbye test before lending: if it never comes back, can I still be glad to see this person?
+- Closing image: the casserole dish with a name on masking tape.
