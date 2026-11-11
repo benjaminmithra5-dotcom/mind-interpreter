@@ -213,3 +213,14 @@ private conversation at /consultation.
 - When she asks to borrow again: "I can't lend while the last one is still open. When that's cleared, ask me again."
 - Goodbye test before lending: if it never comes back, can I still be glad to see this person?
 - Closing image: the casserole dish with a name on masking tape.
+
+## 2026-11-11 · argue-with-people-in-my-head
+
+- See the imagined person as a character you wrote, built from their worst line and your worst fear; the real person can surprise you.
+- Let the argument run to its end and find the last line your voice drops on; that one plain sentence is the real message, the rest is armor.
+- Choose whether to say that sentence to the real person or keep it and let the armor go.
+- If a real talk is needed, rehearse only the first thirty seconds ("There's something from lunch I'd like to understand better, and I'm not trying to win") and stop.
+- If the talk can't happen, tell yourself plainly "This one isn't going to happen."
+- Write one real question about them you can't answer ("What was lunch like for you?") and set it beside the argument.
+- Give idle-attention moments something to hold: one song all the way through in the shower, a people-free podcast (bridges, birds) in the car.
+- Closing image: the shower version never says "you're right, I'm sorry"; only the real one can.
