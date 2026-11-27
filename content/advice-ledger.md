@@ -224,3 +224,17 @@ private conversation at /consultation.
 - Write one real question about them you can't answer ("What was lunch like for you?") and set it beside the argument.
 - Give idle-attention moments something to hold: one song all the way through in the shower, a people-free podcast (bridges, birds) in the car.
 - Closing image: the shower version never says "you're right, I'm sorry"; only the real one can.
+
+## 2026-11-13 · living-alone-first-time-quiet
+
+- The quiet is missing particular sounds, not vague company; particular things can be replaced.
+- Notice for three evenings which hour is heavy, then finish "At that hour, I used to hear ___" to name the target sound.
+- Change the arrival: coat on, open a window a few inches, a voice playing before shoes come off, say "Okay, I'm home" aloud.
+- Repeat one small first act every arrival (glass of water, kettle) so the place is where things begin.
+- Open a no-agenda call propped on the counter while both cook; be quiet near each other like roommates.
+- Choose a live radio host over a playlist because you can't skip them.
+- Use every room: eat at the table, sit in the unused chair, visit each room before bed.
+- Put one real person on the calendar each week before the week starts, outside the apartment.
+- Nightly closing-up round in a fixed order (lock, stove, window, hallway glance, light off) to give the mind a finished list.
+- A hard Sunday in week three doesn't mean the plan failed.
+- Closing image: a single fork in the drying rack.
