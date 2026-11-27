@@ -28,6 +28,8 @@ function contrast(a, b) {
 const CREAM = [246, 240, 228];
 const AQUA = [30, 207, 192];
 const box = (locator) => locator.evaluate((el) => { const r = el.getBoundingClientRect(); return [r.x, r.y, r.width, r.height].map((n) => Math.round(n * 100) / 100); });
+// The site adds its Google font after load; wait for it (if it's reachable) so it can't resize the tab mid-test.
+const fontsLoaded = (page) => page.waitForFunction(() => [...document.fonts].some((f) => f.family.includes("Oswald") && f.status === "loaded"), null, { timeout: 8000 }).catch(() => {}).then(() => page.evaluate(() => document.fonts.ready));
 const noSidewaysScroll = (page) => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
 
 test("desktop: the Talk now tab glows every 2 seconds and wiggles every 3.5 seconds, forever; other tabs don't", async ({ open }) => {
@@ -70,6 +72,7 @@ test("desktop: the Talk now tab glows every 2 seconds and wiggles every 3.5 seco
 test("the glow and the wiggle never move or resize the tab, the nav, or where you tap", async ({ open }) => {
   for (const width of [1280, 390]) {
     const page = await open("/", { viewport: { width, height: 900 } });
+    await fontsLoaded(page);
     const tab = talkTab(page);
     const label = tab.locator(".talk-shake");
     const bar = page.locator(".top-tabs");
@@ -97,6 +100,7 @@ test("the glow and the wiggle never move or resize the tab, the nav, or where yo
   // And the same with reduced motion.
   const still = await open("/", { viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
   const moving = await open("/", { viewport: { width: 1280, height: 900 } });
+  for (const p of [still, moving]) await fontsLoaded(p);
   expect(await box(talkTab(still))).toEqual(await box(talkTab(moving)));
 });
 

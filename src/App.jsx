@@ -685,6 +685,87 @@ function CosmicBackground() {
 }
 
 // =================================================================
+// Christmas: a string of coloured lights across the top of every page
+// and a mild snowfall behind the content. Set CHRISTMAS_THEME to false
+// to take it all down (Diego's Santa cap, the snow on his roof, his
+// house lights and the tree go with it). Everything is decorative,
+// hidden from screen readers, and still under reduced motion.
+// =================================================================
+const CHRISTMAS_THEME = true;
+const XMAS_BULBS = ["#E0413A", "#F2B83B", "#2FA35A", "#2F7FD8"]; // red, gold, green, blue
+const XMAS_TREE = "#1F7A4D";
+const XMAS_CAP = "#D63A34";
+
+// The same "random" snow on every load, so nothing jumps between renders.
+const XMAS_FLAKES = (() => {
+  let seed = 7;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  return Array.from({ length: 34 }, () => ({
+    left: rnd() * 100, size: 3 + rnd() * 4, fall: 13 + rnd() * 11, delay: -rnd() * 24,
+    sway: 12 + rnd() * 18, swayTime: 3 + rnd() * 3, opacity: 0.75 + rnd() * 0.25,
+  }));
+})();
+
+const CHRISTMAS_CSS = `
+  .xmas-lights {
+    position: absolute; top: 0; left: 0; right: 0; height: 22px; z-index: 101; pointer-events: none;
+    display: flex; overflow: hidden;
+  }
+  .xmas-lights svg { flex-shrink: 0; display: block; }
+  .xmas-glow { animation: xmasTwinkle 3s ease-in-out infinite; }
+  @keyframes xmasTwinkle { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.25; } }
+  .xmas-snow { position: fixed; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
+  .xmas-flake { position: absolute; top: 0; animation: xmasFall linear infinite; will-change: transform; }
+  .xmas-flake > span {
+    display: block; border-radius: 50%; background: #FFFFFF;
+    box-shadow: 0 0 0 0.5px ${withAlpha(COLORS.accent, 0.28)}, 0 0 4px ${withAlpha(COLORS.accent, 0.22)};
+    animation: xmasSway ease-in-out infinite alternate;
+  }
+  @keyframes xmasFall { from { transform: translateY(-12px); } to { transform: translateY(calc(100vh + 12px)); } }
+  @keyframes xmasSway { from { transform: translateX(calc(var(--sway) * -1)); } to { transform: translateX(var(--sway)); } }
+  @media (max-width: 600px) { .xmas-flake:nth-child(2n) { display: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .xmas-glow { animation: none; }
+    .xmas-snow { display: none; }
+  }
+`;
+
+// One 48px piece of wire with a bulb hanging from it; the pieces join up.
+function XmasBulb({ color, delay }) {
+  return (
+    <svg width="48" height="22" viewBox="0 0 48 22" aria-hidden="true" focusable="false">
+      <path d="M0 3 Q24 9 48 3" fill="none" stroke="#2B3B3C" strokeWidth="1.2" />
+      <rect x="21.6" y="5.2" width="4.8" height="3.6" rx="0.8" fill="#4A5A5B" />
+      <circle className="xmas-glow" cx="24" cy="14" r="7" fill={color} opacity="0.9" style={{ animationDelay: `${delay}s`, filter: "blur(2.5px)" }} />
+      <path d="M24 8.6 C20.6 8.6 19.6 12 20.2 14.6 C20.8 17.2 22.4 19 24 19 C25.6 19 27.2 17.2 27.8 14.6 C28.4 12 27.4 8.6 24 8.6 Z" fill={color} stroke="#2B3B3C" strokeWidth="0.6" />
+      <ellipse cx="22.6" cy="12.4" rx="0.9" ry="1.6" fill="#FFFFFF" opacity="0.7" />
+    </svg>
+  );
+}
+
+function ChristmasLights() {
+  return (
+    <div className="xmas-lights" aria-hidden="true" data-testid="xmas-lights">
+      {Array.from({ length: 60 }, (_, i) => (
+        <XmasBulb key={i} color={XMAS_BULBS[i % XMAS_BULBS.length]} delay={-((i * 0.7) % 3).toFixed(2)} />
+      ))}
+    </div>
+  );
+}
+
+function Snowfall() {
+  return (
+    <div className="xmas-snow" aria-hidden="true" data-testid="xmas-snow">
+      {XMAS_FLAKES.map((f, i) => (
+        <div key={i} className="xmas-flake" style={{ left: `${f.left}%`, animationDuration: `${f.fall}s`, animationDelay: `${f.delay}s`, opacity: f.opacity }}>
+          <span style={{ width: f.size, height: f.size, "--sway": `${f.sway}px`, animationDuration: `${f.swayTime}s` }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// =================================================================
 // Home screen
 // =================================================================
 const SITE_HEADING = "Mind Interpreter";
@@ -3665,6 +3746,14 @@ function GuideDogScene({ nodes, scale }) {
           <g ref={r("earR")}>
             <path fill={earFill} {...GD_OUTLINE} d="M60.4 31.4 C64 30.6 68 32 69.8 35.2 L65 47.2 C63.2 44.4 61.6 40 60.2 35.6 Z" />
           </g>
+          {CHRISTMAS_THEME && (
+            <g data-testid="santa-cap">
+              <path fill={XMAS_CAP} {...GD_OUTLINE} d="M39 29.4 C40.6 25.6 44.6 23.7 49.6 23.7 C55 23.7 59.6 24.8 62.6 27.3 C64.8 29.1 66.3 30.8 67.1 32.6 C65 31.9 63.2 31.2 61.4 30.4 Z" />
+              <path fill="none" stroke="#9E2420" strokeWidth="0.9" strokeLinecap="round" d="M52 25 C56 25.4 59.6 26.8 62 28.8" />
+              <path fill="#FFFFFF" {...GD_OUTLINE} d="M37 30.6 C37 27.7 63 27.7 63 30.6 C63 33.5 37 33.5 37 30.6 Z" />
+              <circle cx="68" cy="33.4" r="2.6" fill="#FFFFFF" {...GD_OUTLINE} />
+            </g>
+          )}
         </g>
       </g>
       {/* The house's front wall, with the doorway cut out, over the dog. */}
@@ -3674,6 +3763,7 @@ function GuideDogScene({ nodes, scale }) {
         <path d="M50 0 L104 46 L98 51 L50 9 L2 51 L-4 46 Z" fill={COLORS.surface} />
         <path fill="none" strokeLinecap="round" d="M2 100 H98" />
       </g>
+      {CHRISTMAS_THEME && <GdChristmas />}
       <g ref={r("zzz")} opacity="0" fill={accent} {...GD_OUTLINE} paintOrder="stroke" fontFamily="'Space Mono', monospace" fontWeight="700">
         <text className="gd-z" x="66" y="24" fontSize="8">z</text>
         <text className="gd-z gd-z2" x="73" y="14" fontSize="10">z</text>
@@ -3687,6 +3777,55 @@ function GuideDogScene({ nodes, scale }) {
         <ellipse cx="0" cy="0" rx="0.9" ry="3.4" fill={earFill} />
       </g>
     </svg>
+  );
+}
+
+// Christmas on Diego's house: snow on the roof, a string of lights
+// along the roof, and a slim tree to the right of the house.
+const GD_EAVE_LIGHTS = (() => {
+  const out = [];
+  // Along the middle of the roof band, between the snow and the eaves.
+  const side = (ax, ay, bx, by) => [0.06, 0.25, 0.44, 0.63, 0.82].forEach((t) => out.push([ax + (bx - ax) * t, ay + (by - ay) * t]));
+  side(-1, 48.6, 46, 8.4);
+  side(101, 48.6, 54, 8.4);
+  return out;
+})();
+const GD_TREE_LIGHTS = [[121, 47], [134, 44], [116, 67], [128, 63], [140, 68], [112, 88], [124, 84], [137, 86], [145, 90]];
+const GD_TREE_BALLS = [[129, 34], [122, 56], [137, 57], [119, 78], [133, 75], [128, 92]];
+
+function GdLight({ x, y, i, r = 1.9 }) {
+  const color = XMAS_BULBS[i % XMAS_BULBS.length];
+  return (
+    <g>
+      <circle className="xmas-glow" cx={x} cy={y} r={r * 1.9} fill={color} opacity="0.9" style={{ animationDelay: `${-((i * 0.9) % 3).toFixed(2)}s` }} />
+      <ellipse cx={x} cy={y} rx={r * 0.8} ry={r} fill={color} stroke={GD_INK} strokeWidth="0.5" />
+    </g>
+  );
+}
+
+function GdChristmas() {
+  return (
+    <g data-testid="diego-christmas">
+      {/* Snow on the roof: a white band along its top edge. */}
+      <path fill="none" stroke={GD_INK} strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round" d="M-4.6 45.2 L50 -1 L104.6 45.2" />
+      <path fill="none" stroke="#FFFFFF" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" d="M-4.6 45.2 L50 -1 L104.6 45.2" />
+      {/* Lights along the roof. */}
+      <path fill="none" stroke="#2B3B3C" strokeWidth="0.7" d="M-1 48.6 L50 4.6 L101 48.6" />
+      {GD_EAVE_LIGHTS.map(([x, y], i) => <GdLight key={`e${i}`} x={x} y={y} i={i} />)}
+      {/* The tree. */}
+      <g data-testid="christmas-tree">
+        <rect x="124" y="92" width="8" height="8" rx="1" fill="#7A4E2D" {...GD_OUTLINE} />
+        <path fill={XMAS_TREE} {...GD_OUTLINE} d="M128 56 L150 95 C140 97.5 116 97.5 106 95 Z" />
+        <path fill={XMAS_TREE} {...GD_OUTLINE} d="M128 36 L146 72 C138 74.5 118 74.5 110 72 Z" />
+        <path fill={XMAS_TREE} {...GD_OUTLINE} d="M128 19 L141 50 C135 52 121 52 115 50 Z" />
+        <path fill="none" stroke="#2B3B3C" strokeWidth="0.6" d="M116 49 Q128 43 140 47 M112 70 Q128 61 144 69 M108 93 Q128 82 148 92" />
+        {GD_TREE_BALLS.map(([x, y], i) => (
+          <circle key={`b${i}`} cx={x} cy={y} r="2.3" fill={["#E0413A", "#F2B83B", "#2F7FD8"][i % 3]} stroke={GD_INK} strokeWidth="0.6" />
+        ))}
+        {GD_TREE_LIGHTS.map(([x, y], i) => <GdLight key={`t${i}`} x={x} y={y} i={i + 1} r={1.4} />)}
+        <path fill="#F2B83B" {...GD_OUTLINE} d="M128 10.5 L130.1 15.2 L135.2 15.6 L131.3 18.9 L132.6 23.8 L128 21.2 L123.4 23.8 L124.7 18.9 L120.8 15.6 L125.9 15.2 Z" />
+      </g>
+    </g>
   );
 }
 
@@ -4620,6 +4759,13 @@ export default function App() {
         `}</style>
 
         <CosmicBackground />
+        {CHRISTMAS_THEME && (
+          <>
+            <style>{CHRISTMAS_CSS}</style>
+            <Snowfall />
+            <ChristmasLights />
+          </>
+        )}
 
         {view === "home" || view === "contact" ? (
           <div style={{ ...styles(c).topBar, maxWidth: 820 }}>
