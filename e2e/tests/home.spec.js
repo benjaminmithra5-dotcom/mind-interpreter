@@ -1,7 +1,7 @@
 import { test, expect } from "./helpers.js";
 
 // The home page: Benjamin Mithra, Life Coach & Carer for Seniors.
-const NAV = ["Home", "Senior Care & Companionship", "About Benjamin", "Contact", "Articles", "Mind Exercises", "Brain Games", "RV Lab", "FAQ", "Talk now"];
+const NAV = ["Home", "Articles", "Senior Care & Companionship", "About Benjamin", "Contact", "Mind Exercises", "Brain Games", "RV Lab", "FAQ", "Talk now"];
 const noSidewaysScroll = (page) => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
 
 test("the new identity and the sections in order", async ({ open }) => {
@@ -23,9 +23,14 @@ test("the new identity and the sections in order", async ({ open }) => {
   ]);
   expect(await home.locator(".hm-principle h3").allTextContents()).toEqual(["Compassion", "Dignity", "Mental Engagement", "Connection"]);
   await expect(home.locator("footer")).toContainText("Benjamin Mithra — Life Coach & Carer for Seniors");
-  // Benjamin's own portrait; the hero photo is a clearly marked placeholder.
+  // Benjamin's own portrait; no placeholder photo in the hero.
   await expect(home.getByRole("img", { name: "Benjamin Mithra" })).toHaveAttribute("src", "/benjamin-mithra.jpg");
-  await expect(page.getByTestId("hero-photo-placeholder")).toBeVisible();
+  await expect(home.getByText(/photograph of Benjamin/i)).toHaveCount(0);
+  // The rotating question, the breathing circle and the Leetspeak passage are gone from the home page.
+  await expect(home.getByText("Exhale")).toHaveCount(0);
+  await expect(home.getByText(/Decoding numbers as letters/)).toHaveCount(0);
+  await expect(home.getByText(/Th3 m1nd 1s n0t/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Open Leetspeak Reading exercise" })).toHaveCount(0);
 });
 
 test("the services: online and in-person, kept apart", async ({ open }) => {
@@ -88,10 +93,25 @@ test("Mind Exercises, Brain Games and RV Lab open the existing sections, unchang
   await expect(page.locator('a.nav-btn[href="/exercises"]')).not.toHaveCSS("background-color", "rgb(14, 90, 95)");
 });
 
-test("the home page's existing teasers still open their exercises", async ({ open }) => {
-  const page = await open("/", { viewport: { width: 1280, height: 900 } });
-  await page.getByRole("button", { name: "Open Leetspeak Reading exercise" }).click();
+test("the exercises the home page used to tease still work at their own addresses", async ({ open }) => {
+  const page = await open("/exercises", { viewport: { width: 1280, height: 900 } });
+  await page.getByRole("link", { name: /Leetspeak/i }).first().click();
   await expect(page).toHaveURL(/\/exercises\/leetspeak-reading$/);
+  await page.goto("/exercises/breathing");
+  await expect(page.locator("main")).toContainText(/breath/i);
+});
+
+test("Contact: only Get in touch and what follows", async ({ open }) => {
+  const page = await open("/consultation", { viewport: { width: 1280, height: 900 } });
+  await expect(page).toHaveTitle("Contact | Benjamin Mithra, Life Coach & Carer for Seniors");
+  const main = page.locator("main");
+  await expect(main.getByRole("heading", { level: 1 })).toHaveText("Get in touch");
+  await expect(main.getByRole("link", { name: "Message on WhatsApp" })).toBeVisible();
+  await expect(main.getByRole("link", { name: "Send an email" })).toBeVisible();
+  await expect(main.getByText("Write to Me", { exact: true })).toBeVisible();
+  for (const gone of ["Private Consultation", "I'm a Mind Interpreter.", "You talk. I listen. We explore.", "Your first hour is on me.", "How it works", "What this isn't", "Sometimes you simply need someone"]) {
+    await expect(main.getByText(gone, { exact: false })).toHaveCount(0);
+  }
 });
 
 test("articles: three real articles with Read More links; Contact Benjamin goes to Contact", async ({ open }) => {

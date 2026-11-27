@@ -4,9 +4,14 @@ Every article, oldest first. Read this before choosing a topic: never
 repeat a main keyword or topic, and don't use the same topic group or
 format as the article just before.
 
-Topic groups: loneliness, difficult conversations, decisions,
+Topic groups (from December 2026, senior care and companionship only):
+companionship and loneliness in later life, personal care and daily
+living, independence and dignity, keeping the mind active, family
+caregiving, conversations with aging parents, outings and appointments,
+home and routines, life changes in later life. Older articles used
+earlier groups (loneliness, difficult conversations, decisions,
 overthinking, life changes, relationships, work stress, family,
-self-understanding.
+self-understanding).
 
 Formats: step-by-step guide, "what to say" scripts, reflective piece,
 common questions.

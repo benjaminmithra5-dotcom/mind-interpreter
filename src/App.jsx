@@ -1034,9 +1034,7 @@ function WriteToMeForm({ style, id, submitStyle }) {
 // Its own quiet palette (navy, champagne gold, ivory, sage); the rest of
 // the site, the navigation, Diego and the Christmas decorations keep
 // theirs. The Mind Exercises, Brain Games and RV Lab are only linked
-// from here; the home-page teasers for them (the rotating question, the
-// breathing circle and the Leetspeak passage) and the Write to Me form
-// are kept as they were.
+// from here. The Write to Me form stays (Diego's home tip points to it).
 // =================================================================
 const HOME_PALETTE = { navy: "#18334A", gold: "#B69A66", ivory: "#F4F0E8", sage: "#82968A" };
 // Where "Senior Care & Companionship" and "About Benjamin" go until those
@@ -1082,7 +1080,7 @@ const HOME_CSS = `
 
   /* 1. Hero */
   .hm-hero { padding-top: 48px; }
-  .hm-hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+  .hm-hero-grid { max-width: 760px; }
   .hm-hero-text { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
   .hm-indicators { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; margin: 4px 0 8px; }
   .hm-indicators li {
@@ -1090,13 +1088,6 @@ const HOME_CSS = `
     background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.sage, 0.6)}; font-size: 15px; color: ${HOME_PALETTE.navy};
   }
   .hm-indicators svg { color: ${HOME_PALETTE.sage}; }
-  .hm-photo-slot {
-    position: relative; width: 100%; aspect-ratio: 4 / 5; border-radius: 18px; overflow: hidden;
-    background: linear-gradient(160deg, ${HOME_PALETTE.ivory} 0%, #E6E2D6 100%);
-    border: 1px solid ${withAlpha(HOME_PALETTE.gold, 0.55)}; box-shadow: 0 24px 50px ${withAlpha(HOME_PALETTE.navy, 0.12)};
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: ${HOME_PALETTE.sage}; text-align: center; padding: 24px; box-sizing: border-box;
-  }
-  .hm-photo-slot span { font-size: 14px; color: #5D6B63; max-width: 240px; line-height: 1.5; }
 
   /* 2. About */
   .hm-about { display: grid; grid-template-columns: 300px 1fr; gap: 56px; align-items: center; }
@@ -1135,8 +1126,6 @@ const HOME_CSS = `
   .hm-card-link:hover { border-color: ${HOME_PALETTE.gold}; box-shadow: 0 14px 30px ${withAlpha(HOME_PALETTE.navy, 0.1)}; transform: translateY(-2px); }
   .hm-card-link p { font-size: 16px; line-height: 1.6; }
   .hm-card-go { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #7A6440; margin-top: auto; padding-top: 6px; }
-  .hm-try { margin-top: 48px; display: flex; flex-direction: column; align-items: center; gap: 32px; }
-  .hm-try > * { max-width: 560px; width: 100%; }
 
   /* 6. Articles */
   .hm-articles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
@@ -1161,8 +1150,6 @@ const HOME_CSS = `
   .hm-footer { padding: 36px 20px 24px; text-align: center; }
 
   @media (max-width: 900px) {
-    .hm-hero-grid { grid-template-columns: 1fr; gap: 36px; }
-    .hm-photo-slot { aspect-ratio: 4 / 3; }
     .hm-principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .hm-mind, .hm-articles { grid-template-columns: 1fr; }
   }
@@ -1218,25 +1205,9 @@ const HOME_MIND_LINKS = [
   { icon: "rv", title: "RV Lab", to: "/exercises/rv-lab", text: "An exercise in perception: sketch and describe a hidden image, then compare." },
 ];
 
-function HomeScreen({ onOpenExercise }) {
+function HomeScreen() {
   const c = useColors();
   const location = useLocation();
-  const orderRef = useRef(shuffle(DAILY_QUESTIONS));
-  const [qIndex, setQIndex] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setQIndex((i) => {
-        const next = i + 1;
-        if (next >= orderRef.current.length) {
-          orderRef.current = shuffle(DAILY_QUESTIONS);
-          return 0;
-        }
-        return next;
-      });
-    }, 4000);
-    return () => clearInterval(id);
-  }, []);
 
   // "/#services", "/#about" (from the menu or the buttons): scroll to that section.
   useEffect(() => {
@@ -1247,7 +1218,6 @@ function HomeScreen({ onOpenExercise }) {
     el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
   }, [location.hash, location.key]);
 
-  const question = orderRef.current[qIndex];
   const articles = HOME_ARTICLE_SLUGS.map((slug) => ARTICLE_BY_SLUG[slug]).filter(Boolean);
 
   return (
@@ -1268,10 +1238,6 @@ function HomeScreen({ onOpenExercise }) {
               <li><HmIcon name="home" size={18} />In-Person Support</li>
             </ul>
             <Link to={SENIOR_CARE_PATH} className="hm-btn" data-testid="explore-services">Explore Services</Link>
-          </div>
-          <div className="hm-photo-slot" role="img" aria-label="Photograph to come: Benjamin with an older adult" data-testid="hero-photo-placeholder">
-            <HmIcon name="people" size={56} />
-            <span>A photograph of Benjamin with an older adult will appear here.</span>
           </div>
         </div>
       </section>
@@ -1337,8 +1303,7 @@ function HomeScreen({ onOpenExercise }) {
         </div>
       </section>
 
-      {/* 5. Explore the mind (links to the existing sections), then the
-          home page's existing teasers, unchanged. */}
+      {/* 5. Explore the mind: links to the existing sections. */}
       <section className="hm-section hm-tint" aria-labelledby="hm-mind-title">
         <div className="hm-inner">
           <div className="hm-head hm-center">
@@ -1356,19 +1321,6 @@ function HomeScreen({ onOpenExercise }) {
                 <span className="hm-card-go" aria-hidden="true">Open →</span>
               </Link>
             ))}
-          </div>
-          <div className="hm-try" style={{ textAlign: "center" }}>
-            <div style={styles(c).homeQuestionBox}>
-              <p key={qIndex} className="fade-in" style={styles(c).homeQuestion}>{question}</p>
-            </div>
-            <HomeAmbientBreathing onOpenExercise={onOpenExercise} />
-            <div style={styles(c).homeLeetGroup}>
-              <p style={styles(c).homeIntroText}>Decoding numbers as letters breaks your brain's autopilot reading, training attention and visual pattern recognition.</p>
-              <button type="button" style={styles(c).leetWrap} onClick={() => onOpenExercise("leet")} aria-label="Open Leetspeak Reading exercise">
-                <div style={styles(c).leetSweep} aria-hidden="true" />
-                <p style={styles(c).leetText}>{LEET_MESSAGE}</p>
-              </button>
-            </div>
           </div>
         </div>
       </section>
@@ -3638,22 +3590,6 @@ function RVLabScreen() {
 const WHATSAPP_NUMBER = "447440573315";
 const EMAIL_ADDRESS = "benjaminmithra@gmail.com";
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/xjyvqwrd";
-const CONTACT_INTRO_BUBBLES = ["Hi, I'm Benjamin Mithra.", "I'm a Mind Interpreter.", "You talk. I listen. We explore."];
-const CONTACT_STEPS = [
-  { title: "Reach out.", text: "Send me a message on WhatsApp, by email, or through the Write to Me form. You don't need to explain everything; a few words are enough." },
-  { title: "Choose a time.", text: "We'll find a time that suits you. I'm based in India, so just tell me your time zone and I'll work around it." },
-  { title: "We talk.", text: "Sessions are 45 minutes, by video or voice call. You can keep your camera off if you prefer. There's no agenda, and nothing you need to prepare." },
-];
-const CONTACT_NOT_PARAGRAPHS = [
-  "These conversations are a space to talk, reflect and understand. They aren't therapy, counselling, or medical or psychological treatment, and I don't diagnose or treat any condition. If you're working with a doctor or therapist, this can sit alongside that, but it isn't a replacement for it.",
-  "If you're in crisis or thinking about harming yourself, please don't wait for a session. Contact your local emergency services or a crisis line right away (for example, 988 in the US).",
-];
-const CONTACT_INTRO_PARAGRAPHS = [
-  "Sometimes you simply need someone who will listen without rushing to judge, advise, or tell you what to do.",
-  "You can bring whatever is on your mind. Something you're going through, a difficult decision, a recurring thought or pattern, an experience you don't understand, or simply something you've never had the space to talk about.",
-  "You don't need to prepare anything or know exactly where the conversation should go.",
-];
-
 function WhatsAppIcon() {
   return (
     <svg width="26" height="26" viewBox="0 0 32 32" fill="currentColor"><path d="M16.02 3C9.4 3 4.02 8.38 4.02 15c0 2.24.62 4.34 1.7 6.14L4 29l8.06-1.66A11.9 11.9 0 0 0 16.02 27C22.64 27 28 21.62 28 15S22.64 3 16.02 3Zm0 21.6c-1.9 0-3.66-.52-5.18-1.44l-.37-.22-4.78.98.98-4.66-.24-.38A9.5 9.5 0 0 1 5.42 15c0-5.83 4.77-10.6 10.6-10.6S26.6 9.17 26.6 15 21.85 24.6 16.02 24.6Zm5.8-7.94c-.32-.16-1.9-.94-2.2-1.05-.3-.1-.5-.16-.72.16-.2.32-.83 1.05-1.02 1.26-.18.2-.37.24-.68.08-.32-.16-1.34-.5-2.55-1.58-.94-.84-1.58-1.87-1.76-2.2-.18-.32-.02-.5.14-.66.14-.14.32-.37.48-.55.16-.18.2-.32.32-.53.1-.2.05-.4-.02-.56-.08-.16-.72-1.74-.98-2.38-.26-.63-.53-.54-.72-.55h-.62c-.2 0-.53.08-.8.4-.28.32-1.06 1.03-1.06 2.52s1.08 2.93 1.24 3.13c.16.2 2.13 3.25 5.16 4.56.72.3 1.28.49 1.72.63.72.23 1.38.2 1.9.12.58-.09 1.9-.78 2.17-1.53.26-.75.26-1.4.18-1.53-.08-.13-.28-.2-.6-.36Z"/></svg>
@@ -3665,129 +3601,12 @@ function EmailIcon() {
   );
 }
 
-// The portrait, framed as a little house: the photo fills the square
-// body, and an SVG drawn over it adds the roof and accent outline. The
-// roof's base is the body's top edge, so they share one clean line.
-function HousePortrait() {
-  const c = useColors();
-  return (
-    <div style={styles(c).housePortrait}>
-      <img src="/benjamin-mithra.jpg" alt="Benjamin Mithra" width="360" height="360" style={styles(c).housePortraitPhoto} />
-      <svg viewBox="0 0 100 128" aria-hidden="true" focusable="false" style={styles(c).housePortraitFrame}>
-        <g stroke={c.accent} strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round">
-          <path d="M2 42 L50 5 L98 42 Z" fill={c.surface} />
-          <rect x="8" y="42" width="84" height="84" fill="none" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-// Two chairs facing each other across a small round table, with a
-// steaming coffee on each side. The steam drifts up and fades on a
-// loop (held still with reduced motion).
-function CoffeeTableIllustration() {
-  const c = useColors();
-  return (
-    <svg
-      viewBox="0 0 280 150"
-      role="img"
-      aria-label="A table with two chairs and two cups of coffee, ready for a conversation"
-      style={styles(c).coffeeTable}
-    >
-      <style>{`
-        @keyframes coffeeSteam { 0% { opacity: 0; transform: translateY(4px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10px); } }
-        .coffee-steam { animation: coffeeSteam 3.4s ease-in-out infinite; }
-        .coffee-steam-2 { animation-delay: -1.1s; }
-        .coffee-steam-3 { animation-delay: -2.2s; }
-        @media (prefers-reduced-motion: reduce) { .coffee-steam { animation: none; opacity: 1; } }
-      `}</style>
-      <g fill="none" stroke={c.accent} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18 141 H262" stroke={c.accentPressed} strokeWidth="1.6" />
-        {/* Left chair, facing right */}
-        <path d="M45 100 L39 54 Q38.5 50 42.5 50 H45.5 Q49 50 49.5 54 L54 100" fill={c.surface} />
-        <path d="M44 100 H92 Q95 100 95 103 V105 Q95 108 92 108 H47 Q44 108 44 105 Z" fill={c.surface} />
-        <path d="M50 108 L46 140 M88 108 L92 140" />
-        {/* Right chair, facing left */}
-        <path d="M235 100 L241 54 Q241.5 50 237.5 50 H234.5 Q231 50 230.5 54 L226 100" fill={c.surface} />
-        <path d="M236 100 H188 Q185 100 185 103 V105 Q185 108 188 108 H233 Q236 108 236 105 Z" fill={c.surface} />
-        <path d="M230 108 L234 140 M192 108 L188 140" />
-        {/* Round table, from the side */}
-        <path d="M140 96 V136" />
-        <path d="M120 140 Q140 132 160 140" />
-        <ellipse cx="140" cy="91" rx="46" ry="6" fill={c.surface} />
-        {/* Two coffees */}
-        <path d="M106 71 H122 V81 Q122 85 118 85 H110 Q106 85 106 81 Z" fill={c.accent} />
-        <path d="M106 74 Q100 74 100 78 Q100 82 106 82" />
-        <path d="M101 86 H127" />
-        <path d="M158 71 H174 V81 Q174 85 170 85 H162 Q158 85 158 81 Z" fill={c.accent} />
-        <path d="M174 74 Q180 74 180 78 Q180 82 174 82" />
-        <path d="M153 86 H179" />
-        {/* Steam */}
-        <g strokeWidth="1.8">
-          <path className="coffee-steam" d="M111 64 C107 58 115 54 111 48 C107 42 115 38 111 32" />
-          <path className="coffee-steam coffee-steam-2" d="M117 64 C113 58 121 54 117 48 C113 42 121 38 117 34" />
-          <path className="coffee-steam coffee-steam-3" d="M163 64 C159 58 167 54 163 48 C159 42 167 38 163 32" />
-          <path className="coffee-steam coffee-steam-2" d="M169 64 C165 58 173 54 169 48 C165 42 173 38 169 34" />
-        </g>
-      </g>
-    </svg>
-  );
-}
-
 function ContactScreen({ onNavigate }) {
   const c = useColors();
   return (
     <div style={styles(c).contactOuter} className="fade-in">
       <div style={styles(c).contactCard}>
-        <p style={styles(c).contactBigHeading}>Private Consultation</p>
-
-        <div style={styles(c).contactIntroRow}>
-          <HousePortrait />
-          <div style={styles(c).contactBubbleStack}>
-            {CONTACT_INTRO_BUBBLES.map((b, i) => (
-              <Fragment key={i}>
-                {i > 0 && " "}
-                <span style={{ ...styles(c).contactBubble, animationDelay: `${(i * 0.4).toFixed(2)}s` }}>{b}</span>
-              </Fragment>
-            ))}
-          </div>
-        </div>
-
-        <div style={styles(c).contactDivider} />
-
-        {CONTACT_INTRO_PARAGRAPHS.map((t, i) => (
-          <p key={i} style={styles(c).contactBody}>{t}</p>
-        ))}
-        <p style={styles(c).contactClosing}>This is a private space for conversation, reflection and understanding.</p>
-
-        <div style={styles(c).contactFirstHourWrap}>
-          <p style={styles(c).contactFirstHour}>Your first hour is on me.</p>
-          <CoffeeTableIllustration />
-        </div>
-
-        <div style={styles(c).contactDivider} />
-
-        <p style={styles(c).contactSubhead}>How it works</p>
-        <ol style={styles(c).contactSteps}>
-          {CONTACT_STEPS.map((step, i) => (
-            <li key={i} style={styles(c).contactBody}>
-              <strong style={styles(c).contactStepTitle}>{step.title}</strong> {step.text}
-            </li>
-          ))}
-        </ol>
-        <p style={styles(c).contactBody}>What you share stays private and is never shared with anyone, except where the law requires it or where someone's immediate safety is at serious risk.</p>
-
-        <div style={styles(c).contactDivider} />
-
-        <p style={styles(c).contactSubhead}>What this isn't</p>
-        {CONTACT_NOT_PARAGRAPHS.map((t, i) => (
-          <p key={i} style={styles(c).contactBody}>{t}</p>
-        ))}
-
-        <div style={styles(c).contactDivider} />
-
-        <p style={styles(c).contactSubhead}>Get in touch</p>
+        <h1 style={{ ...styles(c).contactBigHeading, margin: 0, textAlign: "center" }}>Get in touch</h1>
         <div style={styles(c).contactIconsRow}>
           <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" style={styles(c).contactIconLink} aria-label="Message on WhatsApp">
             <WhatsAppIcon /><span>WhatsApp</span>
@@ -4785,10 +4604,10 @@ function pickRandomGame(excludeSet) { const remaining = GAMES.filter((g) => !exc
 // point at the home page's sections until their own pages exist.
 const TOP_TABS = [
   { key: "home", label: "Home" },
+  { key: "articles", label: "Articles" },
   { key: "seniorcare", label: "Senior Care & Companionship", to: SENIOR_CARE_PATH },
   { key: "about", label: "About Benjamin", to: ABOUT_PATH },
   { key: "contact", label: "Contact" },
-  { key: "articles", label: "Articles" },
   { key: "exercises", label: "Mind Exercises" },
   { key: "games", label: "Brain Games" },
   { key: "rvlab", label: "RV Lab", to: "/exercises/rv-lab" },
@@ -4861,7 +4680,7 @@ const PAGE_META = {
   "game-cards": { title: "Card Memory Game | Mind Interpreter", description: "Memorize the positions of cards, then match pairs from memory." },
   "game-words": { title: "Word Memory Game | Mind Interpreter", description: "Memorize a list of words, then recall as many as you can." },
   "game-numbers": { title: "Number Memory Game | Mind Interpreter", description: "Memorize a growing sequence of digits and recall it back correctly." },
-  contact: { title: "Private Consultation | Benjamin Mithra, Mind Interpreter", description: "A private one to one conversation with Benjamin Mithra, a Mind Interpreter. You talk, I listen, we explore: a space for conversation, reflection, and understanding." },
+  contact: { title: "Contact | Benjamin Mithra, Life Coach & Carer for Seniors", description: "Get in touch with Benjamin Mithra, Life Coach & Carer for Seniors, on WhatsApp, by email or through the Write to Me form." },
   privacy: { title: "Privacy Policy | Mind Interpreter", description: "How conversations and this site handle your information: conversations stay private, and the site uses no accounts, cookies, or tracking." },
   terms: { title: "Terms | Mind Interpreter", description: "Terms for using this site's games, exercises, and remote viewing content." },
   faq: { title: "FAQ | Benjamin Mithra, Mind Interpreter", description: "Answers about private conversations with Benjamin Mithra, a Mind Interpreter: what you can talk about, how sessions work, privacy, and the site's Brain Games and Mind Exercises." },
