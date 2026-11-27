@@ -4139,7 +4139,7 @@ const FAQ_SECTIONS = [
           ],
         }],
       },
-      { q: "Is the first hour really free? What's the catch?", a: ["No catch. Your first hour is on me. After that, sessions are $9.80 for 45 minutes, and only if you want to continue."] },
+      { q: "Is the first hour really free? What's the catch?", a: ["No catch. Your first hour is on me."] },
       { q: "How do I pay after that?", a: ["We'll go over payment options during our call, so you can choose what works best for you."] },
       { q: "What if something comes up and I can't make it?", a: ["No problem. Just let me know 24 hours before, and we'll reschedule."] },
       { q: "Is there an age limit?", a: ["Yes. Sessions are for adults aged 18 and over."] },
@@ -4509,7 +4509,7 @@ const PAGE_META = {
   faq: { title: "FAQ | Benjamin Mithra, Mind Interpreter", description: "Answers about private conversations with Benjamin Mithra, a Mind Interpreter: what you can talk about, how sessions work, privacy, and the site's Brain Games and Mind Exercises." },
   articles: { title: "Articles | Benjamin Mithra, Mind Interpreter", description: "Articles by Benjamin Mithra, a Mind Interpreter, on loneliness, difficult conversations, hard decisions, overthinking, and the moments in life when you need to be heard." },
   "article-missing": { title: "Article not found | Mind Interpreter", description: "This article could not be found. Browse all articles by Benjamin Mithra, a Mind Interpreter." },
-  call: { title: "Talk now | Mind Interpreter", description: "Book a time and join your private audio call with Benjamin Mithra. $9.80 for 45 minutes.", noindex: true },
+  call: { title: "Talk now | Mind Interpreter", description: "Book a time and join your private audio call with Benjamin Mithra.", noindex: true },
   host: { title: "Host | Mind Interpreter", description: "Private.", noindex: true },
   disclaimer: { title: "Disclaimer | Mind Interpreter", description: "Conversations here are not therapy or medical care, and the site's exercises and remote viewing content are educational and experimental." },
 };
