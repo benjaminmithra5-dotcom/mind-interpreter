@@ -700,8 +700,8 @@ const XMAS_CAP = "#D63A34";
 const XMAS_FLAKES = (() => {
   let seed = 7;
   const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-  return Array.from({ length: 34 }, () => ({
-    left: rnd() * 100, size: 3 + rnd() * 4, fall: 13 + rnd() * 11, delay: -rnd() * 24,
+  return Array.from({ length: 80 }, () => ({
+    left: rnd() * 100, size: 3 + rnd() * 5, fall: 11 + rnd() * 11, delay: -rnd() * 22,
     sway: 12 + rnd() * 18, swayTime: 3 + rnd() * 3, opacity: 0.75 + rnd() * 0.25,
   }));
 })();
@@ -714,6 +714,22 @@ const CHRISTMAS_CSS = `
   .xmas-lights svg { flex-shrink: 0; display: block; }
   .xmas-glow { animation: xmasTwinkle 3s ease-in-out infinite; }
   @keyframes xmasTwinkle { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.25; } }
+  /* Serial lights: every other bulb is on while its neighbours are off, then
+     they swap, every 0.7s (each bulb blinks well under 3 times a second). */
+  .xmas-blink { animation: xmasBlink 1.4s ease-in-out infinite; }
+  .xmas-blink-b { animation-delay: -0.7s; }
+  @keyframes xmasBlink { 0%, 40% { opacity: 1; } 50%, 90% { opacity: 0.18; } 100% { opacity: 1; } }
+  /* Snow that has settled along the bottom, where Diego and the snowman stand. */
+  .xmas-ground { position: fixed; left: 0; right: 0; bottom: 0; height: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 29; pointer-events: none; }
+  .xmas-ground svg { display: block; width: 100%; height: 18px; }
+  .xmas-ground-fill { height: env(safe-area-inset-bottom, 0px); background: #FFFFFF; }
+  .xmas-snowman {
+    position: fixed; bottom: calc(6px + env(safe-area-inset-bottom, 0px)); z-index: 30; pointer-events: none;
+    width: 64px; height: 94px; display: block; overflow: visible;
+  }
+  .xmas-snowman-arm { transform-box: view-box; transform-origin: 44px 42px; animation: xmasWave 3.2s ease-in-out infinite alternate; }
+  @keyframes xmasWave { from { transform: rotate(-6deg); } to { transform: rotate(8deg); } }
+  @media (max-width: 600px) { .xmas-snowman { width: 52px; height: 76px; } }
   .xmas-snow { position: fixed; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
   .xmas-flake { position: absolute; top: 0; animation: xmasFall linear infinite; will-change: transform; }
   .xmas-flake > span {
@@ -725,20 +741,23 @@ const CHRISTMAS_CSS = `
   @keyframes xmasSway { from { transform: translateX(calc(var(--sway) * -1)); } to { transform: translateX(var(--sway)); } }
   @media (max-width: 600px) { .xmas-flake:nth-child(2n) { display: none; } }
   @media (prefers-reduced-motion: reduce) {
-    .xmas-glow { animation: none; }
+    .xmas-glow, .xmas-blink, .xmas-snowman-arm { animation: none; }
     .xmas-snow { display: none; }
   }
 `;
 
 // One 48px piece of wire with a bulb hanging from it; the pieces join up.
-function XmasBulb({ color, delay }) {
+// Bulbs alternate between two groups that blink in turn, like serial lights.
+function XmasBulb({ color, group }) {
   return (
     <svg width="48" height="22" viewBox="0 0 48 22" aria-hidden="true" focusable="false">
       <path d="M0 3 Q24 9 48 3" fill="none" stroke="#2B3B3C" strokeWidth="1.2" />
       <rect x="21.6" y="5.2" width="4.8" height="3.6" rx="0.8" fill="#4A5A5B" />
-      <circle className="xmas-glow" cx="24" cy="14" r="7" fill={color} opacity="0.9" style={{ animationDelay: `${delay}s`, filter: "blur(2.5px)" }} />
-      <path d="M24 8.6 C20.6 8.6 19.6 12 20.2 14.6 C20.8 17.2 22.4 19 24 19 C25.6 19 27.2 17.2 27.8 14.6 C28.4 12 27.4 8.6 24 8.6 Z" fill={color} stroke="#2B3B3C" strokeWidth="0.6" />
-      <ellipse cx="22.6" cy="12.4" rx="0.9" ry="1.6" fill="#FFFFFF" opacity="0.7" />
+      <g className={`xmas-blink xmas-blink-${group}`}>
+        <circle cx="24" cy="14" r="7" fill={color} opacity="0.9" style={{ filter: "blur(2.5px)" }} />
+        <path d="M24 8.6 C20.6 8.6 19.6 12 20.2 14.6 C20.8 17.2 22.4 19 24 19 C25.6 19 27.2 17.2 27.8 14.6 C28.4 12 27.4 8.6 24 8.6 Z" fill={color} stroke="#2B3B3C" strokeWidth="0.6" />
+        <ellipse cx="22.6" cy="12.4" rx="0.9" ry="1.6" fill="#FFFFFF" opacity="0.7" />
+      </g>
     </svg>
   );
 }
@@ -747,9 +766,59 @@ function ChristmasLights() {
   return (
     <div className="xmas-lights" aria-hidden="true" data-testid="xmas-lights">
       {Array.from({ length: 60 }, (_, i) => (
-        <XmasBulb key={i} color={XMAS_BULBS[i % XMAS_BULBS.length]} delay={-((i * 0.7) % 3).toFixed(2)} />
+        <XmasBulb key={i} color={XMAS_BULBS[i % XMAS_BULBS.length]} group={i % 2 ? "b" : "a"} />
       ))}
     </div>
+  );
+}
+
+// A soft, uneven drift of settled snow along the bottom of the screen.
+function SnowGround() {
+  return (
+    <div className="xmas-ground" aria-hidden="true" data-testid="xmas-ground">
+      <svg viewBox="0 0 1200 18" preserveAspectRatio="none" focusable="false">
+        <path
+          d="M0 9 C60 4 110 6 170 8 C240 10 290 3 360 5 C430 7 480 11 550 8 C620 5 680 3 750 6 C820 9 870 10 940 7 C1010 4 1070 5 1130 8 C1160 9 1185 8 1200 7 V18 H0 Z"
+          fill="#FFFFFF" stroke={withAlpha(COLORS.accent, 0.45)} strokeWidth="1.2" vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+      <div className="xmas-ground-fill" />
+    </div>
+  );
+}
+
+// A snowman in the bottom-right corner, just left of the WhatsApp button
+// (or in the corner itself on pages without it). He waves now and then.
+function Snowman({ besideWhatsApp }) {
+  const line = { stroke: GD_INK, strokeWidth: 2, strokeLinejoin: "round", strokeLinecap: "round", vectorEffect: "non-scaling-stroke" };
+  return (
+    <svg
+      className="xmas-snowman" viewBox="0 -6 64 94" aria-hidden="true" focusable="false" data-testid="snowman"
+      style={{ right: besideWhatsApp ? "calc(84px + env(safe-area-inset-right, 0px))" : "calc(12px + env(safe-area-inset-right, 0px))" }}
+    >
+      {/* Arms (the right one waves). */}
+      <path fill="none" stroke="#6B4226" strokeWidth="2.2" strokeLinecap="round" d="M21 42 L6 33 M11 36 L7 29 M11 36 L3 37" />
+      <path className="xmas-snowman-arm" fill="none" stroke="#6B4226" strokeWidth="2.2" strokeLinecap="round" d="M43 42 L58 31 M53 35 L56 27 M53 35 L61 35" />
+      {/* Body. */}
+      <circle cx="32" cy="68" r="18" fill="#FFFFFF" {...line} />
+      <circle cx="32" cy="42" r="13" fill="#FFFFFF" {...line} />
+      <circle cx="32" cy="21" r="10" fill="#FFFFFF" {...line} />
+      <path fill="none" stroke="#C9DDE0" strokeWidth="2" strokeLinecap="round" d="M20 74 C23 81 30 84 37 83 M23 47 C26 52 31 53 36 52" />
+      {/* Buttons, eyes, smile and carrot nose. */}
+      <g fill={GD_INK}>
+        <circle cx="32" cy="37" r="1.4" /><circle cx="32" cy="43" r="1.4" /><circle cx="32" cy="49" r="1.4" />
+        <circle cx="32" cy="63" r="1.6" /><circle cx="32" cy="70" r="1.6" />
+        <circle cx="28.4" cy="18.6" r="1.4" /><circle cx="35.6" cy="18.6" r="1.4" />
+        <circle cx="27.6" cy="25" r="0.8" /><circle cx="30" cy="26.4" r="0.8" /><circle cx="32.6" cy="26.8" r="0.8" /><circle cx="35.2" cy="26.2" r="0.8" />
+      </g>
+      <path fill="#F08A24" stroke={GD_INK} strokeWidth="0.8" strokeLinejoin="round" d="M32 21 L42 23 L32 23.8 Z" />
+      {/* Scarf. */}
+      <path fill={XMAS_CAP} {...line} d="M22.4 29.4 C28 32.4 36 32.4 41.6 29.4 L42.6 33 C36.4 36 27.6 36 21.4 33 Z" />
+      <path fill={XMAS_CAP} {...line} d="M36 33.6 L39.6 45 L44 43.6 L40.6 32.6 Z" />
+      {/* Top hat with a green band. */}
+      <path fill={GD_INK} {...line} d="M19.5 12.6 H44.5 V14.6 H19.5 Z M24 12.6 V-1.5 H40 V12.6 Z" />
+      <path fill={XMAS_TREE} d="M24.6 8.2 H39.4 V11.6 H24.6 Z" />
+    </svg>
   );
 }
 
@@ -4581,6 +4650,7 @@ export default function App() {
   useDocumentMeta(metaKey, location.pathname, article ? articleMeta(article) : null);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const showWhatsApp = view === "home" || view === "contact" || view === "faq" || (view === "exercises" && !exerciseTab) || (view === "games" && !gameTab);
   // Pause the "Talk now" pulse while this browser tab is hidden (an event, not a timer).
   useEffect(() => {
     const sync = () => {
@@ -4950,8 +5020,10 @@ export default function App() {
           )}
         </main>
 
+        {CHRISTMAS_THEME && <SnowGround />}
         <GuideDog view={view} />
-        {(view === "home" || view === "contact" || view === "faq" || (view === "exercises" && !exerciseTab) || (view === "games" && !gameTab)) && <WhatsAppFloat />}
+        {CHRISTMAS_THEME && <Snowman besideWhatsApp={showWhatsApp} />}
+        {showWhatsApp && <WhatsAppFloat />}
       </div>
     </ThemeContext.Provider>
   );
