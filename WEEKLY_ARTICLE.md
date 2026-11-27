@@ -1,8 +1,14 @@
 # Article instructions
 
 You are drafting one new article for benjaminmithra.com, the site of
-Benjamin Mithra, a Mind Interpreter. Articles are drafted every Monday,
-Wednesday and Friday. Follow every step below in order, without asking
+Benjamin Mithra, Life Coach & Carer for Seniors. Articles are drafted
+every Monday, Wednesday and Friday.
+
+**Every article is about senior care and companionship:** personal care,
+companionship and everyday support for older men and women, written for
+older adults themselves or for the families who care about them. Never
+write about any other subject (no general work stress, dating or
+self-help topics), even if an older article on the site did. Follow every step below in order, without asking
 questions; whoever started you may not be watching. If a step fails and
 you cannot fix it, stop and say exactly what failed.
 
@@ -59,22 +65,29 @@ Then note:
    sites, comment threads). Only read. Never post, reply, sign up, or
    contact anyone. Also notice anything seasonal for the coming weeks.
 2. **Pick a topic group that is different from the previous article's.**
-   The groups are: loneliness, difficult conversations, decisions,
-   overthinking, life changes, relationships, work stress, family, and
-   self-understanding. Over time, favor the groups the topic map shows
-   least often.
+   The groups are: companionship and loneliness in later life, personal
+   care and daily living, independence and dignity, keeping the mind
+   active, family caregiving, conversations with aging parents, outings
+   and appointments, home and routines, and life changes in later life
+   (retirement, moving, losing a spouse). Over time, favor the groups the
+   topic map shows least often, and write for older men as often as for
+   older women (their needs and the words they search with often differ).
 3. **Choose one main keyword**: a specific, long phrase with clear intent
-   that a new, small site can realistically rank for (for example, "what
-   to say when your adult child stops calling", not "family problems").
+   that a new, small site can realistically rank for (for example, "how
+   to help an elderly parent who refuses help", not "elderly care").
    - Avoid broad single words and phrases dominated by huge sites.
    - Never choose a crisis search: nothing about suicide, self-harm,
-     wanting to die, abuse that is happening now, or any emergency.
+     wanting to die, abuse or neglect that is happening now, or any
+     emergency.
+   - Never choose a medical search: nothing about diagnosing or treating
+     a condition (dementia, falls, medication, incontinence treatment and
+     the like). Everyday, non-clinical care and companionship only.
    - It must not match, or mean the same as, any main keyword or topic
      in the topic map or an open pull request.
    - It must fit in a title under 60 characters, near the start.
 4. **Choose 3 to 5 secondary keywords and sub-questions** that the same
-   reader also has (for example, "why do they go quiet when I bring it
-   up", "is it normal to feel…").
+   reader also has (for example, "why does my dad refuse help at home",
+   "is it normal to feel guilty about hiring a carer").
 5. **Study the top-ranking pages** for the main keyword (at least the top
    five). Note what they all say, and find what they miss: a fresh
    angle, a practical script, a clearer explanation, a situation they
@@ -107,7 +120,7 @@ Then note:
 ## 5. Write the article
 
 **Voice: a person, not a machine.** Write like a warm, thoughtful person
-talking to one reader, as Benjamin, a Mind Interpreter. Use "you" and
+talking to one reader, as Benjamin, a Life Coach & Carer for Seniors. Use "you" and
 "I". Benjamin's own beliefs and way of seeing things are welcome ("I
 think…", "I've come to believe…"). Invented stories and client examples
 are not.
@@ -162,9 +175,21 @@ matter): complete, and readable in about 5 minutes.
 - Never give medical, psychological or therapy advice. Don't recommend
   medication, supplements or treatments, and don't tell anyone to stop
   one.
-- Never claim to diagnose or treat anything. Don't describe Benjamin's
-  conversations as therapy or counseling; they are conversations, a
-  space to be heard and to think clearly.
+- Never claim to diagnose or treat anything. Benjamin's work is
+  non-clinical: companionship, life coaching, personal care and personal
+  assistance. Never describe him as a nurse, doctor or medical
+  professional, never claim qualifications, certifications or
+  experience, and never describe his conversations as therapy or
+  counseling.
+- If the article touches a change in an older person's health, memory,
+  mobility or safety, include this sentence on its own line, near the
+  end: "If you notice changes in health, memory or safety, talk to their
+  doctor." (Wording may be adapted slightly to fit the article.)
+- If the article touches worry that an older person is being harmed,
+  exploited or neglected, include this sentence exactly, on its own line,
+  near the end:
+
+  > If you're worried that an older person is being harmed or neglected, contact your local adult protective services, or emergency services if they're in danger.
 - If the article is about overthinking, rumination or sleep, include this
   sentence on its own line, in a calm place near the end: "If this has
   been constant and affecting your sleep or daily life for weeks, it's
@@ -197,7 +222,8 @@ matter): complete, and readable in about 5 minutes.
   Don't use a `#` heading; the title is shown automatically.
 - **Internal links:** 1 or 2 links to genuinely related articles, as
   `[link text](/articles/<slug>)` (only if a related one exists), and
-  exactly one link to `[link text](/consultation)`, placed naturally.
+  exactly one link to `[link text](/consultation)` (the Contact page),
+  placed naturally.
   The page already ends with a line inviting the reader to talk, so
   don't add your own sign-off.
 
@@ -253,9 +279,14 @@ today's IST date from step 1.3.
    - [ ] Mostly paragraphs, at most two lists, and no stock AI phrases.
    - [ ] American English throughout.
    - [ ] No client stories or claimed results, and no invented facts.
-   - [ ] Safety rules met: no medical or therapy advice, the crisis
-     sentence if it touches loneliness or low mood, and the hotline
-     sentence if it's about a relationship.
+   - [ ] About senior care and companionship (older men or women, or
+     their families), and nothing else.
+   - [ ] Safety rules met: no medical or therapy advice, non-clinical
+     wording only, the doctor sentence if it touches health, memory,
+     mobility or safety, the adult protective services sentence if it
+     touches harm or neglect, the crisis sentence if it touches
+     loneliness or low mood, and the hotline sentence if it's about a
+     relationship.
    - [ ] Topic map and advice ledger updated.
    - [ ] No-repeats section below completed (word, phrase and idea
      repeats; earlier-article signatures; trim pass).
