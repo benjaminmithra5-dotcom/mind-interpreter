@@ -1037,10 +1037,9 @@ function WriteToMeForm({ style, id, submitStyle }) {
 // from here. The Write to Me form stays (Diego's home tip points to it).
 // =================================================================
 const HOME_PALETTE = { navy: "#18334A", gold: "#B69A66", ivory: "#F4F0E8", sage: "#82968A" };
-// Where "Senior Care & Companionship" and "About Benjamin" go until those
-// pages exist: the matching sections of this page.
+// Where the "Senior Care & Companionship" buttons go until that page
+// exists: the services section of this page.
 const SENIOR_CARE_PATH = "/#services";
-const ABOUT_PATH = "/#about";
 // The closest existing articles to ageing, care and companionship.
 const HOME_ARTICLE_SLUGS = ["who-am-i-now-that-im-retired", "mom-wont-let-me-help", "adult-child-stops-calling"];
 
@@ -4600,18 +4599,13 @@ function ArticleScreen({ article }) {
 // =================================================================
 function pickRandomGame(excludeSet) { const remaining = GAMES.filter((g) => !excludeSet.has(g.key)); return remaining[randInt(0, remaining.length - 1)].key; }
 
-// "to" overrides VIEW_PATH: Senior Care & Companionship and About Benjamin
-// point at the home page's sections until their own pages exist.
+// "to" overrides VIEW_PATH (RV Lab lives inside Mind Exercises).
 const TOP_TABS = [
   { key: "home", label: "Home" },
   { key: "articles", label: "Articles" },
-  { key: "seniorcare", label: "Senior Care & Companionship", to: SENIOR_CARE_PATH },
-  { key: "about", label: "About Benjamin", to: ABOUT_PATH },
-  { key: "contact", label: "Contact" },
   { key: "exercises", label: "Mind Exercises" },
   { key: "games", label: "Brain Games" },
   { key: "rvlab", label: "RV Lab", to: "/exercises/rv-lab" },
-  { key: "faq", label: "FAQ" },
   { key: "call", label: "Talk now", phone: true },
 ];
 

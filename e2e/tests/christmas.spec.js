@@ -91,8 +91,8 @@ test("a snowman stands bottom right, beside the WhatsApp button, on the snow alo
 
 test("the lights don't cover the navigation: the tabs still work", async ({ open }) => {
   const page = await open("/", { viewport: { width: 390, height: 844 } });
-  await page.locator(".top-tabs").getByRole("link", { name: "FAQ" }).click();
-  await expect(page).toHaveURL(/\/faq$/);
+  await page.locator(".top-tabs").getByRole("link", { name: "Articles" }).click();
+  await expect(page).toHaveURL(/\/articles$/);
   await page.getByRole("button", { name: "Menu" }).click();
   await expect(page.locator('a.nav-btn[href="/call"]')).toBeVisible();
 });
