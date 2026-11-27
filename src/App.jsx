@@ -1029,8 +1029,198 @@ function WriteToMeForm({ style, id, submitStyle }) {
   );
 }
 
-function HomeScreen({ onNavigate, onOpenExercise }) {
+// =================================================================
+// Home: Benjamin Mithra, Life Coach & Carer for Seniors.
+// Its own quiet palette (navy, champagne gold, ivory, sage); the rest of
+// the site, the navigation, Diego and the Christmas decorations keep
+// theirs. The Mind Exercises, Brain Games and RV Lab are only linked
+// from here; the home-page teasers for them (the rotating question, the
+// breathing circle and the Leetspeak passage) and the Write to Me form
+// are kept as they were.
+// =================================================================
+const HOME_PALETTE = { navy: "#18334A", gold: "#B69A66", ivory: "#F4F0E8", sage: "#82968A" };
+// Where "Senior Care & Companionship" and "About Benjamin" go until those
+// pages exist: the matching sections of this page.
+const SENIOR_CARE_PATH = "/#services";
+const ABOUT_PATH = "/#about";
+// The closest existing articles to ageing, care and companionship.
+const HOME_ARTICLE_SLUGS = ["who-am-i-now-that-im-retired", "mom-wont-let-me-help", "adult-child-stops-calling"];
+
+const HOME_CSS = `
+  .hm { width: 100%; color: ${HOME_PALETTE.navy}; font-family: 'Source Serif 4', Georgia, serif; text-align: left; }
+  .hm-section { width: 100%; box-sizing: border-box; padding: 72px 20px; scroll-margin-top: 16px; }
+  /* Sections stay see-through so the Christmas snow still falls behind them. */
+  .hm-section + .hm-section { border-top: 1px solid ${withAlpha(HOME_PALETTE.gold, 0.25)}; }
+  .hm-inner { max-width: 1080px; margin: 0 auto; }
+  .hm-eyebrow { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: ${HOME_PALETTE.navy}; margin: 0 0 14px; }
+  .hm-eyebrow::before { content: ""; display: inline-block; width: 28px; height: 1px; background: ${HOME_PALETTE.gold}; vertical-align: middle; margin-right: 10px; }
+  .hm h1, .hm h2, .hm h3 { font-family: 'Source Serif 4', Georgia, serif; color: ${HOME_PALETTE.navy}; margin: 0; }
+  .hm h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.12; font-weight: 600; letter-spacing: -0.01em; }
+  .hm h2 { font-size: clamp(27px, 3.4vw, 36px); line-height: 1.2; font-weight: 600; }
+  .hm h3 { font-size: 21px; line-height: 1.3; font-weight: 600; }
+  .hm p { margin: 0; font-size: 17.5px; line-height: 1.75; color: #33475A; }
+  .hm-lead { font-size: clamp(20px, 2.2vw, 24px) !important; line-height: 1.45 !important; color: ${HOME_PALETTE.navy} !important; font-style: italic; }
+  .hm-tagline { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 14px !important; letter-spacing: 0.12em; text-transform: uppercase; color: #7A6440 !important; }
+  .hm-center { text-align: center; max-width: 720px; margin: 0 auto; }
+  .hm-head { display: flex; flex-direction: column; gap: 14px; margin-bottom: 40px; }
+  .hm-rule { width: 56px; height: 2px; background: ${HOME_PALETTE.gold}; border: 0; margin: 4px 0 0; }
+  .hm-center .hm-rule { margin: 4px auto 0; }
+
+  .hm-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; cursor: pointer;
+    font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 15px 30px; border-radius: 8px; border: 1px solid ${HOME_PALETTE.navy};
+    background: ${HOME_PALETTE.navy}; color: #FFFFFF; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .hm-btn:hover { background: #10263A; border-color: ${HOME_PALETTE.gold}; transform: translateY(-1px); }
+  .hm-btn-gold { background: ${HOME_PALETTE.gold}; border-color: ${HOME_PALETTE.gold}; color: ${HOME_PALETTE.navy}; }
+  .hm-btn-gold:hover { background: #C7AE7D; border-color: #C7AE7D; color: ${HOME_PALETTE.navy}; }
+  .hm-btn-line { background: transparent; color: ${HOME_PALETTE.navy}; }
+  .hm-btn-line:hover { background: ${HOME_PALETTE.navy}; color: #FFFFFF; }
+  .hm-btn:focus-visible, .hm-card-link:focus-visible, .hm-more:focus-visible { outline: 2px solid ${HOME_PALETTE.gold}; outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { .hm-btn, .hm-card-link { transition: none; } .hm-btn:hover, .hm-card-link:hover { transform: none; } }
+
+  /* 1. Hero */
+  .hm-hero { padding-top: 48px; }
+  .hm-hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+  .hm-hero-text { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
+  .hm-indicators { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; margin: 4px 0 8px; }
+  .hm-indicators li {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px;
+    background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.sage, 0.6)}; font-size: 15px; color: ${HOME_PALETTE.navy};
+  }
+  .hm-indicators svg { color: ${HOME_PALETTE.sage}; }
+  .hm-photo-slot {
+    position: relative; width: 100%; aspect-ratio: 4 / 5; border-radius: 18px; overflow: hidden;
+    background: linear-gradient(160deg, ${HOME_PALETTE.ivory} 0%, #E6E2D6 100%);
+    border: 1px solid ${withAlpha(HOME_PALETTE.gold, 0.55)}; box-shadow: 0 24px 50px ${withAlpha(HOME_PALETTE.navy, 0.12)};
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: ${HOME_PALETTE.sage}; text-align: center; padding: 24px; box-sizing: border-box;
+  }
+  .hm-photo-slot span { font-size: 14px; color: #5D6B63; max-width: 240px; line-height: 1.5; }
+
+  /* 2. About */
+  .hm-about { display: grid; grid-template-columns: 300px 1fr; gap: 56px; align-items: center; }
+  .hm-portrait { width: 300px; height: 300px; object-fit: cover; border-radius: 16px; display: block; border: 1px solid ${withAlpha(HOME_PALETTE.gold, 0.55)}; box-shadow: 0 18px 40px ${withAlpha(HOME_PALETTE.navy, 0.12)}; }
+  .hm-about-text { display: flex; flex-direction: column; gap: 18px; }
+
+  /* 3. Services */
+  .hm-services { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .hm-service { border-radius: 16px; padding: 36px 32px; display: flex; flex-direction: column; gap: 18px; box-sizing: border-box; }
+  .hm-service-online { background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.sage, 0.45)}; border-top: 4px solid ${HOME_PALETTE.sage}; }
+  .hm-service-offline { background: ${HOME_PALETTE.navy}; border: 1px solid ${HOME_PALETTE.navy}; border-top: 4px solid ${HOME_PALETTE.gold}; }
+  .hm-service-offline h3, .hm-service-offline p, .hm-service-offline li { color: #F4F0E8 !important; }
+  .hm-service-icon { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .hm-service-online .hm-service-icon { background: ${withAlpha(HOME_PALETTE.sage, 0.16)}; color: #4F6357; }
+  .hm-service-offline .hm-service-icon { background: ${withAlpha(HOME_PALETTE.gold, 0.18)}; color: ${HOME_PALETTE.gold}; }
+  .hm-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .hm-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 16.5px; line-height: 1.5; color: ${HOME_PALETTE.navy}; }
+  .hm-list svg { flex-shrink: 0; margin-top: 4px; color: ${HOME_PALETTE.gold}; }
+  .hm-service .hm-btn { align-self: flex-start; margin-top: 6px; }
+  .hm-service-offline .hm-btn { background: transparent; border-color: ${HOME_PALETTE.gold}; color: #F4F0E8; }
+  .hm-service-offline .hm-btn:hover { background: ${HOME_PALETTE.gold}; color: ${HOME_PALETTE.navy}; }
+
+  /* 4. Approach */
+  .hm-principles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+  .hm-principle { background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.gold, 0.4)}; border-radius: 14px; padding: 28px 22px; display: flex; flex-direction: column; gap: 12px; }
+  .hm-principle-icon { width: 48px; height: 48px; border-radius: 50%; border: 1px solid ${withAlpha(HOME_PALETTE.gold, 0.7)}; color: ${HOME_PALETTE.navy}; display: flex; align-items: center; justify-content: center; }
+  .hm-principle h3 { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 16px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; }
+  .hm-principle p { font-size: 16px; line-height: 1.6; }
+
+  /* 5. Explore the mind */
+  .hm-mind { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+  .hm-card-link {
+    text-decoration: none; background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.sage, 0.45)}; border-radius: 14px; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 10px; color: ${HOME_PALETTE.navy}; transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .hm-card-link:hover { border-color: ${HOME_PALETTE.gold}; box-shadow: 0 14px 30px ${withAlpha(HOME_PALETTE.navy, 0.1)}; transform: translateY(-2px); }
+  .hm-card-link p { font-size: 16px; line-height: 1.6; }
+  .hm-card-go { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #7A6440; margin-top: auto; padding-top: 6px; }
+  .hm-try { margin-top: 48px; display: flex; flex-direction: column; align-items: center; gap: 32px; }
+  .hm-try > * { max-width: 560px; width: 100%; }
+
+  /* 6. Articles */
+  .hm-articles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  .hm-article { background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.sage, 0.4)}; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .hm-article-img {
+    aspect-ratio: 16 / 10; background: linear-gradient(150deg, ${withAlpha(HOME_PALETTE.sage, 0.35)} 0%, ${HOME_PALETTE.ivory} 70%);
+    display: flex; align-items: center; justify-content: center; color: ${HOME_PALETTE.navy};
+  }
+  .hm-article-body { padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .hm-article-body h3 { font-size: 19px; }
+  .hm-article-body p { font-size: 15.5px; line-height: 1.6; }
+  .hm-more { margin-top: auto; padding-top: 6px; font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: ${HOME_PALETTE.navy}; text-decoration: none; border-bottom: 1px solid ${HOME_PALETTE.gold}; align-self: flex-start; }
+  .hm-more:hover { color: #7A6440; }
+
+  /* 7. Contact */
+  .hm-contact { background: ${HOME_PALETTE.navy}; border-radius: 20px; padding: 56px 32px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .hm-contact h2 { color: #F4F0E8; }
+  .hm-contact p { color: #E4DED2; max-width: 620px; }
+  .hm-form { margin: 40px auto 0; max-width: 480px; }
+
+  /* 8. Footer */
+  .hm-footer { padding: 36px 20px 24px; text-align: center; }
+
+  @media (max-width: 900px) {
+    .hm-hero-grid { grid-template-columns: 1fr; gap: 36px; }
+    .hm-photo-slot { aspect-ratio: 4 / 3; }
+    .hm-principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hm-mind, .hm-articles { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px) {
+    .hm-section { padding: 52px 16px; }
+    .hm-about { grid-template-columns: 1fr; gap: 28px; justify-items: center; }
+    .hm-portrait { width: 240px; height: 240px; }
+    .hm-services { grid-template-columns: 1fr; }
+    .hm-service { padding: 28px 22px; }
+  }
+  @media (max-width: 480px) {
+    .hm-principles { grid-template-columns: 1fr; }
+    .hm-contact { padding: 40px 20px; }
+    .hm-btn { width: 100%; box-sizing: border-box; }
+    .hm-service .hm-btn { align-self: stretch; }
+  }
+`;
+
+// Simple line icons, drawn in the text colour.
+function HmIcon({ name, size = 24 }) {
+  const paths = {
+    online: "M3 5h18v11H3z M8 20h8 M12 16v4",
+    home: "M3 11 12 4l9 7 M5 10v10h14V10 M10 20v-6h4v6",
+    check: "M5 12.5 10 17l9-10",
+    heart: "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z",
+    dignity: "M12 3 5 6v6c0 4.2 3 7.4 7 9 4-1.6 7-4.8 7-9V6z M9 12l2 2 4-4",
+    mind: "M9 18h6 M10 21h4 M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z",
+    connect: "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M2.5 20c.5-3.2 2.7-5 5.5-5s5 1.8 5.5 5 M13.5 16.2c.7-.8 1.6-1.2 2.5-1.2 2.8 0 5 1.8 5.5 5",
+    exercises: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z M12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z",
+    games: "M5 20h14 M7 20l1.5-5h7L17 20 M9 15l-1-4h8l-1 4 M8 11c-1.2-1.4-1.5-3-.5-4.5L9 8l1.5-3h3L15 8l1.5-1.5c1 1.5.7 3.1-.5 4.5",
+    rv: "M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
+    article: "M5 4h10l4 4v12H5z M14 4v5h5 M8 13h8 M8 16.5h6",
+    people: "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M17 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M2.5 20c.5-3.4 2.7-5.3 5.5-5.3s5 1.9 5.5 5.3 M14.6 15.4c.7-.5 1.5-.7 2.4-.7 2.4 0 4.2 1.6 4.6 4.6",
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <path d={paths[name]} />
+    </svg>
+  );
+}
+
+const HOME_ONLINE_SERVICES = ["Online Companionship", "Online Life Coaching", "Mind Exercises and Cognitive Activities", "Chess, Puzzles and Memory Activities", "Family Consultations"];
+const HOME_OFFLINE_SERVICES = ["Personal Care and Daily Assistance", "Personal Companionship", "Outings and Appointment Assistance", "Cognitive and Recreational Engagement", "Personal Assistance and Concierge Support", "Live-in Companionship and Care"];
+const HOME_PRINCIPLES = [
+  { icon: "heart", title: "Compassion", text: "Understanding individual needs and preferences with patience and genuine care." },
+  { icon: "dignity", title: "Dignity", text: "Respecting independence, privacy and personal choices." },
+  { icon: "mind", title: "Mental Engagement", text: "Encouraging curiosity, learning, creativity and cognitive activities." },
+  { icon: "connect", title: "Connection", text: "Creating opportunities for meaningful human interaction and companionship." },
+];
+const HOME_MIND_LINKS = [
+  { icon: "exercises", title: "Mind Exercises", to: "/exercises", text: "Breathing, reading and focus exercises to try at your own pace." },
+  { icon: "games", title: "Brain Games", to: "/games", text: "Chess and memory games for recall, concentration and reasoning." },
+  { icon: "rv", title: "RV Lab", to: "/exercises/rv-lab", text: "An exercise in perception: sketch and describe a hidden image, then compare." },
+];
+
+function HomeScreen({ onOpenExercise }) {
   const c = useColors();
+  const location = useLocation();
   const orderRef = useRef(shuffle(DAILY_QUESTIONS));
   const [qIndex, setQIndex] = useState(0);
 
@@ -1048,90 +1238,184 @@ function HomeScreen({ onNavigate, onOpenExercise }) {
     return () => clearInterval(id);
   }, []);
 
-  const question = orderRef.current[qIndex];
-
-  const scrollToWriteToMe = (e) => {
-    const el = document.getElementById("write-to-me");
+  // "/#services", "/#about" (from the menu or the buttons): scroll to that section.
+  useEffect(() => {
+    if (!location.hash) return;
+    const el = document.getElementById(location.hash.slice(1));
     if (!el) return;
-    e.preventDefault();
     const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
-  };
+  }, [location.hash, location.key]);
+
+  const question = orderRef.current[qIndex];
+  const articles = HOME_ARTICLE_SLUGS.map((slug) => ARTICLE_BY_SLUG[slug]).filter(Boolean);
 
   return (
-    <div style={styles(c).homeOuter}>
-      <div style={styles(c).homeContent}>
-        <div style={styles(c).homeHeader}>
-          <h1 style={styles(c).siteHeading}>
-            <img src="/logo.png" alt="Benjamin Mithra, Mind Interpreter logo" width="256" height="256" style={styles(c).siteLogo} />
-            <span style={styles(c).siteHeadingLine}>{SITE_HEADING}</span>
-          </h1>
-          <p style={styles(c).siteSubtitle}>Hi, I'm Benjamin Mithra</p>
-          <p style={styles(c).siteSubtitleLine}>I listen, question, and reflect on your thoughts to uncover deeper perspectives.</p>
+    <div className="hm" data-testid="home">
+      <style>{HOME_CSS}</style>
+
+      {/* 1. Hero */}
+      <section className="hm-section hm-hero" aria-labelledby="hm-title">
+        <div className="hm-inner hm-hero-grid">
+          <div className="hm-hero-text">
+            <p className="hm-eyebrow">Benjamin Mithra</p>
+            <h1 id="hm-title">Life Coach &amp; Carer for Seniors</h1>
+            <p className="hm-tagline">Companionship · Personal Care · Personal Assistance</p>
+            <p className="hm-lead">Care, Companionship &amp; Meaningful Connections.</p>
+            <p>Providing personalized companionship, everyday assistance and meaningful engagement to help older adults enjoy a more comfortable, connected and fulfilling life.</p>
+            <ul className="hm-indicators" aria-label="Ways I support">
+              <li><HmIcon name="online" size={18} />Online Support</li>
+              <li><HmIcon name="home" size={18} />In-Person Support</li>
+            </ul>
+            <Link to={SENIOR_CARE_PATH} className="hm-btn" data-testid="explore-services">Explore Services</Link>
+          </div>
+          <div className="hm-photo-slot" role="img" aria-label="Photograph to come: Benjamin with an older adult" data-testid="hero-photo-placeholder">
+            <HmIcon name="people" size={56} />
+            <span>A photograph of Benjamin with an older adult will appear here.</span>
+          </div>
         </div>
+      </section>
 
-        <div style={styles(c).homeIntro}>
-          <p style={styles(c).homeIntroText}>Private, judgment-free conversations about whatever is on your mind.</p>
-          <Link to={VIEW_PATH.contact} className="nav-btn hero-btn" style={{ ...styles(c).heroBtn, ...styles(c).homeIntroBtn }}>How it works</Link>
+      {/* 2. About */}
+      <section id="about" className="hm-section hm-white" aria-labelledby="hm-about-title">
+        <div className="hm-inner hm-about">
+          <img src="/benjamin-mithra.jpg" alt="Benjamin Mithra" width="360" height="360" loading="lazy" decoding="async" className="hm-portrait" />
+          <div className="hm-about-text">
+            <p className="hm-eyebrow">About Benjamin</p>
+            <h2 id="hm-about-title">A Personal Approach to Senior Care</h2>
+            <hr className="hm-rule" />
+            <p>I'm Benjamin Mithra. I offer personalized companionship, life coaching and non-clinical caregiving support for older adults.</p>
+            <p>My approach is built around meaningful conversation, patience, dignity and individual attention. Whether through online interaction or in-person assistance, my aim is to make everyday life more engaging, comfortable and fulfilling.</p>
+          </div>
         </div>
+      </section>
 
-        <div style={styles(c).homeQuestionBox}>
-          <p key={qIndex} className="fade-in" style={styles(c).homeQuestion}>{question}</p>
+      {/* 3. Services */}
+      <section id="services" className="hm-section hm-tint" aria-labelledby="hm-services-title">
+        <div className="hm-inner">
+          <div className="hm-head hm-center">
+            <p className="hm-eyebrow">Senior Care &amp; Companionship</p>
+            <h2 id="hm-services-title">How I Can Help</h2>
+            <hr className="hm-rule" />
+          </div>
+          <div className="hm-services">
+            <article className="hm-service hm-service-online" data-testid="service-online">
+              <div className="hm-service-icon"><HmIcon name="online" size={26} /></div>
+              <h3>Online Services</h3>
+              <p>Personalized online support designed to encourage meaningful interaction, mental engagement and personal development.</p>
+              <ul className="hm-list">{HOME_ONLINE_SERVICES.map((s) => <li key={s}><HmIcon name="check" size={16} />{s}</li>)}</ul>
+              <Link to={SENIOR_CARE_PATH} className="hm-btn hm-btn-line">Senior Care &amp; Companionship</Link>
+            </article>
+            <article className="hm-service hm-service-offline" data-testid="service-offline">
+              <div className="hm-service-icon"><HmIcon name="home" size={26} /></div>
+              <h3>Offline Services</h3>
+              <p>Personalized in-person assistance and companionship designed around individual needs, preferences and daily routines.</p>
+              <ul className="hm-list">{HOME_OFFLINE_SERVICES.map((s) => <li key={s}><HmIcon name="check" size={16} />{s}</li>)}</ul>
+              <Link to={SENIOR_CARE_PATH} className="hm-btn">Senior Care &amp; Companionship</Link>
+            </article>
+          </div>
         </div>
+      </section>
 
-        <a href="#write-to-me" onClick={scrollToWriteToMe} className="nav-btn hero-btn" style={{ ...styles(c).heroBtn, ...styles(c).homeIntroBtn, marginTop: 0 }}>Write to Me</a>
-
-        <p style={styles(c).homePhilosophy}>
-          This is a space to slow down and understand your own mind. Talk things through in a{" "}
-          <Link to={VIEW_PATH.contact} style={styles(c).homeInlineLink}>private conversation</Link>, or explore on your own:{" "}
-          <Link to={VIEW_PATH.exercises} style={styles(c).homeInlineLink}>Mind Exercises</Link> for calm and focus,{" "}
-          <Link to={VIEW_PATH.games} style={styles(c).homeInlineLink}>Brain Games</Link> for memory and thinking, and the{" "}
-          <Link to="/exercises/rv-lab" style={styles(c).homeInlineLink}>RV Lab</Link> for something more curious.
-        </p>
-
-        <div style={styles(c).heroButtonsGrid}>
-          <Link to="/games/chess" className="nav-btn hero-btn" style={{ ...styles(c).heroBtn, ...styles(c).heroGridBtn }}>Play Chess</Link>{" "}
-          <Link to="/exercises/guilfords-test" className="nav-btn hero-btn" style={{ ...styles(c).heroBtn, ...styles(c).heroGridBtn }}>Try Guilford's Test</Link>{" "}
-          <Link to="/games/recall" className="nav-btn hero-btn" style={{ ...styles(c).heroBtn, ...styles(c).heroGridBtn }}>Practice Recall</Link>{" "}
-          <Link to="/exercises/flow-type" className="nav-btn hero-btn" style={{ ...styles(c).heroBtn, ...styles(c).heroGridBtn }}>Try Flow Type</Link>
-        </div>
-
-        <HomeAmbientBreathing onOpenExercise={onOpenExercise} />
-
-        <div style={styles(c).homeLeetGroup}>
-          <p style={styles(c).homeIntroText}>Decoding numbers as letters breaks your brain's autopilot reading, training attention and visual pattern recognition.</p>
-          <button type="button" style={styles(c).leetWrap} onClick={() => onOpenExercise("leet")} aria-label="Open Leetspeak Reading exercise">
-            <div style={styles(c).leetSweep} aria-hidden="true" />
-            <p style={styles(c).leetText}>{LEET_MESSAGE}</p>
-          </button>
-        </div>
-
-        <WriteToMeForm id="write-to-me" style={styles(c).homeWriteToMe} submitStyle={styles(c).btnGold} />
-
-        <div style={styles(c).consultTeaserWrap}>
-          <p style={styles(c).consultTeaserText}>Need Support?</p>
-          <Link to={VIEW_PATH.contact} style={styles(c).btnGold}>View My Consultation</Link>
-        </div>
-
-        <div className="no-text-outline" style={styles(c).emotionMarqueeWrap}>
-          <div className="emotion-marquee-track" style={styles(c).emotionMarqueeTrack}>
-            {[0, 1].map((copy) => (
-              <div key={copy} style={styles(c).emotionMarqueeCopy}>
-                {Object.entries(EMOTION_COLORS).map(([name, color], i) => (
-                  <Fragment key={name}>
-                    {i > 0 && " "}
-                    <span style={{ ...styles(c).emotionBox, background: color, color: getContrastText(color) }}>
-                      {name}
-                    </span>
-                  </Fragment>
-                ))}
+      {/* 4. Approach */}
+      <section className="hm-section hm-white" aria-labelledby="hm-approach-title">
+        <div className="hm-inner">
+          <div className="hm-head hm-center">
+            <p className="hm-eyebrow">My Approach</p>
+            <h2 id="hm-approach-title">More Than Assistance. Meaningful Companionship.</h2>
+            <hr className="hm-rule" />
+          </div>
+          <div className="hm-principles">
+            {HOME_PRINCIPLES.map((p) => (
+              <div key={p.title} className="hm-principle">
+                <div className="hm-principle-icon"><HmIcon name={p.icon} /></div>
+                <h3>{p.title}</h3>
+                <p>{p.text}</p>
               </div>
             ))}
           </div>
         </div>
+      </section>
 
-        <p style={{ ...styles(c).homeFooterLine, margin: 0 }}>
-          <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
+      {/* 5. Explore the mind (links to the existing sections), then the
+          home page's existing teasers, unchanged. */}
+      <section className="hm-section hm-tint" aria-labelledby="hm-mind-title">
+        <div className="hm-inner">
+          <div className="hm-head hm-center">
+            <p className="hm-eyebrow">Mind &amp; Cognitive Activities</p>
+            <h2 id="hm-mind-title">Explore the Mind</h2>
+            <hr className="hm-rule" />
+            <p>Discover interactive activities designed to encourage memory, concentration, reasoning and curiosity.</p>
+          </div>
+          <div className="hm-mind">
+            {HOME_MIND_LINKS.map((m) => (
+              <Link key={m.title} to={m.to} className="hm-card-link">
+                <div className="hm-principle-icon"><HmIcon name={m.icon} /></div>
+                <h3>{m.title}</h3>
+                <p>{m.text}</p>
+                <span className="hm-card-go" aria-hidden="true">Open →</span>
+              </Link>
+            ))}
+          </div>
+          <div className="hm-try" style={{ textAlign: "center" }}>
+            <div style={styles(c).homeQuestionBox}>
+              <p key={qIndex} className="fade-in" style={styles(c).homeQuestion}>{question}</p>
+            </div>
+            <HomeAmbientBreathing onOpenExercise={onOpenExercise} />
+            <div style={styles(c).homeLeetGroup}>
+              <p style={styles(c).homeIntroText}>Decoding numbers as letters breaks your brain's autopilot reading, training attention and visual pattern recognition.</p>
+              <button type="button" style={styles(c).leetWrap} onClick={() => onOpenExercise("leet")} aria-label="Open Leetspeak Reading exercise">
+                <div style={styles(c).leetSweep} aria-hidden="true" />
+                <p style={styles(c).leetText}>{LEET_MESSAGE}</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Articles */}
+      {articles.length > 0 && (
+        <section className="hm-section hm-white" aria-labelledby="hm-articles-title">
+          <div className="hm-inner">
+            <div className="hm-head hm-center">
+              <p className="hm-eyebrow">Articles</p>
+              <h2 id="hm-articles-title">Insights on Ageing, Care &amp; Companionship</h2>
+              <hr className="hm-rule" />
+            </div>
+            <div className="hm-articles">
+              {articles.map((a) => (
+                <article key={a.slug} className="hm-article">
+                  <div className="hm-article-img" aria-hidden="true"><HmIcon name="article" size={40} /></div>
+                  <div className="hm-article-body">
+                    <h3>{a.title}</h3>
+                    <p>{a.summary}</p>
+                    <Link to={`${VIEW_PATH.articles}/${a.slug}`} className="hm-more" aria-label={`Read more: ${a.title}`}>Read More</Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 7. Contact */}
+      <section className="hm-section hm-tint" aria-labelledby="hm-contact-title">
+        <div className="hm-inner">
+          <div className="hm-contact">
+            <h2 id="hm-contact-title">Let's Talk About the Support You Need.</h2>
+            <p>Whether you are looking for companionship, personal assistance or ongoing support for an older family member, you're welcome to get in touch.</p>
+            <Link to={VIEW_PATH.contact} className="hm-btn hm-btn-gold">Contact Benjamin</Link>
+          </div>
+          <div className="hm-form" style={{ textAlign: "center" }}>
+            <WriteToMeForm id="write-to-me" style={styles(c).homeWriteToMe} submitStyle={styles(c).btnGold} />
+          </div>
+        </div>
+      </section>
+
+      {/* 8. Footer */}
+      <footer className="hm-footer">
+        <p style={{ ...styles(c).homeFooterLine, margin: "0 auto" }}>
+          <span>© {new Date().getFullYear()} Benjamin Mithra — Life Coach &amp; Carer for Seniors</span>{" "}
           <span style={styles(c).homeFooterDot}>·</span>{" "}
           <Link to={VIEW_PATH.articles} className="home-footer-link" style={styles(c).homeFooterLink}>Articles</Link>{" "}
           <span style={styles(c).homeFooterDot}>·</span>{" "}
@@ -1141,7 +1425,7 @@ function HomeScreen({ onNavigate, onOpenExercise }) {
           <span style={styles(c).homeFooterDot}>·</span>{" "}
           <Link to={VIEW_PATH.disclaimer} className="home-footer-link" style={styles(c).homeFooterLink}>Disclaimer</Link>
         </p>
-      </div>
+      </footer>
     </div>
   );
 }
@@ -4497,11 +4781,17 @@ function ArticleScreen({ article }) {
 // =================================================================
 function pickRandomGame(excludeSet) { const remaining = GAMES.filter((g) => !excludeSet.has(g.key)); return remaining[randInt(0, remaining.length - 1)].key; }
 
+// "to" overrides VIEW_PATH: Senior Care & Companionship and About Benjamin
+// point at the home page's sections until their own pages exist.
 const TOP_TABS = [
   { key: "home", label: "Home" },
+  { key: "seniorcare", label: "Senior Care & Companionship", to: SENIOR_CARE_PATH },
+  { key: "about", label: "About Benjamin", to: ABOUT_PATH },
+  { key: "contact", label: "Contact" },
+  { key: "articles", label: "Articles" },
   { key: "exercises", label: "Mind Exercises" },
   { key: "games", label: "Brain Games" },
-  { key: "contact", label: "Consultation" },
+  { key: "rvlab", label: "RV Lab", to: "/exercises/rv-lab" },
   { key: "faq", label: "FAQ" },
   { key: "call", label: "Talk now", phone: true },
 ];
@@ -4520,7 +4810,6 @@ function TabLabel({ t }) {
 }
 const HAMBURGER_MENU_ITEMS = [
   ...TOP_TABS,
-  { key: "articles", label: "Articles" },
   { key: "privacy", label: "Privacy" },
   { key: "terms", label: "Terms" },
   { key: "disclaimer", label: "Disclaimer" },
@@ -4557,7 +4846,7 @@ const EXERCISE_KEY_FROM_SLUG = Object.fromEntries(Object.entries(EXERCISE_SLUG).
 // change (including on the very first load, which is what the
 // prerender step below captures into the static HTML for that URL).
 const PAGE_META = {
-  home: { title: "Mind Interpreter | Benjamin Mithra", description: "Private one-to-one conversations with Benjamin Mithra, a Mind Interpreter. You talk, I listen, we explore: a space to be heard without judgment." },
+  home: { title: "Benjamin Mithra | Life Coach & Carer for Seniors", description: "Benjamin Mithra, Life Coach & Carer for Seniors: personalized companionship, life coaching and non-clinical everyday assistance for older adults, online and in person." },
   journals: { title: "Journals | Mind Interpreter", description: "Reflections and reading on consciousness, cognition, and mindfulness from Benjamin Mithra. New journal entries coming soon." },
   exercises: { title: "Mind Exercises | Mind Interpreter", description: "Guided mindfulness breathing, leetspeak reading, flow typing, and Guilford's divergent thinking test to train focus, calm, and cognitive fluency." },
   "exercise-breathing": { title: "Mindfulness Breathing Exercise | Mind Interpreter", description: "A guided breathing exercise: inhale, hold, exhale, and hold again, paced to help you slow down and breathe more deliberately." },
@@ -4650,6 +4939,10 @@ export default function App() {
   useDocumentMeta(metaKey, location.pathname, article ? articleMeta(article) : null);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  // RV Lab lives inside Mind Exercises; light up whichever tab matches.
+  const tabActive = (t) => (t.key === "rvlab" ? view === "exercises" && exerciseTab === "rvlab"
+    : t.key === "exercises" ? view === "exercises" && exerciseTab !== "rvlab"
+      : view === t.key);
   const showWhatsApp = view === "home" || view === "contact" || view === "faq" || (view === "exercises" && !exerciseTab) || (view === "games" && !gameTab);
   // Pause the "Talk now" pulse while this browser tab is hidden (an event, not a timer).
   useEffect(() => {
@@ -4843,7 +5136,7 @@ export default function App() {
               {TOP_TABS.map((t, i) => (
                 <Fragment key={t.key}>
                   {i > 0 && " "}
-                  <Link to={VIEW_PATH[t.key] || "/"} className={t.phone ? "nav-btn talk-pulse" : "nav-btn"} style={{ ...styles(c).cornerBtn, ...(view === t.key ? styles(c).cornerBtnActive : {}) }}>
+                  <Link to={t.to || VIEW_PATH[t.key] || "/"} className={t.phone ? "nav-btn talk-pulse" : "nav-btn"} style={{ ...styles(c).cornerBtn, ...(tabActive(t) ? styles(c).cornerBtnActive : {}) }}>
                     <TabLabel t={t} />
                   </Link>
                 </Fragment>
@@ -4862,7 +5155,7 @@ export default function App() {
                   <div style={styles(c).hamburgerBackdrop} onClick={() => setMenuOpen(false)} />
                   <div style={styles(c).hamburgerMenu}>
                     {HAMBURGER_MENU_ITEMS.map((t) => (
-                      <Link key={t.key} to={VIEW_PATH[t.key] || "/"} onClick={() => setMenuOpen(false)} className={t.phone ? "nav-btn talk-pulse" : "nav-btn"} style={{ ...styles(c).hamburgerMenuItem, ...(view === t.key ? styles(c).cornerBtnActive : {}) }}>
+                      <Link key={t.key} to={t.to || VIEW_PATH[t.key] || "/"} onClick={() => setMenuOpen(false)} className={t.phone ? "nav-btn talk-pulse" : "nav-btn"} style={{ ...styles(c).hamburgerMenuItem, ...(tabActive(t) ? styles(c).cornerBtnActive : {}) }}>
                         <TabLabel t={t} />
                       </Link>
                     ))}
