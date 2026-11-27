@@ -24,7 +24,7 @@ test("immediate on: the form, validation, the honeypot, then a request", async (
   await turnOn(gas);
   const page = await open("/call");
   const section = page.getByTestId("immediate-section");
-  await expect(section.getByText("$9.80 for 45 minutes. Audio call. I will send you a code on WhatsApp within a few minutes if I am free.")).toBeVisible();
+  await expect(section.getByText("Audio call. I will send you a code on WhatsApp within a few minutes if I am free.", { exact: true })).toBeVisible();
   await expect(section.getByText(/spam/)).toHaveCount(0);
   await expect(section.getByText("I will send your code on WhatsApp.")).toBeVisible();
 

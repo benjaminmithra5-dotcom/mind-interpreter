@@ -235,7 +235,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
           <h2 id="now-heading" style={ui.h2}>Need to talk right now?</h2>
           {status.immediate ? (
             <>
-              <p style={ui.price}>$9.80 for 45 minutes. Audio call. I will send you a code on WhatsApp within a few minutes if I am free.</p>
+              <p style={ui.price}>Audio call. I will send you a code on WhatsApp within a few minutes if I am free.</p>
               <ImmediateTalk ui={ui} onStatus={(patch) => setStatus((s) => ({ ...s, ...patch }))} />
             </>
           ) : (
@@ -247,7 +247,7 @@ export function CallPage({ c, font, headingStyle, consultationPath, Footer }) {
       {ready && !inCall && !inRoom && status && !status.paused && (
         <section style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }} aria-labelledby="book-heading" data-testid="book-section">
           <h2 id="book-heading" style={ui.h2}>Book a time</h2>
-          <p style={ui.price}>$9.80 for 45 minutes. Audio call.</p>
+          <p style={ui.price}>Audio call.</p>
           <p style={ui.text}>I will review your request and send your code on WhatsApp.</p>
           <BookTime ui={ui} c={c} />
         </section>
