@@ -1,8 +1,8 @@
 import { test, expect } from "./helpers.js";
 
 // The home page: Benjamin Mithra, Life Coach for Seniors, with a holiday
-// message, Talk now, Mind Exercises and Brain Games, the articles and the
-// Write to Me form.
+// message, Talk now, Mind Exercises and Brain Games, the Write to Me form
+// and the footer.
 const NAV = ["Home", "Articles", "Mind Exercises", "Brain Games", "RV Lab", "Talk now"];
 const noSidewaysScroll = (page) => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
 
@@ -12,10 +12,7 @@ test("the heading, the holiday message, and nothing else from before", async ({ 
   const home = page.getByTestId("home");
   await expect(home.getByRole("heading", { level: 1 })).toHaveText("Benjamin Mithra");
   await expect(home.getByText("Life Coach for Seniors", { exact: true })).toBeVisible();
-  expect(await home.getByRole("heading", { level: 2 }).allTextContents()).toEqual([
-    "Feeling lonely this Holiday Season?",
-    "Insights on Ageing, Care & Companionship",
-  ]);
+  expect(await home.getByRole("heading", { level: 2 }).allTextContents()).toEqual(["Feeling lonely this Holiday Season?"]);
   for (const line of [
     "You don't have to spend the holidays feeling alone. If you'd like someone to talk to, share a story with, or simply spend a little time having a friendly conversation, I'm here for you.",
     "It's absolutely free. No charges, no catch, no obligations. Just a genuine conversation.",
@@ -27,7 +24,10 @@ test("the heading, the holiday message, and nothing else from before", async ({ 
   for (const gone of ["How I Can Help", "A Personal Approach to Senior Care", "More Than Assistance", "Explore the Mind", "Let's Talk About the Support You Need", "Explore Services", "Online Support"]) {
     await expect(home.getByText(gone)).toHaveCount(0);
   }
-  await expect(home.locator("footer")).toHaveCount(0);
+  // No articles on the home page.
+  await expect(home.locator(".hm-article")).toHaveCount(0);
+  await expect(home.getByText("Insights on Ageing, Care & Companionship")).toHaveCount(0);
+  await expect(home.getByRole("link", { name: /Read more/i })).toHaveCount(0);
 });
 
 test("Talk now, then Mind Exercises next to Brain Games, below the message", async ({ open }) => {
@@ -51,14 +51,23 @@ test("Talk now, then Mind Exercises next to Brain Games, below the message", asy
   await expect(page).toHaveURL(/\/games$/);
 });
 
-test("the articles: three real articles with Read More links", async ({ open }) => {
+test("the footer: copyright, Privacy Policy, Disclaimer and Terms and Conditions, at the end", async ({ open }) => {
   const page = await open("/", { viewport: { width: 1280, height: 900 } });
-  const cards = page.locator(".hm-article");
-  await expect(cards).toHaveCount(3);
-  const hrefs = await cards.getByRole("link", { name: /^Read more/ }).evaluateAll((els) => els.map((a) => a.getAttribute("href")));
-  expect(hrefs).toEqual(["/articles/who-am-i-now-that-im-retired", "/articles/mom-wont-let-me-help", "/articles/adult-child-stops-calling"]);
-  await cards.first().getByRole("link", { name: /^Read more/ }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Who Am I Now That I'm Retired?");
+  const footer = page.getByTestId("home").locator("footer");
+  await expect(footer).toContainText(`© ${new Date().getFullYear()} Benjamin Mithra`);
+  expect(await footer.getByRole("link").evaluateAll((els) => els.map((a) => [a.textContent, a.getAttribute("href")]))).toEqual([
+    ["Privacy Policy", "/privacy"], ["Disclaimer", "/disclaimer"], ["Terms and Conditions", "/terms"],
+  ]);
+  // Below the Write to Me form: the last thing on the page.
+  const form = await page.locator("#write-to-me").boundingBox();
+  const f = await footer.boundingBox();
+  expect(f.y).toBeGreaterThan(form.y + form.height - 1);
+  for (const [name, path, heading] of [["Privacy Policy", "/privacy", /privacy/i], ["Disclaimer", "/disclaimer", /disclaimer/i], ["Terms and Conditions", "/terms", /terms/i]]) {
+    await footer.getByRole("link", { name }).click();
+    await expect(page).toHaveURL(new RegExp(`${path}$`));
+    await expect(page.locator("main")).toContainText(heading);
+    await page.goBack();
+  }
 });
 
 test("the Write to Me form stays, and Diego's tip still leads to it", async ({ open }) => {
