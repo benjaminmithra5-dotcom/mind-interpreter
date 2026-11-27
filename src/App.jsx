@@ -730,6 +730,25 @@ const CHRISTMAS_CSS = `
   .xmas-snowman-arm { transform-box: view-box; transform-origin: 44px 42px; animation: xmasWave 3.2s ease-in-out infinite alternate; }
   @keyframes xmasWave { from { transform: rotate(-6deg); } to { transform: rotate(8deg); } }
   @media (max-width: 600px) { .xmas-snowman { width: 52px; height: 76px; } }
+  /* Santa and two reindeer, small, flying a slow loop around the screen:
+     left to right across the top, down the right side out of view, right
+     to left lower down, and back up the left side out of view. */
+  .xmas-sky { position: fixed; inset: 0; z-index: 28; overflow: hidden; pointer-events: none; }
+  .xmas-santa-path { position: absolute; top: 0; left: 0; animation: xmasSantaPath 46s linear infinite; will-change: transform; }
+  .xmas-santa-flip { animation: xmasSantaFlip 46s step-end infinite; }
+  .xmas-santa { display: block; width: 132px; height: 48px; overflow: visible; animation: xmasSantaBob 2.4s ease-in-out infinite alternate; }
+  @keyframes xmasSantaPath {
+    0% { transform: translate(-160px, 14vh); }
+    22% { transform: translate(45vw, 8vh); }
+    46% { transform: translate(calc(100vw + 40px), 18vh); }
+    50% { transform: translate(calc(100vw + 40px), 58vh); }
+    72% { transform: translate(48vw, 66vh); }
+    96% { transform: translate(-160px, 52vh); }
+    100% { transform: translate(-160px, 14vh); }
+  }
+  @keyframes xmasSantaFlip { 0% { transform: scaleX(1); } 48% { transform: scaleX(-1); } 98% { transform: scaleX(1); } }
+  @keyframes xmasSantaBob { from { transform: translateY(-6px) rotate(-2deg); } to { transform: translateY(6px) rotate(2deg); } }
+  @media (max-width: 600px) { .xmas-santa { width: 96px; height: 35px; } }
   .xmas-snow { position: fixed; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
   .xmas-flake { position: absolute; top: 0; animation: xmasFall linear infinite; will-change: transform; }
   .xmas-flake > span {
@@ -742,7 +761,7 @@ const CHRISTMAS_CSS = `
   @media (max-width: 600px) { .xmas-flake:nth-child(2n) { display: none; } }
   @media (prefers-reduced-motion: reduce) {
     .xmas-glow, .xmas-blink, .xmas-snowman-arm { animation: none; }
-    .xmas-snow { display: none; }
+    .xmas-snow, .xmas-sky { display: none; }
   }
 `;
 
@@ -783,6 +802,50 @@ function SnowGround() {
         />
       </svg>
       <div className="xmas-ground-fill" />
+    </div>
+  );
+}
+
+// Santa in his sleigh with two reindeer (Rudolph in front), facing right;
+// the flight path above turns him around for the trip back.
+function SantaSleigh() {
+  const line = { stroke: GD_INK, strokeWidth: 1.6, strokeLinejoin: "round", strokeLinecap: "round", vectorEffect: "non-scaling-stroke" };
+  const reindeer = (x, nose) => (
+    <g>
+      <path fill="none" stroke="#6B4226" strokeWidth="1.4" strokeLinecap="round" d={`M${x - 7} 30 L${x - 11} 37 M${x - 3} 31 L${x - 1} 38 M${x + 5} 31 L${x + 9} 37 M${x + 8} 30 L${x + 13} 35`} />
+      <ellipse cx={x} cy="26" rx="10" ry="5.6" fill="#9A6332" {...line} />
+      <path fill="#9A6332" {...line} d={`M${x + 7} 23 L${x + 11} 15 L${x + 15} 16 L${x + 12} 25 Z`} />
+      <ellipse cx={x + 15} cy="15" rx="4.2" ry="3.2" fill="#9A6332" {...line} />
+      <path fill="none" stroke="#6B4226" strokeWidth="1.3" strokeLinecap="round" d={`M${x + 13} 12 L${x + 11} 6 M${x + 12} 9 L${x + 9} 8 M${x + 15} 12 L${x + 17} 6 M${x + 16} 9 L${x + 19} 8`} />
+      <circle cx={x + 19} cy="15.4" r="1.6" fill={nose} stroke={GD_INK} strokeWidth="0.5" />
+      <circle cx={x + 15.6} cy="13.8" r="0.7" fill={GD_INK} />
+      <path fill="none" stroke="#F5F0E6" strokeWidth="1.2" d={`M${x - 9} 24 Q${x - 13} 21 ${x - 12} 26`} />
+    </g>
+  );
+  return (
+    <svg className="xmas-santa" viewBox="0 0 132 48" aria-hidden="true" focusable="false" data-testid="santa">
+      {/* Reins from the sleigh to the reindeer. */}
+      <path fill="none" stroke="#6B4226" strokeWidth="0.9" d="M44 25 Q60 20 75 24 M44 25 Q78 18 110 20" />
+      {reindeer(74, "#3B2A1E")}
+      {reindeer(108, "#E0413A")}
+      {/* The sack, Santa and the sleigh. */}
+      <path fill="#7A5A3A" {...line} d="M8 20 C6 12 14 8 18 12 C22 9 24 16 22 22 Z" />
+      <circle cx="28" cy="19" r="6.4" fill={XMAS_CAP} {...line} />
+      <circle cx="30.5" cy="11" r="3.8" fill="#F2C9A0" {...line} />
+      <path fill="#FFFFFF" {...line} d="M27.4 12 C27.4 17 30 18.6 33.6 12.4 C32 13.6 29 13.6 27.4 12 Z" />
+      <path fill={XMAS_CAP} {...line} d="M26.8 9.6 C28 5 33 4.6 34.6 9.2 Z" />
+      <circle cx="25.6" cy="7.6" r="1.6" fill="#FFFFFF" {...line} />
+      <path fill={XMAS_CAP} {...line} d="M6 22 H44 C46 22 47 24 46 27 L43 34 H12 C8 34 6 30 6 22 Z" />
+      <path fill="none" stroke="#F2B83B" strokeWidth="1.4" d="M10 26 H42" />
+      <path fill="none" stroke="#C9A227" strokeWidth="1.8" strokeLinecap="round" d="M4 39 H44 C48 39 50 36 50 33 M12 34 V39 M38 34 V39" />
+    </svg>
+  );
+}
+
+function SantaInTheSky() {
+  return (
+    <div className="xmas-sky" aria-hidden="true" data-testid="xmas-sky">
+      <div className="xmas-santa-path"><div className="xmas-santa-flip"><SantaSleigh /></div></div>
     </div>
   );
 }
@@ -1030,103 +1093,61 @@ function WriteToMeForm({ style, id, submitStyle }) {
 }
 
 // =================================================================
-// Home: Benjamin Mithra, Life Coach & Carer for Seniors.
-// Its own quiet palette (navy, champagne gold, ivory, sage); the rest of
-// the site, the navigation, Diego and the Christmas decorations keep
-// theirs. The Mind Exercises, Brain Games and RV Lab are only linked
-// from here. The Write to Me form stays (Diego's home tip points to it).
+// Home: Benjamin Mithra, Life Coach for Seniors.
+// A holiday message, then Talk now, Mind Exercises and Brain Games, the
+// articles and the Write to Me form (Diego's home tip points to it). Its
+// own quiet palette (navy, champagne gold, ivory, sage); the navigation,
+// Diego and the Christmas decorations keep theirs.
 // =================================================================
 const HOME_PALETTE = { navy: "#18334A", gold: "#B69A66", ivory: "#F4F0E8", sage: "#82968A" };
-// Where the "Senior Care & Companionship" buttons go until that page
-// exists: the services section of this page.
-const SENIOR_CARE_PATH = "/#services";
 // The closest existing articles to ageing, care and companionship.
 const HOME_ARTICLE_SLUGS = ["who-am-i-now-that-im-retired", "mom-wont-let-me-help", "adult-child-stops-calling"];
+const HOME_HOLIDAY_PARAGRAPHS = [
+  "You don't have to spend the holidays feeling alone. If you'd like someone to talk to, share a story with, or simply spend a little time having a friendly conversation, I'm here for you.",
+  "It's absolutely free. No charges, no catch, no obligations. Just a genuine conversation.",
+  "The holiday season is a time for warmth, kindness and connection. You deserve to feel heard, valued and remembered.",
+  "Let's share a conversation, a smile and a little happiness. Sometimes, a friendly voice can make all the difference.",
+];
 
 const HOME_CSS = `
   .hm { width: 100%; color: ${HOME_PALETTE.navy}; font-family: 'Source Serif 4', Georgia, serif; text-align: left; }
-  .hm-section { width: 100%; box-sizing: border-box; padding: 72px 20px; scroll-margin-top: 16px; }
   /* Sections stay see-through so the Christmas snow still falls behind them. */
+  .hm-section { width: 100%; box-sizing: border-box; padding: 64px 20px; }
   .hm-section + .hm-section { border-top: 1px solid ${withAlpha(HOME_PALETTE.gold, 0.25)}; }
   .hm-inner { max-width: 1080px; margin: 0 auto; }
-  .hm-eyebrow { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: ${HOME_PALETTE.navy}; margin: 0 0 14px; }
-  .hm-eyebrow::before { content: ""; display: inline-block; width: 28px; height: 1px; background: ${HOME_PALETTE.gold}; vertical-align: middle; margin-right: 10px; }
   .hm h1, .hm h2, .hm h3 { font-family: 'Source Serif 4', Georgia, serif; color: ${HOME_PALETTE.navy}; margin: 0; }
-  .hm h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.12; font-weight: 600; letter-spacing: -0.01em; }
+  .hm h1 { font-size: clamp(36px, 5.4vw, 56px); line-height: 1.1; font-weight: 600; letter-spacing: -0.01em; }
   .hm h2 { font-size: clamp(27px, 3.4vw, 36px); line-height: 1.2; font-weight: 600; }
   .hm h3 { font-size: 21px; line-height: 1.3; font-weight: 600; }
   .hm p { margin: 0; font-size: 17.5px; line-height: 1.75; color: #33475A; }
-  .hm-lead { font-size: clamp(20px, 2.2vw, 24px) !important; line-height: 1.45 !important; color: ${HOME_PALETTE.navy} !important; font-style: italic; }
-  .hm-tagline { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 14px !important; letter-spacing: 0.12em; text-transform: uppercase; color: #7A6440 !important; }
   .hm-center { text-align: center; max-width: 720px; margin: 0 auto; }
   .hm-head { display: flex; flex-direction: column; gap: 14px; margin-bottom: 40px; }
-  .hm-rule { width: 56px; height: 2px; background: ${HOME_PALETTE.gold}; border: 0; margin: 4px 0 0; }
-  .hm-center .hm-rule { margin: 4px auto 0; }
+  .hm-eyebrow { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: ${HOME_PALETTE.navy}; margin: 0; }
+  .hm-rule { width: 56px; height: 2px; background: ${HOME_PALETTE.gold}; border: 0; margin: 4px auto 0; }
 
   .hm-btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; cursor: pointer; box-sizing: border-box;
     font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;
     padding: 15px 30px; border-radius: 8px; border: 1px solid ${HOME_PALETTE.navy};
     background: ${HOME_PALETTE.navy}; color: #FFFFFF; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
   }
   .hm-btn:hover { background: #10263A; border-color: ${HOME_PALETTE.gold}; transform: translateY(-1px); }
-  .hm-btn-gold { background: ${HOME_PALETTE.gold}; border-color: ${HOME_PALETTE.gold}; color: ${HOME_PALETTE.navy}; }
-  .hm-btn-gold:hover { background: #C7AE7D; border-color: #C7AE7D; color: ${HOME_PALETTE.navy}; }
-  .hm-btn-line { background: transparent; color: ${HOME_PALETTE.navy}; }
+  .hm-btn-line { background: #FFFFFF; color: ${HOME_PALETTE.navy}; }
   .hm-btn-line:hover { background: ${HOME_PALETTE.navy}; color: #FFFFFF; }
-  .hm-btn:focus-visible, .hm-card-link:focus-visible, .hm-more:focus-visible { outline: 2px solid ${HOME_PALETTE.gold}; outline-offset: 3px; }
-  @media (prefers-reduced-motion: reduce) { .hm-btn, .hm-card-link { transition: none; } .hm-btn:hover, .hm-card-link:hover { transform: none; } }
+  .hm-btn:focus-visible, .hm-more:focus-visible { outline: 2px solid ${HOME_PALETTE.gold}; outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { .hm-btn { transition: none; } .hm-btn:hover { transform: none; } }
 
-  /* 1. Hero */
+  /* The holiday message */
   .hm-hero { padding-top: 48px; }
-  .hm-hero-grid { max-width: 760px; }
-  .hm-hero-text { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
-  .hm-indicators { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; margin: 4px 0 8px; }
-  .hm-indicators li {
-    display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px;
-    background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.sage, 0.6)}; font-size: 15px; color: ${HOME_PALETTE.navy};
-  }
-  .hm-indicators svg { color: ${HOME_PALETTE.sage}; }
+  .hm-welcome { max-width: 700px; margin: 0 auto; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .hm-role { font-size: clamp(20px, 2.4vw, 25px) !important; color: #7A6440 !important; font-style: italic; margin-top: -6px !important; }
+  .hm-welcome h2 { margin-top: 18px; }
+  .hm-welcome-end { font-size: 21px !important; color: ${HOME_PALETTE.navy} !important; font-weight: 600; }
+  .hm-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 14px; width: 100%; }
+  .hm-actions-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; max-width: 460px; }
+  .hm-talk { width: 100%; max-width: 460px; font-size: 17px; padding: 17px 30px; }
 
-  /* 2. About */
-  .hm-about { display: grid; grid-template-columns: 300px 1fr; gap: 56px; align-items: center; }
-  .hm-portrait { width: 300px; height: 300px; object-fit: cover; border-radius: 16px; display: block; border: 1px solid ${withAlpha(HOME_PALETTE.gold, 0.55)}; box-shadow: 0 18px 40px ${withAlpha(HOME_PALETTE.navy, 0.12)}; }
-  .hm-about-text { display: flex; flex-direction: column; gap: 18px; }
-
-  /* 3. Services */
-  .hm-services { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-  .hm-service { border-radius: 16px; padding: 36px 32px; display: flex; flex-direction: column; gap: 18px; box-sizing: border-box; }
-  .hm-service-online { background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.sage, 0.45)}; border-top: 4px solid ${HOME_PALETTE.sage}; }
-  .hm-service-offline { background: ${HOME_PALETTE.navy}; border: 1px solid ${HOME_PALETTE.navy}; border-top: 4px solid ${HOME_PALETTE.gold}; }
-  .hm-service-offline h3, .hm-service-offline p, .hm-service-offline li { color: #F4F0E8 !important; }
-  .hm-service-icon { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-  .hm-service-online .hm-service-icon { background: ${withAlpha(HOME_PALETTE.sage, 0.16)}; color: #4F6357; }
-  .hm-service-offline .hm-service-icon { background: ${withAlpha(HOME_PALETTE.gold, 0.18)}; color: ${HOME_PALETTE.gold}; }
-  .hm-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-  .hm-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 16.5px; line-height: 1.5; color: ${HOME_PALETTE.navy}; }
-  .hm-list svg { flex-shrink: 0; margin-top: 4px; color: ${HOME_PALETTE.gold}; }
-  .hm-service .hm-btn { align-self: flex-start; margin-top: 6px; }
-  .hm-service-offline .hm-btn { background: transparent; border-color: ${HOME_PALETTE.gold}; color: #F4F0E8; }
-  .hm-service-offline .hm-btn:hover { background: ${HOME_PALETTE.gold}; color: ${HOME_PALETTE.navy}; }
-
-  /* 4. Approach */
-  .hm-principles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
-  .hm-principle { background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.gold, 0.4)}; border-radius: 14px; padding: 28px 22px; display: flex; flex-direction: column; gap: 12px; }
-  .hm-principle-icon { width: 48px; height: 48px; border-radius: 50%; border: 1px solid ${withAlpha(HOME_PALETTE.gold, 0.7)}; color: ${HOME_PALETTE.navy}; display: flex; align-items: center; justify-content: center; }
-  .hm-principle h3 { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 16px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; }
-  .hm-principle p { font-size: 16px; line-height: 1.6; }
-
-  /* 5. Explore the mind */
-  .hm-mind { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
-  .hm-card-link {
-    text-decoration: none; background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.sage, 0.45)}; border-radius: 14px; padding: 28px 24px;
-    display: flex; flex-direction: column; gap: 10px; color: ${HOME_PALETTE.navy}; transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  }
-  .hm-card-link:hover { border-color: ${HOME_PALETTE.gold}; box-shadow: 0 14px 30px ${withAlpha(HOME_PALETTE.navy, 0.1)}; transform: translateY(-2px); }
-  .hm-card-link p { font-size: 16px; line-height: 1.6; }
-  .hm-card-go { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #7A6440; margin-top: auto; padding-top: 6px; }
-
-  /* 6. Articles */
+  /* Articles */
   .hm-articles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
   .hm-article { background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.sage, 0.4)}; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
   .hm-article-img {
@@ -1139,49 +1160,19 @@ const HOME_CSS = `
   .hm-more { margin-top: auto; padding-top: 6px; font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: ${HOME_PALETTE.navy}; text-decoration: none; border-bottom: 1px solid ${HOME_PALETTE.gold}; align-self: flex-start; }
   .hm-more:hover { color: #7A6440; }
 
-  /* 7. Contact */
-  .hm-contact { background: ${HOME_PALETTE.navy}; border-radius: 20px; padding: 56px 32px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px; }
-  .hm-contact h2 { color: #F4F0E8; }
-  .hm-contact p { color: #E4DED2; max-width: 620px; }
-  .hm-form { margin: 40px auto 0; max-width: 480px; }
+  /* Write to Me */
+  .hm-form { margin: 0 auto; max-width: 480px; text-align: center; }
 
-  /* 8. Footer */
-  .hm-footer { padding: 36px 20px 24px; text-align: center; }
-
-  @media (max-width: 900px) {
-    .hm-principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .hm-mind, .hm-articles { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 760px) {
-    .hm-section { padding: 52px 16px; }
-    .hm-about { grid-template-columns: 1fr; gap: 28px; justify-items: center; }
-    .hm-portrait { width: 240px; height: 240px; }
-    .hm-services { grid-template-columns: 1fr; }
-    .hm-service { padding: 28px 22px; }
-  }
-  @media (max-width: 480px) {
-    .hm-principles { grid-template-columns: 1fr; }
-    .hm-contact { padding: 40px 20px; }
-    .hm-btn { width: 100%; box-sizing: border-box; }
-    .hm-service .hm-btn { align-self: stretch; }
-  }
+  @media (max-width: 900px) { .hm-articles { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .hm-section { padding: 48px 16px; } }
+  @media (max-width: 420px) { .hm-btn { padding: 14px 12px; letter-spacing: 0.08em; } }
 `;
 
 // Simple line icons, drawn in the text colour.
 function HmIcon({ name, size = 24 }) {
   const paths = {
-    online: "M3 5h18v11H3z M8 20h8 M12 16v4",
-    home: "M3 11 12 4l9 7 M5 10v10h14V10 M10 20v-6h4v6",
-    check: "M5 12.5 10 17l9-10",
-    heart: "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z",
-    dignity: "M12 3 5 6v6c0 4.2 3 7.4 7 9 4-1.6 7-4.8 7-9V6z M9 12l2 2 4-4",
-    mind: "M9 18h6 M10 21h4 M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z",
-    connect: "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M2.5 20c.5-3.2 2.7-5 5.5-5s5 1.8 5.5 5 M13.5 16.2c.7-.8 1.6-1.2 2.5-1.2 2.8 0 5 1.8 5.5 5",
-    exercises: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z M12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z",
-    games: "M5 20h14 M7 20l1.5-5h7L17 20 M9 15l-1-4h8l-1 4 M8 11c-1.2-1.4-1.5-3-.5-4.5L9 8l1.5-3h3L15 8l1.5-1.5c1 1.5.7 3.1-.5 4.5",
-    rv: "M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
     article: "M5 4h10l4 4v12H5z M14 4v5h5 M8 13h8 M8 16.5h6",
-    people: "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M17 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M2.5 20c.5-3.4 2.7-5.3 5.5-5.3s5 1.9 5.5 5.3 M14.6 15.4c.7-.5 1.5-.7 2.4-.7 2.4 0 4.2 1.6 4.6 4.6",
+    phone: "M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z",
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
@@ -1190,143 +1181,36 @@ function HmIcon({ name, size = 24 }) {
   );
 }
 
-const HOME_ONLINE_SERVICES = ["Online Companionship", "Online Life Coaching", "Mind Exercises and Cognitive Activities", "Chess, Puzzles and Memory Activities", "Family Consultations"];
-const HOME_OFFLINE_SERVICES = ["Personal Care and Daily Assistance", "Personal Companionship", "Outings and Appointment Assistance", "Cognitive and Recreational Engagement", "Personal Assistance and Concierge Support", "Live-in Companionship and Care"];
-const HOME_PRINCIPLES = [
-  { icon: "heart", title: "Compassion", text: "Understanding individual needs and preferences with patience and genuine care." },
-  { icon: "dignity", title: "Dignity", text: "Respecting independence, privacy and personal choices." },
-  { icon: "mind", title: "Mental Engagement", text: "Encouraging curiosity, learning, creativity and cognitive activities." },
-  { icon: "connect", title: "Connection", text: "Creating opportunities for meaningful human interaction and companionship." },
-];
-const HOME_MIND_LINKS = [
-  { icon: "exercises", title: "Mind Exercises", to: "/exercises", text: "Breathing, reading and focus exercises to try at your own pace." },
-  { icon: "games", title: "Brain Games", to: "/games", text: "Chess and memory games for recall, concentration and reasoning." },
-  { icon: "rv", title: "RV Lab", to: "/exercises/rv-lab", text: "An exercise in perception: sketch and describe a hidden image, then compare." },
-];
-
 function HomeScreen() {
   const c = useColors();
-  const location = useLocation();
-
-  // "/#services", "/#about" (from the menu or the buttons): scroll to that section.
-  useEffect(() => {
-    if (!location.hash) return;
-    const el = document.getElementById(location.hash.slice(1));
-    if (!el) return;
-    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
-  }, [location.hash, location.key]);
-
   const articles = HOME_ARTICLE_SLUGS.map((slug) => ARTICLE_BY_SLUG[slug]).filter(Boolean);
 
   return (
     <div className="hm" data-testid="home">
       <style>{HOME_CSS}</style>
 
-      {/* 1. Hero */}
+      {/* The holiday message, then Talk now, Mind Exercises and Brain Games. */}
       <section className="hm-section hm-hero" aria-labelledby="hm-title">
-        <div className="hm-inner hm-hero-grid">
-          <div className="hm-hero-text">
-            <p className="hm-eyebrow">Benjamin Mithra</p>
-            <h1 id="hm-title">Life Coach &amp; Carer for Seniors</h1>
-            <p className="hm-tagline">Companionship · Personal Care · Personal Assistance</p>
-            <p className="hm-lead">Care, Companionship &amp; Meaningful Connections.</p>
-            <p>Providing personalized companionship, everyday assistance and meaningful engagement to help older adults enjoy a more comfortable, connected and fulfilling life.</p>
-            <ul className="hm-indicators" aria-label="Ways I support">
-              <li><HmIcon name="online" size={18} />Online Support</li>
-              <li><HmIcon name="home" size={18} />In-Person Support</li>
-            </ul>
-            <Link to={SENIOR_CARE_PATH} className="hm-btn" data-testid="explore-services">Explore Services</Link>
+        <div className="hm-inner hm-welcome">
+          <h1 id="hm-title">Benjamin Mithra</h1>
+          <p className="hm-role">Life Coach for Seniors</p>
+          <hr className="hm-rule" />
+          <h2>Feeling lonely this Holiday Season?</h2>
+          {HOME_HOLIDAY_PARAGRAPHS.map((t) => <p key={t}>{t}</p>)}
+          <p className="hm-welcome-end">You're welcome here. ❤️</p>
+          <div className="hm-actions">
+            <Link to={VIEW_PATH.call} className="hm-btn hm-talk" data-testid="home-talk-now"><HmIcon name="phone" size={18} />Talk now</Link>
+            <div className="hm-actions-row">
+              <Link to={VIEW_PATH.exercises} className="hm-btn hm-btn-line" data-testid="home-mind-exercises">Mind Exercises</Link>
+              <Link to={VIEW_PATH.games} className="hm-btn hm-btn-line" data-testid="home-brain-games">Brain Games</Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 2. About */}
-      <section id="about" className="hm-section hm-white" aria-labelledby="hm-about-title">
-        <div className="hm-inner hm-about">
-          <img src="/benjamin-mithra.jpg" alt="Benjamin Mithra" width="360" height="360" loading="lazy" decoding="async" className="hm-portrait" />
-          <div className="hm-about-text">
-            <p className="hm-eyebrow">About Benjamin</p>
-            <h2 id="hm-about-title">A Personal Approach to Senior Care</h2>
-            <hr className="hm-rule" />
-            <p>I'm Benjamin Mithra. I offer personalized companionship, life coaching and non-clinical caregiving support for older adults.</p>
-            <p>My approach is built around meaningful conversation, patience, dignity and individual attention. Whether through online interaction or in-person assistance, my aim is to make everyday life more engaging, comfortable and fulfilling.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Services */}
-      <section id="services" className="hm-section hm-tint" aria-labelledby="hm-services-title">
-        <div className="hm-inner">
-          <div className="hm-head hm-center">
-            <p className="hm-eyebrow">Senior Care &amp; Companionship</p>
-            <h2 id="hm-services-title">How I Can Help</h2>
-            <hr className="hm-rule" />
-          </div>
-          <div className="hm-services">
-            <article className="hm-service hm-service-online" data-testid="service-online">
-              <div className="hm-service-icon"><HmIcon name="online" size={26} /></div>
-              <h3>Online Services</h3>
-              <p>Personalized online support designed to encourage meaningful interaction, mental engagement and personal development.</p>
-              <ul className="hm-list">{HOME_ONLINE_SERVICES.map((s) => <li key={s}><HmIcon name="check" size={16} />{s}</li>)}</ul>
-              <Link to={SENIOR_CARE_PATH} className="hm-btn hm-btn-line">Senior Care &amp; Companionship</Link>
-            </article>
-            <article className="hm-service hm-service-offline" data-testid="service-offline">
-              <div className="hm-service-icon"><HmIcon name="home" size={26} /></div>
-              <h3>Offline Services</h3>
-              <p>Personalized in-person assistance and companionship designed around individual needs, preferences and daily routines.</p>
-              <ul className="hm-list">{HOME_OFFLINE_SERVICES.map((s) => <li key={s}><HmIcon name="check" size={16} />{s}</li>)}</ul>
-              <Link to={SENIOR_CARE_PATH} className="hm-btn">Senior Care &amp; Companionship</Link>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Approach */}
-      <section className="hm-section hm-white" aria-labelledby="hm-approach-title">
-        <div className="hm-inner">
-          <div className="hm-head hm-center">
-            <p className="hm-eyebrow">My Approach</p>
-            <h2 id="hm-approach-title">More Than Assistance. Meaningful Companionship.</h2>
-            <hr className="hm-rule" />
-          </div>
-          <div className="hm-principles">
-            {HOME_PRINCIPLES.map((p) => (
-              <div key={p.title} className="hm-principle">
-                <div className="hm-principle-icon"><HmIcon name={p.icon} /></div>
-                <h3>{p.title}</h3>
-                <p>{p.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Explore the mind: links to the existing sections. */}
-      <section className="hm-section hm-tint" aria-labelledby="hm-mind-title">
-        <div className="hm-inner">
-          <div className="hm-head hm-center">
-            <p className="hm-eyebrow">Mind &amp; Cognitive Activities</p>
-            <h2 id="hm-mind-title">Explore the Mind</h2>
-            <hr className="hm-rule" />
-            <p>Discover interactive activities designed to encourage memory, concentration, reasoning and curiosity.</p>
-          </div>
-          <div className="hm-mind">
-            {HOME_MIND_LINKS.map((m) => (
-              <Link key={m.title} to={m.to} className="hm-card-link">
-                <div className="hm-principle-icon"><HmIcon name={m.icon} /></div>
-                <h3>{m.title}</h3>
-                <p>{m.text}</p>
-                <span className="hm-card-go" aria-hidden="true">Open →</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Articles */}
+      {/* Articles */}
       {articles.length > 0 && (
-        <section className="hm-section hm-white" aria-labelledby="hm-articles-title">
+        <section className="hm-section" aria-labelledby="hm-articles-title">
           <div className="hm-inner">
             <div className="hm-head hm-center">
               <p className="hm-eyebrow">Articles</p>
@@ -1349,34 +1233,12 @@ function HomeScreen() {
         </section>
       )}
 
-      {/* 7. Contact */}
-      <section className="hm-section hm-tint" aria-labelledby="hm-contact-title">
-        <div className="hm-inner">
-          <div className="hm-contact">
-            <h2 id="hm-contact-title">Let's Talk About the Support You Need.</h2>
-            <p>Whether you are looking for companionship, personal assistance or ongoing support for an older family member, you're welcome to get in touch.</p>
-            <Link to={VIEW_PATH.contact} className="hm-btn hm-btn-gold">Contact Benjamin</Link>
-          </div>
-          <div className="hm-form" style={{ textAlign: "center" }}>
-            <WriteToMeForm id="write-to-me" style={styles(c).homeWriteToMe} submitStyle={styles(c).btnGold} />
-          </div>
+      {/* Write to Me */}
+      <section className="hm-section">
+        <div className="hm-form">
+          <WriteToMeForm id="write-to-me" style={styles(c).homeWriteToMe} submitStyle={styles(c).btnGold} />
         </div>
       </section>
-
-      {/* 8. Footer */}
-      <footer className="hm-footer">
-        <p style={{ ...styles(c).homeFooterLine, margin: "0 auto" }}>
-          <span>© {new Date().getFullYear()} Benjamin Mithra — Life Coach &amp; Carer for Seniors</span>{" "}
-          <span style={styles(c).homeFooterDot}>·</span>{" "}
-          <Link to={VIEW_PATH.articles} className="home-footer-link" style={styles(c).homeFooterLink}>Articles</Link>{" "}
-          <span style={styles(c).homeFooterDot}>·</span>{" "}
-          <Link to={VIEW_PATH.privacy} className="home-footer-link" style={styles(c).homeFooterLink}>Privacy</Link>{" "}
-          <span style={styles(c).homeFooterDot}>·</span>{" "}
-          <Link to={VIEW_PATH.terms} className="home-footer-link" style={styles(c).homeFooterLink}>Terms</Link>{" "}
-          <span style={styles(c).homeFooterDot}>·</span>{" "}
-          <Link to={VIEW_PATH.disclaimer} className="home-footer-link" style={styles(c).homeFooterLink}>Disclaimer</Link>
-        </p>
-      </footer>
     </div>
   );
 }
@@ -4659,7 +4521,7 @@ const EXERCISE_KEY_FROM_SLUG = Object.fromEntries(Object.entries(EXERCISE_SLUG).
 // change (including on the very first load, which is what the
 // prerender step below captures into the static HTML for that URL).
 const PAGE_META = {
-  home: { title: "Benjamin Mithra | Life Coach & Carer for Seniors", description: "Benjamin Mithra, Life Coach & Carer for Seniors: personalized companionship, life coaching and non-clinical everyday assistance for older adults, online and in person." },
+  home: { title: "Benjamin Mithra | Life Coach for Seniors", description: "Feeling lonely this holiday season? Benjamin Mithra, Life Coach for Seniors, offers a free, friendly conversation: no charges, no catch, no obligations." },
   journals: { title: "Journals | Mind Interpreter", description: "Reflections and reading on consciousness, cognition, and mindfulness from Benjamin Mithra. New journal entries coming soon." },
   exercises: { title: "Mind Exercises | Mind Interpreter", description: "Guided mindfulness breathing, leetspeak reading, flow typing, and Guilford's divergent thinking test to train focus, calm, and cognitive fluency." },
   "exercise-breathing": { title: "Mindfulness Breathing Exercise | Mind Interpreter", description: "A guided breathing exercise: inhale, hold, exhale, and hold again, paced to help you slow down and breathe more deliberately." },
@@ -5127,6 +4989,7 @@ export default function App() {
         </main>
 
         {CHRISTMAS_THEME && <SnowGround />}
+        {CHRISTMAS_THEME && <SantaInTheSky />}
         <GuideDog view={view} />
         {CHRISTMAS_THEME && <Snowman besideWhatsApp={showWhatsApp} />}
         {showWhatsApp && <WhatsAppFloat />}

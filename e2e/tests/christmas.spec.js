@@ -52,7 +52,40 @@ test("the top lights blink like serial lights: neighbours take turns; only trans
     }
     return out;
   });
-  expect(props).toEqual({ xmasTwinkle: ["opacity"], xmasBlink: ["opacity"], xmasWave: ["transform"], xmasFall: ["transform"], xmasSway: ["transform"] });
+  expect(props).toEqual({
+    xmasTwinkle: ["opacity"], xmasBlink: ["opacity"], xmasWave: ["transform"],
+    xmasSantaPath: ["transform"], xmasSantaFlip: ["transform"], xmasSantaBob: ["transform"],
+    xmasFall: ["transform"], xmasSway: ["transform"],
+  });
+});
+
+test("Santa and his reindeer fly a slow loop around the screen, small, turning round for the trip back", async ({ open }) => {
+  for (const [width, maxWidth] of [[1280, 132], [390, 96]]) {
+    const page = await open("/faq", { viewport: { width, height: 844 } });
+    const santa = page.getByTestId("santa");
+    await expect(page.getByTestId("xmas-sky")).toHaveAttribute("aria-hidden", "true");
+    expect(await page.getByTestId("xmas-sky").evaluate((el) => getComputedStyle(el).pointerEvents)).toBe("none");
+    expect(Math.round((await santa.boundingBox())?.width ?? 0)).toBeLessThanOrEqual(maxWidth + 8); // + the tilt of his bob
+    const at = async (ms) => {
+      await page.evaluate((t) => document.getAnimations().filter((a) => String(a.animationName).startsWith("xmasSanta")).forEach((a) => { a.pause(); a.currentTime = t; }), ms);
+      const b = await santa.boundingBox();
+      const flipped = await santa.evaluate((el) => new DOMMatrix(getComputedStyle(el.parentElement).transform).a < 0);
+      return { x: b.x, y: b.y, flipped };
+    };
+    // Across the top going right, then lower down going left.
+    const top = await at(46000 * 0.22);
+    const back = await at(46000 * 0.72);
+    expect(top.flipped).toBe(false);
+    expect(back.flipped).toBe(true);
+    expect(back.y).toBeGreaterThan(top.y + 100);
+    for (const p of [top, back]) {
+      expect(p.x).toBeGreaterThan(0);
+      expect(p.x).toBeLessThan(width);
+    }
+    // Off screen at the turns.
+    expect((await at(46000 * 0.48)).x).toBeGreaterThanOrEqual(width);
+    expect(await noSidewaysScroll(page)).toBe(true);
+  }
 });
 
 test("a snowman stands bottom right, beside the WhatsApp button, on the snow along the bottom", async ({ open }) => {
