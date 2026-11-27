@@ -1,7 +1,7 @@
 import { test, expect } from "./helpers.js";
 
 // The home page: Benjamin Mithra, Life Coach & Carer for Seniors.
-const NAV = ["Home", "Articles", "Senior Care & Companionship", "About Benjamin", "Contact", "Mind Exercises", "Brain Games", "RV Lab", "FAQ", "Talk now"];
+const NAV = ["Home", "Articles", "Mind Exercises", "Brain Games", "RV Lab", "Talk now"];
 const noSidewaysScroll = (page) => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
 
 test("the new identity and the sections in order", async ({ open }) => {
@@ -47,7 +47,7 @@ test("the services: online and in-person, kept apart", async ({ open }) => {
   expect(text).toContain("non-clinical caregiving");
 });
 
-test("navigation: the eight items in order (then FAQ and Talk now), on the tabs and in the menu", async ({ open }) => {
+test("navigation: Home, Articles, Mind Exercises, Brain Games, RV Lab and Talk now, on the tabs and in the menu", async ({ open }) => {
   const page = await open("/", { viewport: { width: 1280, height: 900 } });
   expect((await page.locator(".top-tabs a").allInnerTexts()).map((t) => t.trim().toLowerCase())).toEqual(NAV.map((t) => t.toLowerCase()));
   const sub = await open("/faq", { viewport: { width: 1280, height: 900 } });
@@ -57,20 +57,18 @@ test("navigation: the eight items in order (then FAQ and Talk now), on the tabs 
   expect(items.slice(NAV.length)).toEqual(["privacy", "terms", "disclaimer"]);
 });
 
-test("Explore Services, Senior Care & Companionship and About Benjamin go to their sections", async ({ open }) => {
+test("Explore Services and the Senior Care & Companionship buttons go to the services section", async ({ open }) => {
   const page = await open("/", { viewport: { width: 1280, height: 900 } });
   await page.getByTestId("explore-services").click();
   await expect(page).toHaveURL(/\/#services$/);
   await expect(page.locator("#services")).toBeInViewport();
-  await page.locator(".top-tabs").getByRole("link", { name: "About Benjamin" }).click();
-  await expect(page).toHaveURL(/\/#about$/);
-  await expect(page.locator("#about")).toBeInViewport();
-  // From another page too.
-  const sub = await open("/faq", { viewport: { width: 1280, height: 900 } });
-  await sub.getByRole("button", { name: "Menu" }).click();
-  await sub.locator('a.nav-btn[href="/#services"]').click();
-  await expect(sub).toHaveURL(/\/#services$/);
-  await expect(sub.locator("#services")).toBeInViewport();
+  // Senior Care & Companionship, About Benjamin, Contact and FAQ are no longer in the navigation.
+  for (const gone of ["/#services", "/#about", "/consultation", "/faq"]) await expect(page.locator(`.top-tabs a[href="${gone}"]`)).toHaveCount(0);
+  // The pages themselves still work.
+  for (const path of ["/consultation", "/faq"]) {
+    const p = await open(path, { viewport: { width: 1280, height: 900 } });
+    await expect(p.locator("main")).not.toBeEmpty();
+  }
 });
 
 test("Mind Exercises, Brain Games and RV Lab open the existing sections, unchanged", async ({ open }) => {

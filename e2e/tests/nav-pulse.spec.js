@@ -38,7 +38,7 @@ test("desktop: the Talk now tab glows every 2 seconds and wiggles every 3.5 seco
   await expect(tab).toBeVisible();
   expect(await after(tab)).toMatchObject({ name: "talkPulse", duration: "2s", count: "infinite", state: "running" });
   expect(await shake(tab)).toMatchObject({ name: "talkShake", duration: "3.5s", count: "infinite", state: "running" });
-  const faq = page.locator(".top-tabs").getByRole("link", { name: "FAQ" });
+  const faq = page.locator(".top-tabs").getByRole("link", { name: "Articles" });
   expect(await after(faq)).toMatchObject({ name: "none" });
   expect(await faq.locator(".talk-shake").count()).toBe(0);
 
