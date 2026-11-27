@@ -1095,13 +1095,11 @@ function WriteToMeForm({ style, id, submitStyle }) {
 // =================================================================
 // Home: Benjamin Mithra, Life Coach for Seniors.
 // A holiday message, then Talk now, Mind Exercises and Brain Games, the
-// articles and the Write to Me form (Diego's home tip points to it). Its
+// Write to Me form (Diego's home tip points to it) and the footer. Its
 // own quiet palette (navy, champagne gold, ivory, sage); the navigation,
 // Diego and the Christmas decorations keep theirs.
 // =================================================================
 const HOME_PALETTE = { navy: "#18334A", gold: "#B69A66", ivory: "#F4F0E8", sage: "#82968A" };
-// The closest existing articles to ageing, care and companionship.
-const HOME_ARTICLE_SLUGS = ["who-am-i-now-that-im-retired", "mom-wont-let-me-help", "adult-child-stops-calling"];
 const HOME_HOLIDAY_PARAGRAPHS = [
   "You don't have to spend the holidays feeling alone. If you'd like someone to talk to, share a story with, or simply spend a little time having a friendly conversation, I'm here for you.",
   "It's absolutely free. No charges, no catch, no obligations. Just a genuine conversation.",
@@ -1120,9 +1118,6 @@ const HOME_CSS = `
   .hm h2 { font-size: clamp(27px, 3.4vw, 36px); line-height: 1.2; font-weight: 600; }
   .hm h3 { font-size: 21px; line-height: 1.3; font-weight: 600; }
   .hm p { margin: 0; font-size: 17.5px; line-height: 1.75; color: #33475A; }
-  .hm-center { text-align: center; max-width: 720px; margin: 0 auto; }
-  .hm-head { display: flex; flex-direction: column; gap: 14px; margin-bottom: 40px; }
-  .hm-eyebrow { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: ${HOME_PALETTE.navy}; margin: 0; }
   .hm-rule { width: 56px; height: 2px; background: ${HOME_PALETTE.gold}; border: 0; margin: 4px auto 0; }
 
   .hm-btn {
@@ -1134,7 +1129,7 @@ const HOME_CSS = `
   .hm-btn:hover { background: #10263A; border-color: ${HOME_PALETTE.gold}; transform: translateY(-1px); }
   .hm-btn-line { background: #FFFFFF; color: ${HOME_PALETTE.navy}; }
   .hm-btn-line:hover { background: ${HOME_PALETTE.navy}; color: #FFFFFF; }
-  .hm-btn:focus-visible, .hm-more:focus-visible { outline: 2px solid ${HOME_PALETTE.gold}; outline-offset: 3px; }
+  .hm-btn:focus-visible { outline: 2px solid ${HOME_PALETTE.gold}; outline-offset: 3px; }
   @media (prefers-reduced-motion: reduce) { .hm-btn { transition: none; } .hm-btn:hover { transform: none; } }
 
   /* The holiday message */
@@ -1147,23 +1142,10 @@ const HOME_CSS = `
   .hm-actions-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; max-width: 460px; }
   .hm-talk { width: 100%; max-width: 460px; font-size: 17px; padding: 17px 30px; }
 
-  /* Articles */
-  .hm-articles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-  .hm-article { background: #FFFFFF; border: 1px solid ${withAlpha(HOME_PALETTE.sage, 0.4)}; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
-  .hm-article-img {
-    aspect-ratio: 16 / 10; background: linear-gradient(150deg, ${withAlpha(HOME_PALETTE.sage, 0.35)} 0%, ${HOME_PALETTE.ivory} 70%);
-    display: flex; align-items: center; justify-content: center; color: ${HOME_PALETTE.navy};
-  }
-  .hm-article-body { padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-  .hm-article-body h3 { font-size: 19px; }
-  .hm-article-body p { font-size: 15.5px; line-height: 1.6; }
-  .hm-more { margin-top: auto; padding-top: 6px; font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: ${HOME_PALETTE.navy}; text-decoration: none; border-bottom: 1px solid ${HOME_PALETTE.gold}; align-self: flex-start; }
-  .hm-more:hover { color: #7A6440; }
-
   /* Write to Me */
   .hm-form { margin: 0 auto; max-width: 480px; text-align: center; }
+  .hm-footer { padding: 8px 20px 32px; text-align: center; }
 
-  @media (max-width: 900px) { .hm-articles { grid-template-columns: 1fr; } }
   @media (max-width: 760px) { .hm-section { padding: 48px 16px; } }
   @media (max-width: 420px) { .hm-btn { padding: 14px 12px; letter-spacing: 0.08em; } }
 `;
@@ -1171,7 +1153,6 @@ const HOME_CSS = `
 // Simple line icons, drawn in the text colour.
 function HmIcon({ name, size = 24 }) {
   const paths = {
-    article: "M5 4h10l4 4v12H5z M14 4v5h5 M8 13h8 M8 16.5h6",
     phone: "M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z",
   };
   return (
@@ -1183,7 +1164,6 @@ function HmIcon({ name, size = 24 }) {
 
 function HomeScreen() {
   const c = useColors();
-  const articles = HOME_ARTICLE_SLUGS.map((slug) => ARTICLE_BY_SLUG[slug]).filter(Boolean);
 
   return (
     <div className="hm" data-testid="home">
@@ -1208,37 +1188,24 @@ function HomeScreen() {
         </div>
       </section>
 
-      {/* Articles */}
-      {articles.length > 0 && (
-        <section className="hm-section" aria-labelledby="hm-articles-title">
-          <div className="hm-inner">
-            <div className="hm-head hm-center">
-              <p className="hm-eyebrow">Articles</p>
-              <h2 id="hm-articles-title">Insights on Ageing, Care &amp; Companionship</h2>
-              <hr className="hm-rule" />
-            </div>
-            <div className="hm-articles">
-              {articles.map((a) => (
-                <article key={a.slug} className="hm-article">
-                  <div className="hm-article-img" aria-hidden="true"><HmIcon name="article" size={40} /></div>
-                  <div className="hm-article-body">
-                    <h3>{a.title}</h3>
-                    <p>{a.summary}</p>
-                    <Link to={`${VIEW_PATH.articles}/${a.slug}`} className="hm-more" aria-label={`Read more: ${a.title}`}>Read More</Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Write to Me */}
       <section className="hm-section">
         <div className="hm-form">
           <WriteToMeForm id="write-to-me" style={styles(c).homeWriteToMe} submitStyle={styles(c).btnGold} />
         </div>
       </section>
+
+      <footer className="hm-footer">
+        <p style={{ ...styles(c).homeFooterLine, margin: "0 auto" }}>
+          <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
+          <span style={styles(c).homeFooterDot}>·</span>{" "}
+          <Link to={VIEW_PATH.privacy} className="home-footer-link" style={styles(c).homeFooterLink}>Privacy Policy</Link>{" "}
+          <span style={styles(c).homeFooterDot}>·</span>{" "}
+          <Link to={VIEW_PATH.disclaimer} className="home-footer-link" style={styles(c).homeFooterLink}>Disclaimer</Link>{" "}
+          <span style={styles(c).homeFooterDot}>·</span>{" "}
+          <Link to={VIEW_PATH.terms} className="home-footer-link" style={styles(c).homeFooterLink}>Terms and Conditions</Link>
+        </p>
+      </footer>
     </div>
   );
 }
