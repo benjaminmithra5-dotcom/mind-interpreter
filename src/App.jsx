@@ -14,29 +14,30 @@ import { HostPage } from "./call/HostPage.jsx";
 // color change is a one-line edit. (Game boards and pieces, the
 // breathing colors and the emotion chips keep their own colors.)
 const COLORS = {
-  bg: "#F6F0E4",            // page background (warm cream)
-  secondary: "#EDE4D2",     // deep sections: tip bubble, bands, inset boxes
-  surface: "#FFFFFF",       // cards and panels
-  panel: "#FFFFFF",
-  panelHover: "#FBF7EE",    // lighter panel or hover
-  playfield: "#FBF7EE",     // inset areas: inputs, canvases, game fields
-  ink: "#1E2B2C",           // body text
-  muted: "#44585A",         // captions, secondary text
-  faint: "#566A6C",
-  good: "#16734B",          // "correct answer" feedback in games
-  bad: "#B4412F",           // errors
-  accent: "#0E5A5F",        // deep teal: buttons, links, headings, icons
-  accentHover: "#0B484C",
-  accentPressed: "#083A3D",
-  onAccent: "#FFFFFF",      // text on teal
-  line: withAlpha("#0E5A5F", 0.28),       // borders and dividers
-  strongLine: withAlpha("#0E5A5F", 0.5),  // button outlines
-  fieldBorder: withAlpha("#0E5A5F", 0.6), // form fields and game tiles: 3:1 against white
-  edge: withAlpha("#0E5A5F", 0.35),       // edges of white cards and emotion chips
-  shadow: withAlpha("#0E5A5F", 0.18),     // soft shadows (replaces glows)
-  overlay: withAlpha("#F6F0E4", 0.82),
-  cardBg: "#FFFFFF",
-  cardBorder: withAlpha("#0E5A5F", 0.28),
+  // Vintage Victorian letterpress: dark brown ink on aged parchment.
+  bg: "#EADCBE",            // page background (aged parchment)
+  secondary: "#E2D1AE",     // deep sections: tip bubble, bands, inset boxes
+  surface: "#F3E8CF",       // cards and panels (lighter paper)
+  panel: "#F3E8CF",
+  panelHover: "#EADDBF",    // lighter panel or hover
+  playfield: "#F6EEDA",     // inset areas: inputs, canvases, game fields
+  ink: "#24170F",           // body text (brown-black ink)
+  muted: "#4A3626",         // captions, secondary text
+  faint: "#5C4733",
+  good: "#3E5C2A",          // "correct answer" feedback in games (inky green)
+  bad: "#8E2E1F",           // errors (inky red)
+  accent: "#2E1D12",        // dark brown ink: buttons, links, headings, icons
+  accentHover: "#3D2819",
+  accentPressed: "#1C110A",
+  onAccent: "#F3E8CF",      // parchment text on ink
+  line: withAlpha("#2E1D12", 0.35),       // borders and dividers
+  strongLine: withAlpha("#2E1D12", 0.6),  // button outlines
+  fieldBorder: withAlpha("#2E1D12", 0.65), // form fields and game tiles
+  edge: withAlpha("#2E1D12", 0.45),       // edges of cards and emotion chips
+  shadow: withAlpha("#2E1D12", 0.16),     // soft shadows
+  overlay: withAlpha("#EADCBE", 0.84),
+  cardBg: "#F3E8CF",
+  cardBorder: withAlpha("#2E1D12", 0.35),
 };
 // "#0E5A5F", 0.28 -> "rgba(14,90,95,0.28)"
 function withAlpha(hex, a) {
@@ -48,13 +49,18 @@ function useColors() {
   return useContext(ThemeContext);
 }
 
+// Victorian type: Rokkitt (a slab serif) for labels and buttons, Ultra (a
+// heavy Clarendon-style wood type) for big poster headlines, Old Standard
+// TT (a 19th-century book face) for text, Courier Prime for numbers.
 const font = {
-  display: `'Oswald', 'Arial Narrow', sans-serif`,
-  body: `'Source Serif 4', Georgia, serif`,
-  mono: `'Space Mono', monospace`,
-  bio: `'Source Serif 4', Georgia, serif`,
+  display: `'Rokkitt', 'Rockwell', Georgia, serif`,
+  poster: `'Ultra', 'Rockwell Extra Bold', 'Rockwell', Georgia, serif`,
+  body: `'Old Standard TT', Georgia, serif`,
+  mono: `'Courier Prime', 'Courier New', monospace`,
+  bio: `'Old Standard TT', Georgia, serif`,
 };
-const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Space+Mono:wght@400;700&display=swap');`;
+const FONT_URL = "https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700;800&family=Ultra&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap";
+const FONT_IMPORT = `@import url('${FONT_URL}');`;
 
 // =================================================================
 // Sound. Lazy synths, started on first real user gesture.
@@ -675,12 +681,33 @@ const GAME_COMPONENTS = { numbers: NumbersMemory, verbal: VerbalMemory, kims: Ki
 // tone for depth, and nothing else — no glow, no gradients, no
 // motion competing with the content.
 // =================================================================
+// Grain for the parchment: fine brown noise, tiled.
+const PAPER_GRAIN = `url("data:image/svg+xml;utf8,${encodeURIComponent(
+  "<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.24  0 0 0 0 0.15  0 0 0 0 0.07  0 0 0 0.62 -0.12'/></filter><rect width='100%' height='100%' filter='url(#g)'/></svg>"
+)}")`;
+
+// Aged paper behind every page: parchment, grain, a few faint stains and
+// darker worn edges. Also holds the "lp-ink" filter that gives headings
+// slightly irregular, worn letterpress edges, and draws the thin
+// double-line border round the page, like a printed poster.
 function CosmicBackground() {
   const c = COLORS;
   return (
-    <div style={styles(c).eliteWrap} aria-hidden="true">
-      <div style={styles(c).eliteVignette} />
-    </div>
+    <>
+      <div style={styles(c).eliteWrap} aria-hidden="true">
+        <div style={styles(c).eliteVignette} />
+      </div>
+      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true" focusable="false">
+        <filter id="lp-ink" x="-2%" y="-10%" width="104%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="edge" />
+          <feDisplacementMap in="SourceGraphic" in2="edge" scale="1.8" xChannelSelector="R" yChannelSelector="G" result="rough" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="2" seed="8" result="wear" />
+          <feColorMatrix in="wear" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -14 10.3" result="holes" />
+          <feComposite in="rough" in2="holes" operator="in" />
+        </filter>
+      </svg>
+      <div className="lp-frame" aria-hidden="true" />
+    </>
   );
 }
 
@@ -1093,119 +1120,156 @@ function WriteToMeForm({ style, id, submitStyle }) {
 }
 
 // =================================================================
-// Home: Benjamin Mithra, Life Coach.
-// A holiday message, then Talk now, Mind Exercises and Brain Games, the
-// Write to Me form (Diego's home tip points to it) and the footer. Its
-// own quiet palette (navy, champagne gold, ivory, sage); the navigation,
-// Diego and the Christmas decorations keep theirs.
+// Home: a Victorian letterpress poster. Benjamin Mithra, Life Coach, a
+// holiday message, then Talk now, Mind Exercises and Brain Games. Below the
+// poster: the Write to Me form (Diego's home tip points to it) and the
+// footer. Words stay as written; only the setting is a printed poster.
 // =================================================================
-const HOME_PALETTE = { navy: "#18334A", gold: "#B69A66", ivory: "#F4F0E8", sage: "#82968A" };
-const HOME_HOLIDAY_PARAGRAPHS = [
-  "You don't have to spend the holidays feeling alone. If you'd like someone to talk to, share a story with, or simply spend a little time having a friendly conversation, I'm here for you.",
-  "It's absolutely free. No charges, no catch, no obligations. Just a genuine conversation.",
+const HOME_HOLIDAY_OPENING = "You don't have to spend the holidays feeling alone. If you'd like someone to talk to, share a story with, or simply spend a little time having a friendly conversation, I'm here for you.";
+const HOME_HOLIDAY_CLOSING = [
   "The holiday season is a time for warmth, kindness and connection. You deserve to feel heard, valued and remembered.",
   "Let's share a conversation, a smile and a little happiness. Sometimes, a friendly voice can make all the difference.",
 ];
 
 const HOME_CSS = `
-  .hm { width: 100%; color: ${HOME_PALETTE.navy}; font-family: 'Source Serif 4', Georgia, serif; text-align: left; }
-  /* Sections stay see-through so the Christmas snow still falls behind them. */
-  .hm-section { width: 100%; box-sizing: border-box; padding: 64px 20px; }
-  .hm-section + .hm-section { border-top: 1px solid ${withAlpha(HOME_PALETTE.gold, 0.25)}; }
-  .hm-inner { max-width: 1080px; margin: 0 auto; }
-  .hm h1, .hm h2, .hm h3 { font-family: 'Source Serif 4', Georgia, serif; color: ${HOME_PALETTE.navy}; margin: 0; }
-  .hm h1 { font-size: clamp(36px, 5.4vw, 56px); line-height: 1.1; font-weight: 600; letter-spacing: -0.01em; }
-  .hm h2 { font-size: clamp(27px, 3.4vw, 36px); line-height: 1.2; font-weight: 600; }
-  .hm h3 { font-size: 21px; line-height: 1.3; font-weight: 600; }
-  .hm p { margin: 0; font-size: 17.5px; line-height: 1.75; color: #33475A; }
-  .hm-rule { width: 56px; height: 2px; background: ${HOME_PALETTE.gold}; border: 0; margin: 4px auto 0; }
-
-  .hm-btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; cursor: pointer; box-sizing: border-box;
-    font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;
-    padding: 15px 30px; border-radius: 8px; border: 1px solid ${HOME_PALETTE.navy};
-    background: ${HOME_PALETTE.navy}; color: #FFFFFF; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  .hm { width: 100%; color: ${COLORS.ink}; font-family: ${font.body}; text-align: center; padding: 28px 16px 8px; box-sizing: border-box; }
+  .lp-poster {
+    position: relative; max-width: 660px; margin: 0 auto; box-sizing: border-box; padding: 54px 40px 48px;
+    background-color: ${COLORS.surface}; background-image: ${PAPER_GRAIN}; background-size: 320px 320px;
+    border: 5px double ${COLORS.ink}; outline: 1px solid ${withAlpha(COLORS.ink, 0.8)}; outline-offset: 7px;
+    display: flex; flex-direction: column; align-items: center; gap: 22px;
   }
-  .hm-btn:hover { background: #10263A; border-color: ${HOME_PALETTE.gold}; transform: translateY(-1px); }
-  .hm-btn-line { background: #FFFFFF; color: ${HOME_PALETTE.navy}; }
-  .hm-btn-line:hover { background: ${HOME_PALETTE.navy}; color: #FFFFFF; }
-  .hm-btn:focus-visible { outline: 2px solid ${HOME_PALETTE.gold}; outline-offset: 3px; }
-  @media (prefers-reduced-motion: reduce) { .hm-btn { transition: none; } .hm-btn:hover { transform: none; } }
-
-  /* The holiday message */
-  .hm-hero { padding-top: 48px; }
-  .hm-welcome { max-width: 700px; margin: 0 auto; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px; }
-  .hm-role { font-size: clamp(20px, 2.4vw, 25px) !important; color: #7A6440 !important; font-style: italic; margin-top: -6px !important; }
-  .hm-welcome h2 { margin-top: 18px; }
-  .hm-welcome-end { font-size: 21px !important; color: ${HOME_PALETTE.navy} !important; font-weight: 600; }
-  .hm-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 14px; width: 100%; }
-  .hm-actions-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; max-width: 460px; }
-  .hm-talk { width: 100%; max-width: 460px; font-size: 17px; padding: 17px 30px; }
-
-  /* Write to Me */
-  .hm-form { margin: 0 auto; max-width: 480px; text-align: center; }
-  .hm-footer { padding: 8px 20px 32px; text-align: center; }
-
-  @media (max-width: 760px) { .hm-section { padding: 48px 16px; } }
-  @media (max-width: 420px) { .hm-btn { padding: 14px 12px; letter-spacing: 0.08em; } }
+  .lp-corner { position: absolute; width: 34px; height: 34px; color: ${COLORS.ink}; }
+  .lp-corner.tl { top: 8px; left: 8px; } .lp-corner.tr { top: 8px; right: 8px; transform: scaleX(-1); }
+  .lp-corner.bl { bottom: 8px; left: 8px; transform: scaleY(-1); } .lp-corner.br { bottom: 8px; right: 8px; transform: scale(-1, -1); }
+  .lp-ink { filter: url(#lp-ink); }
+  .hm h1, .hm h2 { margin: 0; color: ${COLORS.ink}; font-weight: 400; }
+  .lp-name { font-family: ${font.poster}; font-size: clamp(38px, 9.4vw, 76px); line-height: 0.98; letter-spacing: 0.01em; text-transform: uppercase; }
+  .lp-name span { display: block; }
+  .lp-ribbon { position: relative; width: min(100%, 420px); height: 78px; }
+  .lp-ribbon svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .lp-ribbon p {
+    position: absolute; inset: 0 0 10px; display: flex; align-items: center; justify-content: center; margin: 0;
+    font-family: ${font.display}; font-weight: 800; font-size: clamp(20px, 4.6vw, 28px); letter-spacing: 0.22em; text-transform: uppercase; color: ${COLORS.surface};
+  }
+  .lp-divider { width: min(100%, 360px); height: 22px; color: ${COLORS.ink}; }
+  .lp-headline { font-family: ${font.poster}; text-transform: uppercase; line-height: 1.02; }
+  .lp-headline span { display: block; }
+  .lp-headline .big { font-size: clamp(34px, 7.6vw, 60px); }
+  .lp-headline .small { font-size: clamp(19px, 4vw, 30px); letter-spacing: 0.06em; margin-top: 8px; }
+  .lp-text { margin: 0; max-width: 520px; font-size: 18.5px; line-height: 1.7; color: ${COLORS.ink}; }
+  .lp-free { width: min(100%, 520px); box-sizing: border-box; padding: 18px 12px; border-top: 4px double ${COLORS.ink}; border-bottom: 4px double ${COLORS.ink}; display: flex; flex-direction: column; gap: 8px; }
+  .lp-free strong { font-family: ${font.display}; font-weight: 800; font-size: clamp(24px, 5.2vw, 34px); letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.1; }
+  .lp-free span { font-style: italic; font-size: 18px; line-height: 1.6; }
+  .lp-welcome { margin: 0; font-family: ${font.display}; font-weight: 700; font-size: 24px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .lp-welcome b { font-family: ${font.body}; font-weight: 400; }
+  .lp-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; margin-top: 6px; }
+  .lp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; max-width: 470px; }
+  .lp-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 12px; box-sizing: border-box; text-decoration: none; cursor: pointer;
+    font-family: ${font.display}; font-weight: 700; font-size: 17px; letter-spacing: 0.16em; text-transform: uppercase; line-height: 1.1;
+    padding: 15px 18px; color: ${COLORS.ink}; background: ${COLORS.surface};
+    border: 2px solid ${COLORS.ink}; box-shadow: inset 0 0 0 3px ${COLORS.surface}, inset 0 0 0 4px ${COLORS.ink};
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .lp-btn:hover { background: ${COLORS.ink}; color: ${COLORS.surface}; box-shadow: inset 0 0 0 3px ${COLORS.ink}, inset 0 0 0 4px ${COLORS.surface}; }
+  .lp-btn-solid { background: ${COLORS.ink}; color: ${COLORS.surface}; box-shadow: inset 0 0 0 3px ${COLORS.ink}, inset 0 0 0 4px ${COLORS.surface}; }
+  .lp-btn-solid:hover { background: ${COLORS.accentHover}; }
+  .lp-talk { width: 100%; max-width: 470px; font-size: 22px; padding: 18px; }
+  .lp-btn:focus-visible { outline: 2px solid ${COLORS.ink}; outline-offset: 4px; }
+  .lp-star { font-size: 0.8em; }
+  .lp-below { max-width: 660px; margin: 40px auto 0; display: flex; flex-direction: column; align-items: center; gap: 28px; }
+  .lp-below > .lp-form { width: 100%; max-width: 480px; }
+  @media (prefers-reduced-motion: reduce) { .lp-btn { transition: none; } }
+  @media (max-width: 520px) {
+    .lp-poster { padding: 44px 20px 40px; outline-offset: 5px; gap: 18px; }
+    .lp-corner { width: 26px; height: 26px; }
+    .lp-text { font-size: 17px; }
+    .lp-btn { font-size: 15px; letter-spacing: 0.1em; padding: 14px 10px; }
+    .lp-talk { font-size: 19px; }
+  }
 `;
 
-// Simple line icons, drawn in the text colour.
-function HmIcon({ name, size = 24 }) {
-  const paths = {
-    phone: "M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z",
-  };
+// A small woodcut-style flourish for the poster's corners.
+function LpCorner({ pos }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      <path d={paths[name]} />
+    <svg className={`lp-corner ${pos}`} viewBox="0 0 34 34" aria-hidden="true" focusable="false">
+      <path fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" d="M2 32 V8 Q2 2 8 2 H32 M7 32 V12 Q7 7 12 7 H32" />
+      <path fill="currentColor" d="M14 14 L17 11 L20 14 L17 17 Z" />
     </svg>
+  );
+}
+
+// A rule with a star in the middle and small diamonds at the ends.
+function LpDivider() {
+  return (
+    <svg className="lp-divider" viewBox="0 0 360 22" aria-hidden="true" focusable="false">
+      <path fill="none" stroke="currentColor" strokeWidth="1.3" d="M14 9 H148 M14 13 H148 M212 9 H346 M212 13 H346" />
+      <path fill="currentColor" d="M4 11 L10 6 L16 11 L10 16 Z M344 11 L350 6 L356 11 L350 16 Z" />
+      <path fill="currentColor" d="M180 1.5 L183.2 8.4 L190.6 9.1 L185 14 L186.7 21.2 L180 17.4 L173.3 21.2 L175 14 L169.4 9.1 L176.8 8.4 Z" />
+      <circle cx="160" cy="11" r="2.2" fill="currentColor" /><circle cx="200" cy="11" r="2.2" fill="currentColor" />
+    </svg>
+  );
+}
+
+// A curved ribbon banner with folded tails; the words sit on top as text.
+function LpRibbon({ children }) {
+  return (
+    <div className="lp-ribbon">
+      <svg viewBox="0 0 420 78" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path fill={COLORS.accentHover} stroke={COLORS.ink} strokeWidth="1.5" d="M2 30 H62 V70 H2 L20 50 Z M418 30 H358 V70 H418 L400 50 Z" />
+        <path fill={COLORS.accentPressed} d="M62 70 L44 60 V62 Z M358 70 L376 60 V62 Z" />
+        <path fill={COLORS.ink} stroke={COLORS.ink} strokeWidth="1.5" d="M44 18 Q210 2 376 18 V60 Q210 44 44 60 Z" />
+        <path fill="none" stroke={COLORS.surface} strokeWidth="1" strokeDasharray="0" d="M52 24 Q210 9 368 24 M52 54 Q210 39 368 54" opacity="0.7" />
+      </svg>
+      <p>{children}</p>
+    </div>
   );
 }
 
 function HomeScreen() {
   const c = useColors();
-
   return (
     <div className="hm" data-testid="home">
       <style>{HOME_CSS}</style>
 
-      {/* The holiday message, then Talk now, Mind Exercises and Brain Games. */}
-      <section className="hm-section hm-hero" aria-labelledby="hm-title">
-        <div className="hm-inner hm-welcome">
-          <h1 id="hm-title">Benjamin Mithra</h1>
-          <p className="hm-role">Life Coach</p>
-          <hr className="hm-rule" />
-          <h2>Feeling lonely this Holiday Season?</h2>
-          {HOME_HOLIDAY_PARAGRAPHS.map((t) => <p key={t}>{t}</p>)}
-          <p className="hm-welcome-end">You're welcome here. ❤️</p>
-          <div className="hm-actions">
-            <Link to={VIEW_PATH.call} className="hm-btn hm-talk" data-testid="home-talk-now"><HmIcon name="phone" size={18} />Talk now</Link>
-            <div className="hm-actions-row">
-              <Link to={VIEW_PATH.exercises} className="hm-btn hm-btn-line" data-testid="home-mind-exercises">Mind Exercises</Link>
-              <Link to={VIEW_PATH.games} className="hm-btn hm-btn-line" data-testid="home-brain-games">Brain Games</Link>
-            </div>
+      <section className="lp-poster" aria-labelledby="hm-title" data-testid="poster">
+        {["tl", "tr", "bl", "br"].map((p) => <LpCorner key={p} pos={p} />)}
+        <LpDivider />
+        <h1 id="hm-title" className="lp-name lp-ink"><span>Benjamin</span> <span>Mithra</span></h1>
+        <LpRibbon>Life Coach</LpRibbon>
+        <LpDivider />
+        <h2 className="lp-headline lp-ink"><span className="big">Feeling lonely</span> <span className="small">this Holiday Season?</span></h2>
+        <p className="lp-text">{HOME_HOLIDAY_OPENING}</p>
+        <p className="lp-free"><strong className="lp-ink">It's absolutely free.</strong> <span>No charges, no catch, no obligations. Just a genuine conversation.</span></p>
+        {HOME_HOLIDAY_CLOSING.map((t) => <p key={t} className="lp-text">{t}</p>)}
+        <p className="lp-welcome lp-ink">You're welcome here. <b aria-label="heart">♥</b></p>
+        <LpDivider />
+        <div className="lp-actions">
+          <Link to={VIEW_PATH.call} className="lp-btn lp-btn-solid lp-talk" data-testid="home-talk-now"><span className="lp-star" aria-hidden="true">★</span>Talk now<span className="lp-star" aria-hidden="true">★</span></Link>
+          <div className="lp-row">
+            <Link to={VIEW_PATH.exercises} className="lp-btn" data-testid="home-mind-exercises">Mind Exercises</Link>
+            <Link to={VIEW_PATH.games} className="lp-btn" data-testid="home-brain-games">Brain Games</Link>
           </div>
         </div>
       </section>
 
-      {/* Write to Me */}
-      <section className="hm-section">
-        <div className="hm-form">
+      <div className="lp-below">
+        <div className="lp-form">
           <WriteToMeForm id="write-to-me" style={styles(c).homeWriteToMe} submitStyle={styles(c).btnGold} />
         </div>
-      </section>
-
-      <footer className="hm-footer">
-        <p style={{ ...styles(c).homeFooterLine, margin: "0 auto" }}>
-          <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
-          <span style={styles(c).homeFooterDot}>·</span>{" "}
-          <Link to={VIEW_PATH.privacy} className="home-footer-link" style={styles(c).homeFooterLink}>Privacy Policy</Link>{" "}
-          <span style={styles(c).homeFooterDot}>·</span>{" "}
-          <Link to={VIEW_PATH.disclaimer} className="home-footer-link" style={styles(c).homeFooterLink}>Disclaimer</Link>{" "}
-          <span style={styles(c).homeFooterDot}>·</span>{" "}
-          <Link to={VIEW_PATH.terms} className="home-footer-link" style={styles(c).homeFooterLink}>Terms and Conditions</Link>
-        </p>
-      </footer>
+        <footer className="hm-footer">
+          <p style={{ ...styles(c).homeFooterLine, margin: "0 auto" }}>
+            <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
+            <span style={styles(c).homeFooterDot}>·</span>{" "}
+            <Link to={VIEW_PATH.privacy} className="home-footer-link" style={styles(c).homeFooterLink}>Privacy Policy</Link>{" "}
+            <span style={styles(c).homeFooterDot}>·</span>{" "}
+            <Link to={VIEW_PATH.disclaimer} className="home-footer-link" style={styles(c).homeFooterLink}>Disclaimer</Link>{" "}
+            <span style={styles(c).homeFooterDot}>·</span>{" "}
+            <Link to={VIEW_PATH.terms} className="home-footer-link" style={styles(c).homeFooterLink}>Terms and Conditions</Link>
+          </p>
+        </footer>
+      </div>
     </div>
   );
 }
@@ -3764,7 +3828,7 @@ function GuideDogScene({ nodes, scale }) {
         <path fill="none" strokeLinecap="round" d="M2 100 H98" />
       </g>
       {CHRISTMAS_THEME && <GdChristmas />}
-      <g ref={r("zzz")} opacity="0" fill={accent} {...GD_OUTLINE} paintOrder="stroke" fontFamily="'Space Mono', monospace" fontWeight="700">
+      <g ref={r("zzz")} opacity="0" fill={accent} {...GD_OUTLINE} paintOrder="stroke" fontFamily={font.mono} fontWeight="700">
         <text className="gd-z" x="66" y="24" fontSize="8">z</text>
         <text className="gd-z gd-z2" x="73" y="14" fontSize="10">z</text>
         <text className="gd-z gd-z3" x="81" y="3" fontSize="12">z</text>
@@ -3849,9 +3913,9 @@ const GUIDE_DOG_CSS = `
     background: ${COLORS.secondary}; border-right: 1px solid ${COLORS.strongLine}; border-bottom: 1px solid ${COLORS.strongLine};
     transform: rotate(45deg);
   }
-  .gd-tip { font-family: 'Source Serif 4', Georgia, serif; font-size: 14.5px; line-height: 1.5; color: ${COLORS.ink}; margin: 0; }
-  .gd-link { font-family: 'Source Serif 4', Georgia, serif; font-size: 14px; color: ${COLORS.accent}; text-decoration: underline; text-underline-offset: 3px; }
-  .gd-hide { align-self: flex-start; font-family: 'Space Mono', monospace; font-size: 11px; color: ${COLORS.muted}; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+  .gd-tip { font-family: ${font.body}; font-size: 14.5px; line-height: 1.5; color: ${COLORS.ink}; margin: 0; }
+  .gd-link { font-family: ${font.body}; font-size: 14px; color: ${COLORS.accent}; text-decoration: underline; text-underline-offset: 3px; }
+  .gd-hide { align-self: flex-start; font-family: ${font.mono}; font-size: 11px; color: ${COLORS.muted}; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
   .gd-paw {
     position: fixed; left: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 30; width: 34px; height: 34px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer;
@@ -4609,7 +4673,7 @@ export default function App() {
   useEffect(() => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Space+Mono:wght@400;700&display=swap";
+    link.href = FONT_URL;
     document.head.appendChild(link);
     return () => { if (link.parentNode) link.parentNode.removeChild(link); };
   }, []);
@@ -4744,6 +4808,11 @@ export default function App() {
             .talk-pulse::after { box-shadow: 0 0 0 3px ${withAlpha(c.accent, 0.45)}; background: ${withAlpha("#1ECFC0", 0.14)}; }
           }
           .fade-in { animation: fadeIn 0.35s ease both; }
+          /* Victorian letterpress: a thin double-line border round every page,
+             and worn, slightly irregular ink on page headings. */
+          .lp-frame { position: fixed; inset: 6px; z-index: 27; pointer-events: none; border: 4px double ${withAlpha(c.ink, 0.78)}; }
+          main h1, main h2 { filter: url(#lp-ink); }
+          @media (max-width: 600px) { .lp-frame { inset: 3px; border-width: 3px; } }
           .nav-btn:hover { background: ${c.accentPressed} !important; border-color: ${c.accentPressed} !important; color: ${c.onAccent} !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
           .hero-btn:hover { background: ${c.accentHover} !important; border-color: ${c.accentHover} !important; color: ${c.onAccent} !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
           .home-footer-link:hover { color: ${c.accent} !important; }
@@ -4977,7 +5046,16 @@ function styles(c) {
 
     // ---- Background ----
     eliteWrap: { position: "fixed", inset: 0, overflow: "hidden", zIndex: 0, pointerEvents: "none", background: c.bg },
-    eliteVignette: { position: "absolute", inset: 0 },
+    eliteVignette: {
+      position: "absolute", inset: 0,
+      backgroundImage: [
+        PAPER_GRAIN,
+        "radial-gradient(ellipse at 18% 22%, rgba(120, 82, 40, 0.10), transparent 32%)",
+        "radial-gradient(ellipse at 82% 68%, rgba(120, 82, 40, 0.08), transparent 30%)",
+        "radial-gradient(ellipse at center, transparent 58%, rgba(70, 42, 18, 0.22) 100%)",
+      ].join(", "),
+      backgroundSize: "320px 320px, auto, auto, auto",
+    },
 
     mainHome: { padding: 0, maxWidth: "none", width: "100%" },
     mainChess: { paddingLeft: 4, paddingRight: 4 },

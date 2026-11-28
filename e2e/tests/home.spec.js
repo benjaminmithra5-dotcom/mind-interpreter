@@ -19,7 +19,7 @@ test("the heading, the holiday message, and nothing else from before", async ({ 
     "It's absolutely free. No charges, no catch, no obligations. Just a genuine conversation.",
     "The holiday season is a time for warmth, kindness and connection. You deserve to feel heard, valued and remembered.",
     "Let's share a conversation, a smile and a little happiness. Sometimes, a friendly voice can make all the difference.",
-    "You're welcome here. ❤️",
+    "You're welcome here. ♥",
   ]) await expect(home.getByText(line, { exact: true })).toBeVisible();
   // The earlier sections are gone.
   for (const gone of ["How I Can Help", "A Personal Approach to Senior Care", "More Than Assistance", "Explore the Mind", "Let's Talk About the Support You Need", "Explore Services", "Online Support"]) {
@@ -36,7 +36,7 @@ test("Talk now, then Mind Exercises next to Brain Games, below the message", asy
   const talk = page.getByTestId("home-talk-now");
   const ex = page.getByTestId("home-mind-exercises");
   const games = page.getByTestId("home-brain-games");
-  const msg = await page.getByText("You're welcome here. ❤️").boundingBox();
+  const msg = await page.getByText("You're welcome here. ♥").boundingBox();
   const [t, e, g] = [await talk.boundingBox(), await ex.boundingBox(), await games.boundingBox()];
   expect(t.y).toBeGreaterThan(msg.y);
   expect(e.y).toBeGreaterThan(t.y + t.height - 1);
@@ -98,7 +98,7 @@ test("Mind Exercises, Brain Games and RV Lab still open as before", async ({ ope
   await page.goto("/exercises/rv-lab");
   await expect(page.locator("main")).toContainText(/remote viewing|target/i);
   await page.getByRole("button", { name: "Menu" }).click();
-  await expect(page.locator('a.nav-btn[href="/exercises/rv-lab"]')).toHaveCSS("background-color", "rgb(14, 90, 95)");
+  await expect(page.locator('a.nav-btn[href="/exercises/rv-lab"]')).toHaveCSS("background-color", "rgb(46, 29, 18)");
 });
 
 test("Contact: only Get in touch and what follows", async ({ open }) => {
@@ -107,6 +107,21 @@ test("Contact: only Get in touch and what follows", async ({ open }) => {
   await expect(main.getByRole("heading", { level: 1 })).toHaveText("Get in touch");
   await expect(main.getByRole("link", { name: "Message on WhatsApp" })).toBeVisible();
   await expect(main.getByText("Write to Me", { exact: true })).toBeVisible();
+});
+
+test("the poster: Victorian type, ink on parchment, a double-line border", async ({ open }) => {
+  const page = await open("/", { viewport: { width: 1280, height: 900 } });
+  const poster = page.getByTestId("poster");
+  expect(await poster.evaluate((el) => getComputedStyle(el).borderTopStyle)).toBe("double");
+  expect(await page.locator("#hm-title").evaluate((el) => getComputedStyle(el).fontFamily)).toContain("Ultra");
+  expect(await page.locator("#hm-title").evaluate((el) => getComputedStyle(el).filter)).toContain("lp-ink");
+  expect(await page.locator(".lp-text").first().evaluate((el) => getComputedStyle(el).fontFamily)).toContain("Old Standard TT");
+  expect(await page.locator("#hm-title").evaluate((el) => getComputedStyle(el).color)).toBe("rgb(36, 23, 15)");
+  // Every page sits inside the double-line border.
+  for (const path of ["/", "/games", "/exercises", "/articles"]) {
+    const p = await open(path, { viewport: { width: 1280, height: 900 } });
+    expect(await p.locator(".lp-frame").evaluate((el) => getComputedStyle(el).borderTopStyle), path).toBe("double");
+  }
 });
 
 test("responsive, with no sideways scroll and no console errors", async ({ open }) => {
