@@ -47,7 +47,7 @@ test("desktop: the Talk now tab glows every 2 seconds and wiggles every 3.5 seco
   const pulse = await keyframes(page, "talkPulse");
   for (const k of pulse) for (const p of Object.keys(k.props)) expect(["box-shadow", "opacity"]).toContain(p);
   const peak = pulse.find((k) => k.at === "25%").props["box-shadow"];
-  expect(peak).toContain("rgba(14, 90, 95, 0.45)");
+  expect(peak).toContain("rgba(46, 29, 18, 0.45)");
   expect(peak).toContain("rgba(30, 207, 192, 0.75)");
   expect(pulse.find((k) => k.at === "70%").props["box-shadow"]).toMatch(/rgba\(30, 207, 192, 0\) 0px 0px 10px 12px/);
 
@@ -104,12 +104,12 @@ test("the glow and the wiggle never move or resize the tab, the nav, or where yo
   expect(await box(talkTab(still))).toEqual(await box(talkTab(moving)));
 });
 
-test("reduced motion: no glow pulse and no wiggle, just a steady teal outline and a soft tint, with AA contrast", async ({ open }) => {
+test("reduced motion: no glow pulse and no wiggle, just a steady ink outline and a soft tint, with AA contrast", async ({ open }) => {
   const page = await open("/", { viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
   const tab = talkTab(page);
   const s = await after(tab);
   expect(s.name).toBe("none");
-  expect(s.boxShadow).toBe("rgba(14, 90, 95, 0.45) 0px 0px 0px 3px");
+  expect(s.boxShadow).toBe("rgba(46, 29, 18, 0.45) 0px 0px 0px 3px");
   expect(await shake(tab)).toMatchObject({ name: "none", transform: "none" });
   expect(await page.evaluate(() => document.getAnimations().filter((a) => ["talkPulse", "talkShake"].includes(a.animationName)).length)).toBe(0);
 
@@ -145,7 +145,7 @@ test("mobile menu: the ☰ button has a glowing dot that goes away while the men
   const dot = page.getByTestId("menu-dot");
   await expect(dot).toBeVisible();
   expect(await after(dot)).toMatchObject({ name: "talkPulse", duration: "2s", count: "infinite" });
-  expect(await dot.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(14, 90, 95)");
+  expect(await dot.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(46, 29, 18)");
   const before = await box(menu);
   expect(await noSidewaysScroll(page)).toBe(true);
 
@@ -171,7 +171,7 @@ test("on /call the Talk now item keeps its active style and still pulses", async
   await expect(page.getByTestId("menu-dot")).toBeVisible();
   await page.getByRole("button", { name: "Menu" }).click();
   const item = page.locator('a.nav-btn[href="/call"]');
-  expect(await item.evaluate((el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el).color])).toEqual(["rgb(14, 90, 95)", "rgb(255, 255, 255)"]);
+  expect(await item.evaluate((el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el).color])).toEqual(["rgb(46, 29, 18)", "rgb(243, 232, 207)"]);
   expect((await after(item)).name).toBe("talkPulse");
 });
 
