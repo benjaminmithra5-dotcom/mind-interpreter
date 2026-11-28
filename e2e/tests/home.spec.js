@@ -1,6 +1,6 @@
 import { test, expect } from "./helpers.js";
 
-// The home page: Benjamin Mithra, Life Coach for Seniors, with a holiday
+// The home page: Benjamin Mithra, Life Coach, with a holiday
 // message, Talk now, Mind Exercises and Brain Games, the Write to Me form
 // and the footer.
 const NAV = ["Home", "Articles", "Mind Exercises", "Brain Games", "RV Lab", "Talk now"];
@@ -8,10 +8,11 @@ const noSidewaysScroll = (page) => page.evaluate(() => document.documentElement.
 
 test("the heading, the holiday message, and nothing else from before", async ({ open }) => {
   const page = await open("/", { viewport: { width: 1280, height: 900 } });
-  await expect(page).toHaveTitle("Benjamin Mithra | Life Coach for Seniors");
+  await expect(page).toHaveTitle("Benjamin Mithra | Life Coach");
   const home = page.getByTestId("home");
   await expect(home.getByRole("heading", { level: 1 })).toHaveText("Benjamin Mithra");
-  await expect(home.getByText("Life Coach for Seniors", { exact: true })).toBeVisible();
+  await expect(home.getByText("Life Coach", { exact: true })).toBeVisible();
+  await expect(home.getByText(/Seniors/)).toHaveCount(0);
   expect(await home.getByRole("heading", { level: 2 }).allTextContents()).toEqual(["Feeling lonely this Holiday Season?"]);
   for (const line of [
     "You don't have to spend the holidays feeling alone. If you'd like someone to talk to, share a story with, or simply spend a little time having a friendly conversation, I'm here for you.",
