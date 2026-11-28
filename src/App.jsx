@@ -1093,7 +1093,7 @@ function WriteToMeForm({ style, id, submitStyle }) {
 }
 
 // =================================================================
-// Home: Benjamin Mithra, Life Coach for Seniors.
+// Home: Benjamin Mithra, Life Coach.
 // A holiday message, then Talk now, Mind Exercises and Brain Games, the
 // Write to Me form (Diego's home tip points to it) and the footer. Its
 // own quiet palette (navy, champagne gold, ivory, sage); the navigation,
@@ -1173,7 +1173,7 @@ function HomeScreen() {
       <section className="hm-section hm-hero" aria-labelledby="hm-title">
         <div className="hm-inner hm-welcome">
           <h1 id="hm-title">Benjamin Mithra</h1>
-          <p className="hm-role">Life Coach for Seniors</p>
+          <p className="hm-role">Life Coach</p>
           <hr className="hm-rule" />
           <h2>Feeling lonely this Holiday Season?</h2>
           {HOME_HOLIDAY_PARAGRAPHS.map((t) => <p key={t}>{t}</p>)}
@@ -4488,7 +4488,7 @@ const EXERCISE_KEY_FROM_SLUG = Object.fromEntries(Object.entries(EXERCISE_SLUG).
 // change (including on the very first load, which is what the
 // prerender step below captures into the static HTML for that URL).
 const PAGE_META = {
-  home: { title: "Benjamin Mithra | Life Coach for Seniors", description: "Feeling lonely this holiday season? Benjamin Mithra, Life Coach for Seniors, offers a free, friendly conversation: no charges, no catch, no obligations." },
+  home: { title: "Benjamin Mithra | Life Coach", description: "Feeling lonely this holiday season? Benjamin Mithra, Life Coach, offers a free, friendly conversation: no charges, no catch, no obligations." },
   journals: { title: "Journals | Mind Interpreter", description: "Reflections and reading on consciousness, cognition, and mindfulness from Benjamin Mithra. New journal entries coming soon." },
   exercises: { title: "Mind Exercises | Mind Interpreter", description: "Guided mindfulness breathing, leetspeak reading, flow typing, and Guilford's divergent thinking test to train focus, calm, and cognitive fluency." },
   "exercise-breathing": { title: "Mindfulness Breathing Exercise | Mind Interpreter", description: "A guided breathing exercise: inhale, hold, exhale, and hold again, paced to help you slow down and breathe more deliberately." },
