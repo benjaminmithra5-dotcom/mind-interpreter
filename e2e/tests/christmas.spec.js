@@ -88,7 +88,7 @@ test("Santa and his reindeer fly a slow loop around the screen, small, turning r
   }
 });
 
-test("a snowman stands bottom right, beside the WhatsApp button, on the snow along the bottom", async ({ open }) => {
+test("a snowman stands in the bottom-right corner (where the WhatsApp button was), on the snow along the bottom", async ({ open }) => {
   for (const width of [1280, 390]) {
     const page = await open("/faq", { viewport: { width, height: 844 } });
     await page.locator(".gd-scene").waitFor();
@@ -103,10 +103,9 @@ test("a snowman stands bottom right, beside the WhatsApp button, on the snow alo
     expect(Math.round(g.x)).toBe(0);
     expect(Math.round(g.width)).toBe(view.width);
     expect(Math.round(g.y + g.height)).toBe(view.height);
-    // The snowman stands in the snow, just left of where the WhatsApp button sits (right 20px, 56px wide).
+    // The snowman stands in the snow, 20px from the right, where the WhatsApp button used to be.
     expect(s.y + s.height).toBeGreaterThan(g.y);
-    expect(s.x + s.width).toBeLessThanOrEqual(view.width - 20 - 56);
-    expect(s.x + s.width).toBeGreaterThan(view.width - 20 - 56 - 20);
+    expect(Math.round(view.width - (s.x + s.width))).toBe(20);
     // Clear of Diego's house and tree.
     const tree = await page.getByTestId("christmas-tree").boundingBox();
     expect(s.x).toBeGreaterThan(tree.x + tree.width);
@@ -116,18 +115,18 @@ test("a snowman stands bottom right, beside the WhatsApp button, on the snow alo
       expect(await el.evaluate((n) => getComputedStyle(n).pointerEvents)).toBe("none");
     }
   }
-  // Without the WhatsApp button the snowman moves into the corner.
+  // The same on every page.
   const page = await open("/call", { viewport: { width: 1280, height: 900 } });
   const s = await page.getByTestId("snowman").boundingBox();
-  expect(Math.round(1280 - (s.x + s.width))).toBe(12);
+  expect(Math.round(1280 - (s.x + s.width))).toBe(20);
 });
 
 test("the lights don't cover the navigation: the tabs still work", async ({ open }) => {
   const page = await open("/", { viewport: { width: 390, height: 844 } });
-  await page.locator(".top-tabs").getByRole("link", { name: "Articles" }).click();
+  await page.getByTestId("poster").getByRole("link", { name: "Articles", exact: true }).click();
   await expect(page).toHaveURL(/\/articles$/);
   await page.getByRole("button", { name: "Menu" }).click();
-  await expect(page.locator('a.nav-btn[href="/call"]')).toBeVisible();
+  await expect(page.locator('a.nav-btn[href="/games"]')).toBeVisible();
 });
 
 test("Diego wears a Santa cap, his roof has snow and lights, and a tree stands beside the house", async ({ open }) => {
