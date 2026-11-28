@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useRef, useMemo, createContext, useContext } from "react";
+import { Fragment, useState, useEffect, useLayoutEffect, useRef, useMemo, createContext, useContext } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import * as Tone from "tone";
 import { marked } from "marked";
@@ -681,6 +681,12 @@ const GAME_COMPONENTS = { numbers: NumbersMemory, verbal: VerbalMemory, kims: Ki
 // tone for depth, and nothing else — no glow, no gradients, no
 // motion competing with the content.
 // =================================================================
+// The wooden board behind the posters: long streaky grain and plank seams.
+const WOOD_GRAIN = `url("data:image/svg+xml;utf8,${encodeURIComponent(
+  "<svg xmlns='http://www.w3.org/2000/svg' width='900' height='220'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='0.004 0.09' numOctaves='4' seed='5' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.08  0 0 0 0 0.03  0 0 0 1.1 -0.25'/></filter><rect width='100%' height='100%' filter='url(#w)'/></svg>"
+)}")`;
+const WOOD_PLANKS = "repeating-linear-gradient(180deg, transparent 0 166px, rgba(25, 12, 4, 0.55) 166px 168px, rgba(255, 220, 170, 0.08) 168px 169px, transparent 169px 170px)";
+
 // Grain for the parchment: fine brown noise, tiled.
 const PAPER_GRAIN = `url("data:image/svg+xml;utf8,${encodeURIComponent(
   "<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.24  0 0 0 0 0.15  0 0 0 0 0.07  0 0 0 0.62 -0.12'/></filter><rect width='100%' height='100%' filter='url(#g)'/></svg>"
@@ -706,7 +712,6 @@ function CosmicBackground() {
           <feComposite in="rough" in2="holes" operator="in" />
         </filter>
       </svg>
-      <div className="lp-frame" aria-hidden="true" />
     </>
   );
 }
@@ -877,14 +882,13 @@ function SantaInTheSky() {
   );
 }
 
-// A snowman in the bottom-right corner, just left of the WhatsApp button
-// (or in the corner itself on pages without it). He waves now and then.
-function Snowman({ besideWhatsApp }) {
+// A snowman in the bottom-right corner. He waves now and then.
+function Snowman() {
   const line = { stroke: GD_INK, strokeWidth: 2, strokeLinejoin: "round", strokeLinecap: "round", vectorEffect: "non-scaling-stroke" };
   return (
     <svg
       className="xmas-snowman" viewBox="0 -6 64 94" aria-hidden="true" focusable="false" data-testid="snowman"
-      style={{ right: besideWhatsApp ? "calc(84px + env(safe-area-inset-right, 0px))" : "calc(12px + env(safe-area-inset-right, 0px))" }}
+      style={{ right: "calc(20px + env(safe-area-inset-right, 0px))" }}
     >
       {/* Arms (the right one waves). */}
       <path fill="none" stroke="#6B4226" strokeWidth="2.2" strokeLinecap="round" d="M21 42 L6 33 M11 36 L7 29 M11 36 L3 37" />
@@ -1120,74 +1124,97 @@ function WriteToMeForm({ style, id, submitStyle }) {
 }
 
 // =================================================================
-// Home: a Victorian letterpress poster. Benjamin Mithra, Life Coach, a
-// holiday message, then Talk now, Mind Exercises and Brain Games. Below the
-// poster: the Write to Me form (Diego's home tip points to it) and the
-// footer. Words stay as written; only the setting is a printed poster.
+// Home: one Victorian letterpress poster pinned to the board, sized to fit
+// the screen with no scrolling. Inside it: the tabs, Benjamin's picture
+// and name, "Life Coach" on a ribbon, WhatsApp, the holiday message, Talk
+// now, Mind Exercises and Brain Games, and the footer. All sizes are in
+// em, and the poster's font size is fitted to the window (see fitPoster).
 // =================================================================
 const HOME_HOLIDAY_OPENING = "You don't have to spend the holidays feeling alone. If you'd like someone to talk to, share a story with, or simply spend a little time having a friendly conversation, I'm here for you.";
 const HOME_HOLIDAY_CLOSING = [
   "The holiday season is a time for warmth, kindness and connection. You deserve to feel heard, valued and remembered.",
   "Let's share a conversation, a smile and a little happiness. Sometimes, a friendly voice can make all the difference.",
 ];
+const HOME_WHATSAPP_MESSAGE = "Hi Benjamin, I found your website and I'd like to talk.";
+// Room kept clear above the poster (the Christmas lights) and below it
+// when Diego and the snowman would otherwise sit on it.
+const POSTER_TOP = 30;
 
 const HOME_CSS = `
-  .hm { width: 100%; color: ${COLORS.ink}; font-family: ${font.body}; text-align: center; padding: 28px 16px 8px; box-sizing: border-box; }
+  .lp-home { height: 100vh; height: 100dvh; width: 100%; box-sizing: border-box; padding-top: ${POSTER_TOP}px; overflow: hidden; display: flex; justify-content: center; align-items: flex-start; }
   .lp-poster {
-    position: relative; max-width: 660px; margin: 0 auto; box-sizing: border-box; padding: 54px 40px 48px;
+    position: relative; box-sizing: border-box; width: min(94vw, 680px); font-size: 14px; padding: 1.6em 2em 1.2em; color: ${COLORS.ink}; font-family: ${font.body}; text-align: center;
     background-color: ${COLORS.surface}; background-image: ${PAPER_GRAIN}; background-size: 320px 320px;
-    border: 5px double ${COLORS.ink}; outline: 1px solid ${withAlpha(COLORS.ink, 0.8)}; outline-offset: 7px;
-    display: flex; flex-direction: column; align-items: center; gap: 22px;
+    border: 0.36em double ${COLORS.ink}; outline: 1px solid ${withAlpha(COLORS.ink, 0.8)}; outline-offset: -0.85em;
+    box-shadow: 0 18px 34px rgba(30, 16, 6, 0.5);
+    display: flex; flex-direction: column; align-items: center; gap: 0.62em;
   }
-  .lp-corner { position: absolute; width: 34px; height: 34px; color: ${COLORS.ink}; }
-  .lp-corner.tl { top: 8px; left: 8px; } .lp-corner.tr { top: 8px; right: 8px; transform: scaleX(-1); }
-  .lp-corner.bl { bottom: 8px; left: 8px; transform: scaleY(-1); } .lp-corner.br { bottom: 8px; right: 8px; transform: scale(-1, -1); }
+  .lp-poster .lp-pin { top: -0.75em; }
+  .lp-corner { position: absolute; width: 1.9em; height: 1.9em; color: ${COLORS.ink}; }
+  .lp-corner.tl { top: 0.55em; left: 0.55em; } .lp-corner.tr { top: 0.55em; right: 0.55em; transform: scaleX(-1); }
+  .lp-corner.bl { bottom: 0.55em; left: 0.55em; transform: scaleY(-1); } .lp-corner.br { bottom: 0.55em; right: 0.55em; transform: scale(-1, -1); }
   .lp-ink { filter: url(#lp-ink); }
-  .hm h1, .hm h2 { margin: 0; color: ${COLORS.ink}; font-weight: 400; }
-  .lp-name { font-family: ${font.poster}; font-size: clamp(38px, 9.4vw, 76px); line-height: 0.98; letter-spacing: 0.01em; text-transform: uppercase; }
+  .lp-poster h1, .lp-poster h2, .lp-poster p { margin: 0; }
+
+  .lp-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4em; margin-bottom: 0.2em; }
+  .lp-tab {
+    display: inline-flex; align-items: center; justify-content: center; min-height: 2.1em; padding: 0 0.8em; box-sizing: border-box; text-decoration: none;
+    font-family: ${font.display}; font-weight: 700; font-size: 0.82em; letter-spacing: 0.1em; text-transform: uppercase; color: ${COLORS.ink};
+    border: 1px solid ${COLORS.ink}; background: transparent; transition: background 0.15s ease, color 0.15s ease;
+  }
+  .lp-tab:hover, .lp-tab[aria-current="page"] { background: ${COLORS.ink}; color: ${COLORS.surface}; }
+  .lp-tab svg { width: 1.25em; height: 1.25em; }
+
+  .lp-header { display: flex; align-items: center; justify-content: center; gap: 0.9em; }
+  .lp-photo { width: 5.4em; height: 5.4em; object-fit: cover; display: block; box-sizing: border-box; border: 0.28em double ${COLORS.ink}; padding: 0.14em; background: ${COLORS.surface}; filter: sepia(0.35) contrast(1.05); }
+  .lp-name { font-family: ${font.poster}; font-weight: 400; font-size: 2.85em; line-height: 0.98; letter-spacing: 0.01em; text-transform: uppercase; text-align: left; }
   .lp-name span { display: block; }
-  .lp-ribbon { position: relative; width: min(100%, 420px); height: 78px; }
+  .lp-ribbon { position: relative; width: min(100%, 22em); height: 3.6em; }
   .lp-ribbon svg { position: absolute; inset: 0; width: 100%; height: 100%; }
   .lp-ribbon p {
-    position: absolute; inset: 0 0 10px; display: flex; align-items: center; justify-content: center; margin: 0;
-    font-family: ${font.display}; font-weight: 800; font-size: clamp(20px, 4.6vw, 28px); letter-spacing: 0.22em; text-transform: uppercase; color: ${COLORS.surface};
+    position: absolute; inset: 0 0 0.45em; display: flex; align-items: center; justify-content: center;
+    font-family: ${font.display}; font-weight: 800; font-size: 1.32em; letter-spacing: 0.24em; text-transform: uppercase; color: ${COLORS.surface};
   }
-  .lp-divider { width: min(100%, 360px); height: 22px; color: ${COLORS.ink}; }
-  .lp-headline { font-family: ${font.poster}; text-transform: uppercase; line-height: 1.02; }
+  .lp-wa-row { display: flex; align-items: center; justify-content: center; gap: 0.6em; width: min(100%, 22em); }
+  .lp-rule { flex: 1; height: 0.5em; border-top: 1px solid ${COLORS.ink}; border-bottom: 1px solid ${COLORS.ink}; position: relative; }
+  .lp-rule::after { content: ""; position: absolute; top: 50%; width: 0.42em; height: 0.42em; background: ${COLORS.ink}; transform: translate(-50%, -50%) rotate(45deg); }
+  .lp-rule.l::after { left: 0; } .lp-rule.r::after { left: 100%; }
+  .lp-wa {
+    width: 2.6em; height: 2.6em; border-radius: 50%; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    color: ${COLORS.surface}; background: ${COLORS.ink}; box-shadow: 0 0 0 0.16em ${COLORS.surface}, 0 0 0 0.26em ${COLORS.ink}; transition: background 0.15s ease;
+  }
+  .lp-wa:hover { background: ${COLORS.accentHover}; }
+  .lp-wa svg { width: 1.45em; height: 1.45em; }
+  .lp-headline { font-family: ${font.poster}; font-weight: 400; text-transform: uppercase; line-height: 1.02; margin-top: 0.1em !important; }
   .lp-headline span { display: block; }
-  .lp-headline .big { font-size: clamp(34px, 7.6vw, 60px); }
-  .lp-headline .small { font-size: clamp(19px, 4vw, 30px); letter-spacing: 0.06em; margin-top: 8px; }
-  .lp-text { margin: 0; max-width: 520px; font-size: 18.5px; line-height: 1.7; color: ${COLORS.ink}; }
-  .lp-free { width: min(100%, 520px); box-sizing: border-box; padding: 18px 12px; border-top: 4px double ${COLORS.ink}; border-bottom: 4px double ${COLORS.ink}; display: flex; flex-direction: column; gap: 8px; }
-  .lp-free strong { font-family: ${font.display}; font-weight: 800; font-size: clamp(24px, 5.2vw, 34px); letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.1; }
-  .lp-free span { font-style: italic; font-size: 18px; line-height: 1.6; }
-  .lp-welcome { margin: 0; font-family: ${font.display}; font-weight: 700; font-size: 24px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .lp-headline .big { font-size: 2.15em; }
+  .lp-headline .small { font-size: 1.12em; letter-spacing: 0.06em; margin-top: 0.25em; }
+  .lp-text { max-width: 35em; font-size: 1em; line-height: 1.45; }
+  .lp-free { width: min(100%, 33em); box-sizing: border-box; padding: 0.5em 0.4em; border-top: 0.25em double ${COLORS.ink}; border-bottom: 0.25em double ${COLORS.ink}; display: flex; flex-direction: column; gap: 0.15em; }
+  .lp-free strong { font-family: ${font.display}; font-weight: 800; font-size: 1.5em; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.1; }
+  .lp-free span { font-style: italic; font-size: 1em; line-height: 1.4; }
+  .lp-welcome { font-family: ${font.display}; font-weight: 700; font-size: 1.22em; letter-spacing: 0.1em; text-transform: uppercase; }
   .lp-welcome b { font-family: ${font.body}; font-weight: 400; }
-  .lp-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; margin-top: 6px; }
-  .lp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; max-width: 470px; }
+  .lp-actions { display: flex; flex-direction: column; align-items: center; gap: 0.55em; width: min(100%, 26em); margin-top: 0.15em; }
+  .lp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55em; width: 100%; }
   .lp-btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 12px; box-sizing: border-box; text-decoration: none; cursor: pointer;
-    font-family: ${font.display}; font-weight: 700; font-size: 17px; letter-spacing: 0.16em; text-transform: uppercase; line-height: 1.1;
-    padding: 15px 18px; color: ${COLORS.ink}; background: ${COLORS.surface};
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.6em; box-sizing: border-box; text-decoration: none; cursor: pointer;
+    font-family: ${font.display}; font-weight: 700; font-size: 1em; letter-spacing: 0.13em; text-transform: uppercase; line-height: 1.1;
+    padding: 0.75em 0.6em; color: ${COLORS.ink}; background: ${COLORS.surface};
     border: 2px solid ${COLORS.ink}; box-shadow: inset 0 0 0 3px ${COLORS.surface}, inset 0 0 0 4px ${COLORS.ink};
     transition: background 0.15s ease, color 0.15s ease;
   }
   .lp-btn:hover { background: ${COLORS.ink}; color: ${COLORS.surface}; box-shadow: inset 0 0 0 3px ${COLORS.ink}, inset 0 0 0 4px ${COLORS.surface}; }
   .lp-btn-solid { background: ${COLORS.ink}; color: ${COLORS.surface}; box-shadow: inset 0 0 0 3px ${COLORS.ink}, inset 0 0 0 4px ${COLORS.surface}; }
   .lp-btn-solid:hover { background: ${COLORS.accentHover}; }
-  .lp-talk { width: 100%; max-width: 470px; font-size: 22px; padding: 18px; }
-  .lp-btn:focus-visible { outline: 2px solid ${COLORS.ink}; outline-offset: 4px; }
+  .lp-talk { width: 100%; font-size: 1.2em; padding: 0.7em; }
   .lp-star { font-size: 0.8em; }
-  .lp-below { max-width: 660px; margin: 40px auto 0; display: flex; flex-direction: column; align-items: center; gap: 28px; }
-  .lp-below > .lp-form { width: 100%; max-width: 480px; }
-  @media (prefers-reduced-motion: reduce) { .lp-btn { transition: none; } }
-  @media (max-width: 520px) {
-    .lp-poster { padding: 44px 20px 40px; outline-offset: 5px; gap: 18px; }
-    .lp-corner { width: 26px; height: 26px; }
-    .lp-text { font-size: 17px; }
-    .lp-btn { font-size: 15px; letter-spacing: 0.1em; padding: 14px 10px; }
-    .lp-talk { font-size: 19px; }
-  }
+  .lp-footer { width: 100%; margin-top: 0.3em !important; padding-top: 0.5em; border-top: 1px solid ${withAlpha(COLORS.ink, 0.5)}; font-family: ${font.mono}; font-size: 0.74em; line-height: 1.6; color: ${COLORS.muted}; }
+  .lp-footer a { color: ${COLORS.ink}; text-decoration: none; }
+  .lp-footer a:hover { text-decoration: underline; }
+  .lp-footer .dot { color: ${COLORS.faint}; margin: 0 0.35em; }
+  .lp-tab:focus-visible, .lp-btn:focus-visible, .lp-wa:focus-visible, .lp-footer a:focus-visible { outline: 2px solid ${COLORS.ink}; outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { .lp-tab, .lp-btn, .lp-wa { transition: none; } }
 `;
 
 // A small woodcut-style flourish for the poster's corners.
@@ -1200,18 +1227,6 @@ function LpCorner({ pos }) {
   );
 }
 
-// A rule with a star in the middle and small diamonds at the ends.
-function LpDivider() {
-  return (
-    <svg className="lp-divider" viewBox="0 0 360 22" aria-hidden="true" focusable="false">
-      <path fill="none" stroke="currentColor" strokeWidth="1.3" d="M14 9 H148 M14 13 H148 M212 9 H346 M212 13 H346" />
-      <path fill="currentColor" d="M4 11 L10 6 L16 11 L10 16 Z M344 11 L350 6 L356 11 L350 16 Z" />
-      <path fill="currentColor" d="M180 1.5 L183.2 8.4 L190.6 9.1 L185 14 L186.7 21.2 L180 17.4 L173.3 21.2 L175 14 L169.4 9.1 L176.8 8.4 Z" />
-      <circle cx="160" cy="11" r="2.2" fill="currentColor" /><circle cx="200" cy="11" r="2.2" fill="currentColor" />
-    </svg>
-  );
-}
-
 // A curved ribbon banner with folded tails; the words sit on top as text.
 function LpRibbon({ children }) {
   return (
@@ -1220,31 +1235,84 @@ function LpRibbon({ children }) {
         <path fill={COLORS.accentHover} stroke={COLORS.ink} strokeWidth="1.5" d="M2 30 H62 V70 H2 L20 50 Z M418 30 H358 V70 H418 L400 50 Z" />
         <path fill={COLORS.accentPressed} d="M62 70 L44 60 V62 Z M358 70 L376 60 V62 Z" />
         <path fill={COLORS.ink} stroke={COLORS.ink} strokeWidth="1.5" d="M44 18 Q210 2 376 18 V60 Q210 44 44 60 Z" />
-        <path fill="none" stroke={COLORS.surface} strokeWidth="1" strokeDasharray="0" d="M52 24 Q210 9 368 24 M52 54 Q210 39 368 54" opacity="0.7" />
+        <path fill="none" stroke={COLORS.surface} strokeWidth="1" d="M52 24 Q210 9 368 24 M52 54 Q210 39 368 54" opacity="0.7" />
       </svg>
       <p>{children}</p>
     </div>
   );
 }
 
-function HomeScreen() {
-  const c = useColors();
-  return (
-    <div className="hm" data-testid="home">
-      <style>{HOME_CSS}</style>
+// Fits the poster to the window: its width follows the screen, then its
+// font size (everything inside is in em) is the largest that keeps the
+// whole poster on screen, leaving room for Diego and the snowman when
+// they'd otherwise stand on it.
+function fitPoster(el) {
+  if (!el) return;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const width = Math.min(vw - 16, 860, Math.max(520, (vh - POSTER_TOP) * 0.92));
+  el.style.width = `${Math.round(width)}px`;
+  const side = (vw - width) / 2;
+  const bottom = side >= 175 ? 30 : vw <= 600 ? 86 : 112;
+  const room = vh - POSTER_TOP - bottom;
+  let lo = 7, hi = 24;
+  for (let i = 0; i < 12; i++) {
+    const mid = (lo + hi) / 2;
+    el.style.fontSize = `${mid}px`;
+    if (el.offsetHeight <= room) lo = mid; else hi = mid;
+  }
+  el.style.fontSize = `${lo.toFixed(2)}px`;
+}
 
-      <section className="lp-poster" aria-labelledby="hm-title" data-testid="poster">
+function HomeScreen() {
+  const posterRef = useRef(null);
+  useLayoutEffect(() => {
+    const fit = () => fitPoster(posterRef.current);
+    fit();
+    window.addEventListener("resize", fit);
+    document.fonts?.ready?.then(fit).catch(() => {});
+    document.fonts?.addEventListener?.("loadingdone", fit);
+    return () => {
+      window.removeEventListener("resize", fit);
+      document.fonts?.removeEventListener?.("loadingdone", fit);
+    };
+  }, []);
+
+  return (
+    <div className="lp-home" data-testid="home">
+      <style>{HOME_CSS}</style>
+      <section ref={posterRef} className="lp-poster" aria-labelledby="hm-title" data-testid="poster">
+        <span className="lp-pin l" aria-hidden="true" /><span className="lp-pin r" aria-hidden="true" />
         {["tl", "tr", "bl", "br"].map((p) => <LpCorner key={p} pos={p} />)}
-        <LpDivider />
-        <h1 id="hm-title" className="lp-name lp-ink"><span>Benjamin</span> <span>Mithra</span></h1>
+
+        <nav className="lp-tabs top-tabs-poster" aria-label="Main">
+          {TOP_TABS.map((t) => (
+            <Link key={t.key} to={t.to || VIEW_PATH[t.key] || "/"} className="lp-tab" aria-current={t.key === "home" ? "page" : undefined}
+              aria-label={t.icon ? t.label : undefined} title={t.icon ? t.label : undefined}>
+              <TabLabel t={t} />
+            </Link>
+          ))}
+        </nav>
+
+        <div className="lp-header">
+          <img src="/benjamin-mithra.jpg" alt="Benjamin Mithra" width="360" height="360" className="lp-photo" data-testid="home-photo" />
+          <h1 id="hm-title" className="lp-name lp-ink"><span>Benjamin</span> <span>Mithra</span></h1>
+        </div>
         <LpRibbon>Life Coach</LpRibbon>
-        <LpDivider />
+        <div className="lp-wa-row">
+          <span className="lp-rule l" aria-hidden="true" />
+          <a className="lp-wa" href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(HOME_WHATSAPP_MESSAGE)}`} target="_blank" rel="noopener noreferrer" aria-label="Chat with Benjamin on WhatsApp" data-testid="home-whatsapp">
+            <WhatsAppIcon />
+          </a>
+          <span className="lp-rule r" aria-hidden="true" />
+        </div>
+
         <h2 className="lp-headline lp-ink"><span className="big">Feeling lonely</span> <span className="small">this Holiday Season?</span></h2>
         <p className="lp-text">{HOME_HOLIDAY_OPENING}</p>
         <p className="lp-free"><strong className="lp-ink">It's absolutely free.</strong> <span>No charges, no catch, no obligations. Just a genuine conversation.</span></p>
         {HOME_HOLIDAY_CLOSING.map((t) => <p key={t} className="lp-text">{t}</p>)}
         <p className="lp-welcome lp-ink">You're welcome here. <b aria-label="heart">♥</b></p>
-        <LpDivider />
+
         <div className="lp-actions">
           <Link to={VIEW_PATH.call} className="lp-btn lp-btn-solid lp-talk" data-testid="home-talk-now"><span className="lp-star" aria-hidden="true">★</span>Talk now<span className="lp-star" aria-hidden="true">★</span></Link>
           <div className="lp-row">
@@ -1252,24 +1320,15 @@ function HomeScreen() {
             <Link to={VIEW_PATH.games} className="lp-btn" data-testid="home-brain-games">Brain Games</Link>
           </div>
         </div>
-      </section>
 
-      <div className="lp-below">
-        <div className="lp-form">
-          <WriteToMeForm id="write-to-me" style={styles(c).homeWriteToMe} submitStyle={styles(c).btnGold} />
-        </div>
-        <footer className="hm-footer">
-          <p style={{ ...styles(c).homeFooterLine, margin: "0 auto" }}>
-            <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
-            <span style={styles(c).homeFooterDot}>·</span>{" "}
-            <Link to={VIEW_PATH.privacy} className="home-footer-link" style={styles(c).homeFooterLink}>Privacy Policy</Link>{" "}
-            <span style={styles(c).homeFooterDot}>·</span>{" "}
-            <Link to={VIEW_PATH.disclaimer} className="home-footer-link" style={styles(c).homeFooterLink}>Disclaimer</Link>{" "}
-            <span style={styles(c).homeFooterDot}>·</span>{" "}
-            <Link to={VIEW_PATH.terms} className="home-footer-link" style={styles(c).homeFooterLink}>Terms and Conditions</Link>
-          </p>
+        <footer className="lp-footer">
+          <span>© {new Date().getFullYear()} Benjamin Mithra</span><span className="dot" aria-hidden="true">·</span>
+          <Link to={VIEW_PATH.call}>Talk now</Link><span className="dot" aria-hidden="true">·</span>
+          <Link to={VIEW_PATH.privacy}>Privacy Policy</Link><span className="dot" aria-hidden="true">·</span>
+          <Link to={VIEW_PATH.disclaimer}>Disclaimer</Link><span className="dot" aria-hidden="true">·</span>
+          <Link to={VIEW_PATH.terms}>Terms and Conditions</Link>
         </footer>
-      </div>
+      </section>
     </div>
   );
 }
@@ -3138,6 +3197,8 @@ function PlaceholderScreen({ title, note, points, sections, onNavigate }) {
         <p style={styles(c).homeFooterLine}>
           <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
           <span style={styles(c).homeFooterDot}>·</span>{" "}
+          <Link to={VIEW_PATH.call} className="home-footer-link" style={styles(c).homeFooterLink}>Talk now</Link>{" "}
+          <span style={styles(c).homeFooterDot}>·</span>{" "}
           <Link to={VIEW_PATH.articles} className="home-footer-link" style={styles(c).homeFooterLink}>Articles</Link>{" "}
           <span style={styles(c).homeFooterDot}>·</span>{" "}
           <Link to={VIEW_PATH.privacy} className="home-footer-link" style={styles(c).homeFooterLink}>Privacy</Link>{" "}
@@ -3514,6 +3575,8 @@ function ContactScreen({ onNavigate }) {
       <p style={styles(c).homeFooterLine}>
         <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
         <span style={styles(c).homeFooterDot}>·</span>{" "}
+        <Link to={VIEW_PATH.call} className="home-footer-link" style={styles(c).homeFooterLink}>Talk now</Link>{" "}
+        <span style={styles(c).homeFooterDot}>·</span>{" "}
         <Link to={VIEW_PATH.articles} className="home-footer-link" style={styles(c).homeFooterLink}>Articles</Link>{" "}
         <span style={styles(c).homeFooterDot}>·</span>{" "}
         <Link to={VIEW_PATH.privacy} className="home-footer-link" style={styles(c).homeFooterLink}>Privacy</Link>{" "}
@@ -3541,7 +3604,7 @@ function ContactScreen({ onNavigate }) {
 // always behind the front wall.
 // =================================================================
 const GUIDE_DOG_TIPS = {
-  home: { text: "New here? You can just write to me, no need to prepare anything.", link: { href: "#write-to-me", label: "Go to the form" } },
+  home: { text: "New here? You can just write to me, no need to prepare anything.", link: { to: "/consultation", label: "Go to the form" } },
   contact: { text: "Take your time. Reach out whenever you're ready." },
   exercises: { text: "Try the breathing exercise if you need a calm minute.", link: { to: "/exercises/breathing", label: "Open the breathing exercise" } },
   games: { text: "Sniffing out a challenge? Chess is my favourite.", link: { to: "/games/chess", label: "Play chess" } },
@@ -3947,61 +4010,6 @@ function PawIcon() {
 
 const gdScale = () => (window.innerWidth <= 600 ? 0.8 : 1);
 
-// =================================================================
-// Floating WhatsApp button (bottom right). Like Diego, it only appears
-// in a real browser after load, so it stays out of the prerendered HTML.
-// Diego's spacer at the end of every page keeps the last content clear.
-// =================================================================
-const WHATSAPP_FLOAT_MESSAGE = "Hi Benjamin, I found your website and I'd like to talk.";
-
-const WHATSAPP_FLOAT_CSS = `
-  .wa-float {
-    position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 30;
-    width: 56px; height: 56px; border-radius: 50%; background: #25D366; color: #FFFFFF;
-    display: flex; align-items: center; justify-content: center; text-decoration: none;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.35); transition: transform 0.2s ease, box-shadow 0.2s ease;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .wa-float svg { width: 30px; height: 30px; }
-  .wa-float:hover, .wa-float:active { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.4); }
-  .wa-float:focus { outline: none; }
-  .wa-float:focus-visible { outline: 2px solid ${COLORS.accent}; outline-offset: 3px; }
-  @media (max-width: 600px) {
-    .wa-float { width: 52px; height: 52px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
-    .wa-float svg { width: 28px; height: 28px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .wa-float { transition: none; }
-    .wa-float:hover, .wa-float:active { transform: none; }
-  }
-`;
-
-function WhatsAppFloat() {
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    if (navigator.webdriver) return;
-    const show = () => setReady(true);
-    if (document.readyState === "complete") { show(); return; }
-    window.addEventListener("load", show);
-    return () => window.removeEventListener("load", show);
-  }, []);
-  if (!ready) return null;
-  return (
-    <>
-      <style>{WHATSAPP_FLOAT_CSS}</style>
-      <a
-        className="wa-float"
-        href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_FLOAT_MESSAGE)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Chat with Benjamin on WhatsApp"
-      >
-        <WhatsAppIcon />
-      </a>
-    </>
-  );
-}
-
 function GuideDog({ view }) {
   const location = useLocation();
   const [ready, setReady] = useState(false);
@@ -4109,8 +4117,9 @@ function GuideDog({ view }) {
   return (
     <>
       <style>{GUIDE_DOG_CSS}</style>
-      {/* Keeps the end of every page clear of the dog and its house. */}
-      <div aria-hidden="true" style={{ height: Math.round(GD_HOME_BOX.h * scale) + 12, flexShrink: 0 }} />
+      {/* Keeps the end of every page clear of the dog and its house (the
+          home poster fits the screen and keeps its own room). */}
+      {view !== "home" && <div aria-hidden="true" style={{ height: Math.round(GD_HOME_BOX.h * scale) + 12, flexShrink: 0 }} />}
       {hidden ? (
         <button type="button" className="gd-paw" onClick={showDog} aria-label="Bring back Diego the guide dog">
           <PawIcon />
@@ -4297,6 +4306,8 @@ function SiteFooterLine() {
   return (
     <p style={styles(c).homeFooterLine}>
       <span>© {new Date().getFullYear()} Benjamin Mithra</span>{" "}
+      <span style={styles(c).homeFooterDot}>·</span>{" "}
+      <Link to={VIEW_PATH.call} className="home-footer-link" style={styles(c).homeFooterLink}>Talk now</Link>{" "}
       <span style={styles(c).homeFooterDot}>·</span>{" "}
       <Link to={VIEW_PATH.articles} className="home-footer-link" style={styles(c).homeFooterLink}>Articles</Link>{" "}
       <span style={styles(c).homeFooterDot}>·</span>{" "}
@@ -4499,19 +4510,23 @@ const TOP_TABS = [
   { key: "exercises", label: "Mind Exercises" },
   { key: "games", label: "Brain Games" },
   { key: "rvlab", label: "RV Lab", to: "/exercises/rv-lab" },
-  { key: "call", label: "Talk now", phone: true },
+  { key: "contact", label: "Write to me", icon: "pencil" },
 ];
 
-// The small phone symbol before "Talk now" in the tabs and the menu.
-function TabLabel({ t }) {
-  if (!t.phone) return t.label;
+// A pencil for "Write to me": only the icon on the tabs, the icon and the
+// words in the menu.
+function PencilIcon({ size = 15 }) {
   return (
-    <span className="talk-shake" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-      <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style={{ flexShrink: 0 }}>
-        <path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" />
-      </svg>
-      {t.label}
-    </span>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false" style={{ flexShrink: 0, display: "block" }}>
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z M14.5 5.5l3 3" />
+    </svg>
+  );
+}
+function TabLabel({ t, withText = false }) {
+  if (t.icon !== "pencil") return t.label;
+  if (!withText) return <PencilIcon />;
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><PencilIcon />{t.label}</span>
   );
 }
 const HAMBURGER_MENU_ITEMS = [
@@ -4645,21 +4660,12 @@ export default function App() {
   useDocumentMeta(metaKey, location.pathname, article ? articleMeta(article) : null);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const Sheet = view === "home" ? Fragment : "div";
+  const sheetProps = view === "home" ? {} : { className: "lp-sheet", "data-testid": "poster-sheet" };
   // RV Lab lives inside Mind Exercises; light up whichever tab matches.
   const tabActive = (t) => (t.key === "rvlab" ? view === "exercises" && exerciseTab === "rvlab"
     : t.key === "exercises" ? view === "exercises" && exerciseTab !== "rvlab"
       : view === t.key);
-  const showWhatsApp = view === "home" || view === "contact" || view === "faq" || (view === "exercises" && !exerciseTab) || (view === "games" && !gameTab);
-  // Pause the "Talk now" pulse while this browser tab is hidden (an event, not a timer).
-  useEffect(() => {
-    const sync = () => {
-      if (document.hidden) document.documentElement.setAttribute("data-page-hidden", "");
-      else document.documentElement.removeAttribute("data-page-hidden");
-    };
-    sync();
-    document.addEventListener("visibilitychange", sync);
-    return () => document.removeEventListener("visibilitychange", sync);
-  }, []);
 
   const [activeGame, setActiveGame] = useState(() => pickRandomGame(new Set()));
   const [phase, setPhase] = useState("intro");
@@ -4767,52 +4773,22 @@ export default function App() {
           @media (prefers-reduced-motion: reduce) {
             .emotion-marquee-track { animation-duration: 400s !important; }
           }
-          /* "Talk now": every 2 seconds a deep teal ring with a bright aqua
-             glow (#1ECFC0) grows from the tab and fades; every 3.5 seconds the
-             label gives a quick 0.5-second wiggle. The glow is box-shadow on a
-             pseudo-element and the wiggle is translateX on the label inside
-             the tab, so the tab itself (and where you tap it) never moves.
-             A cue only, not an "online" light. */
-          @keyframes talkPulse {
-            0% { box-shadow: 0 0 0 0 ${withAlpha(c.accent, 0.6)}, 0 0 0 0 ${withAlpha("#1ECFC0", 0)}; opacity: 1; }
-            25% { box-shadow: 0 0 0 3px ${withAlpha(c.accent, 0.45)}, 0 0 8px 6px ${withAlpha("#1ECFC0", 0.75)}; opacity: 1; }
-            70% { box-shadow: 0 0 0 5px ${withAlpha(c.accent, 0)}, 0 0 10px 12px ${withAlpha("#1ECFC0", 0)}; opacity: 1; }
-            100% { box-shadow: 0 0 0 5px ${withAlpha(c.accent, 0)}, 0 0 10px 12px ${withAlpha("#1ECFC0", 0)}; opacity: 0; }
-          }
-          /* 4 left-right shakes of 2px in 0.5s (8 a second), then still until 3.5s. */
-          @keyframes talkShake {
-            0%, 14.29%, 100% { transform: translateX(0); }
-            1.79%, 5.36%, 8.93%, 12.5% { transform: translateX(-2px); }
-            3.57%, 7.14%, 10.71% { transform: translateX(2px); }
-          }
-          .talk-pulse { position: relative; }
-          .talk-pulse::after {
-            content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; z-index: -1;
-            animation: talkPulse 2s ease-out infinite;
-          }
-          .talk-shake { animation: talkShake 3.5s linear infinite; }
-          .menu-btn { position: relative; }
-          .menu-dot {
-            position: absolute; top: -4px; right: -4px; width: 9px; height: 9px; border-radius: 50%;
-            background: ${c.accent}; pointer-events: none;
-          }
-          .menu-dot::after {
-            content: ""; position: absolute; inset: 0; border-radius: 50%;
-            animation: talkPulse 2s ease-out infinite;
-          }
-          /* Browsers already stop painting hidden tabs; this pauses it explicitly too. */
-          html[data-page-hidden] .talk-pulse::after, html[data-page-hidden] .menu-dot::after, html[data-page-hidden] .talk-shake { animation-play-state: paused; }
-          @media (prefers-reduced-motion: reduce) {
-            .talk-pulse::after, .menu-dot::after, .talk-shake { animation: none; }
-            /* A steady teal outline and a soft aqua tint behind the text instead. */
-            .talk-pulse::after { box-shadow: 0 0 0 3px ${withAlpha(c.accent, 0.45)}; background: ${withAlpha("#1ECFC0", 0.14)}; }
-          }
           .fade-in { animation: fadeIn 0.35s ease both; }
-          /* Victorian letterpress: a thin double-line border round every page,
-             and worn, slightly irregular ink on page headings. */
-          .lp-frame { position: fixed; inset: 6px; z-index: 27; pointer-events: none; border: 4px double ${withAlpha(c.ink, 0.78)}; }
+          /* Victorian letterpress: every page is a parchment poster pinned to a
+             wooden board, with worn, slightly irregular ink on its headings. */
+          html, body { margin: 0; }
           main h1, main h2 { filter: url(#lp-ink); }
-          @media (max-width: 600px) { .lp-frame { inset: 3px; border-width: 3px; } }
+          .lp-sheet {
+            position: relative; z-index: 2; box-sizing: border-box; width: calc(100% - 28px); max-width: 860px; margin: 40px auto 28px;
+            display: flex; flex-direction: column; align-items: center;
+            background-color: ${c.surface}; background-image: ${PAPER_GRAIN}; background-size: 320px 320px;
+            border: 5px double ${c.ink}; outline: 1px solid ${withAlpha(c.ink, 0.8)}; outline-offset: -11px;
+            box-shadow: 0 18px 34px rgba(30, 16, 6, 0.45);
+          }
+          .lp-pin { position: absolute; top: -12px; width: 18px; height: 18px; border-radius: 50%; background: #A8823E; border: 1.5px solid #3A2410; box-shadow: inset -3px -3px 0 rgba(58, 36, 16, 0.35), 0 3px 4px rgba(20, 10, 4, 0.5); z-index: 3; }
+          .lp-pin::after { content: ""; position: absolute; top: 3px; left: 4px; width: 5px; height: 4px; border-radius: 50%; background: rgba(255, 240, 200, 0.75); }
+          .lp-pin.l { left: 14px; } .lp-pin.r { right: 14px; }
+          @media (max-width: 600px) { .lp-sheet { width: calc(100% - 10px); margin-top: 34px; } }
           .nav-btn:hover { background: ${c.accentPressed} !important; border-color: ${c.accentPressed} !important; color: ${c.onAccent} !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
           .hero-btn:hover { background: ${c.accentHover} !important; border-color: ${c.accentHover} !important; color: ${c.onAccent} !important; -webkit-text-stroke: var(--text-outline-on-accent) !important; }
           .home-footer-link:hover { color: ${c.accent} !important; }
@@ -4841,13 +4817,17 @@ export default function App() {
           </>
         )}
 
-        {view === "home" || view === "contact" ? (
+        {/* Every page but home sits on a parchment poster pinned to the board;
+            the home page is its own poster, sized to fit the screen. */}
+        <Sheet {...sheetProps}>
+        {view !== "home" && <><span className="lp-pin l" aria-hidden="true" /><span className="lp-pin r" aria-hidden="true" /></>}
+        {view === "home" ? null : view === "contact" ? (
           <div style={{ ...styles(c).topBar, maxWidth: 820 }}>
             <div className="top-tabs" style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
               {TOP_TABS.map((t, i) => (
                 <Fragment key={t.key}>
                   {i > 0 && " "}
-                  <Link to={t.to || VIEW_PATH[t.key] || "/"} className={t.phone ? "nav-btn talk-pulse" : "nav-btn"} style={{ ...styles(c).cornerBtn, ...(tabActive(t) ? styles(c).cornerBtnActive : {}) }}>
+                  <Link to={t.to || VIEW_PATH[t.key] || "/"} className="nav-btn" aria-label={t.icon ? t.label : undefined} title={t.icon ? t.label : undefined} style={{ ...styles(c).cornerBtn, ...(tabActive(t) ? styles(c).cornerBtnActive : {}) }}>
                     <TabLabel t={t} />
                   </Link>
                 </Fragment>
@@ -4858,16 +4838,16 @@ export default function App() {
           <div style={styles(c).topBar}>
             <button className="nav-btn" style={styles(c).subTabBack} onClick={handleBackArrow} aria-label="Back">←</button>
             <div style={styles(c).hamburgerWrap}>
-              <button className="nav-btn menu-btn" style={styles(c).hamburgerBtn} onClick={() => setMenuOpen((o) => !o)} aria-label="Menu" aria-expanded={menuOpen}>
-                ☰{!menuOpen && <span className="menu-dot" aria-hidden="true" data-testid="menu-dot" />}
+              <button className="nav-btn" style={styles(c).hamburgerBtn} onClick={() => setMenuOpen((o) => !o)} aria-label="Menu" aria-expanded={menuOpen}>
+                ☰
               </button>
               {menuOpen && (
                 <>
                   <div style={styles(c).hamburgerBackdrop} onClick={() => setMenuOpen(false)} />
                   <div style={styles(c).hamburgerMenu}>
                     {HAMBURGER_MENU_ITEMS.map((t) => (
-                      <Link key={t.key} to={t.to || VIEW_PATH[t.key] || "/"} onClick={() => setMenuOpen(false)} className={t.phone ? "nav-btn talk-pulse" : "nav-btn"} style={{ ...styles(c).hamburgerMenuItem, ...(tabActive(t) ? styles(c).cornerBtnActive : {}) }}>
-                        <TabLabel t={t} />
+                      <Link key={t.key} to={t.to || VIEW_PATH[t.key] || "/"} onClick={() => setMenuOpen(false)} className="nav-btn" style={{ ...styles(c).hamburgerMenuItem, ...(tabActive(t) ? styles(c).cornerBtnActive : {}) }}>
+                        <TabLabel t={t} withText />
                       </Link>
                     ))}
                   </div>
@@ -5023,12 +5003,12 @@ export default function App() {
             </div>
           )}
         </main>
+        </Sheet>
 
         {CHRISTMAS_THEME && <SnowGround />}
         {CHRISTMAS_THEME && <SantaInTheSky />}
         <GuideDog view={view} />
-        {CHRISTMAS_THEME && <Snowman besideWhatsApp={showWhatsApp} />}
-        {showWhatsApp && <WhatsAppFloat />}
+        {CHRISTMAS_THEME && <Snowman />}
       </div>
     </ThemeContext.Provider>
   );
@@ -5045,16 +5025,11 @@ function styles(c) {
     },
 
     // ---- Background ----
-    eliteWrap: { position: "fixed", inset: 0, overflow: "hidden", zIndex: 0, pointerEvents: "none", background: c.bg },
+    eliteWrap: { position: "fixed", inset: 0, overflow: "hidden", zIndex: 0, pointerEvents: "none", background: "#6B4426" },
     eliteVignette: {
       position: "absolute", inset: 0,
-      backgroundImage: [
-        PAPER_GRAIN,
-        "radial-gradient(ellipse at 18% 22%, rgba(120, 82, 40, 0.10), transparent 32%)",
-        "radial-gradient(ellipse at 82% 68%, rgba(120, 82, 40, 0.08), transparent 30%)",
-        "radial-gradient(ellipse at center, transparent 58%, rgba(70, 42, 18, 0.22) 100%)",
-      ].join(", "),
-      backgroundSize: "320px 320px, auto, auto, auto",
+      backgroundImage: [WOOD_GRAIN, WOOD_PLANKS, "radial-gradient(ellipse at center, transparent 50%, rgba(25, 12, 4, 0.45) 100%)"].join(", "),
+      backgroundSize: "900px 220px, auto, auto",
     },
 
     mainHome: { padding: 0, maxWidth: "none", width: "100%" },
